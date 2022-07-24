@@ -1,0 +1,33 @@
+html,
+body,
+.app {
+  height: 100%;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+$img-diameter: 220px;
+
+.img-container {
+  height: $img-diameter;
+  width: $img-diameter;
+
+  max-height: 100%;
+  max-width: 100%;
+
+  border: 3px solid #000;
+  border-radius: 50%;
+  overflow: hidden;
+}
