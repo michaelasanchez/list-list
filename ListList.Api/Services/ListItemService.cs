@@ -40,6 +40,15 @@ namespace ListList.Api.Services
             return entity.Id;
         }
 
+        public async Task<ListItem> GetListItemByIdAsync(Guid listItemId)
+        {
+            var userId = await _userService.GetUserIdAsync();
+
+            var listItems = await _listItemRepository.GetListItemByIdAsync(userId, listItemId);
+
+            return _listItemMapper.ToApi(listItems);
+        }
+
         public async Task<IEnumerable<ListItem>> GetListItemsAsync()
         {
             var userId = await _userService.GetUserIdAsync();

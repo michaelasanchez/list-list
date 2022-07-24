@@ -5,7 +5,7 @@ namespace ListList.Data.Repositories.Interfaces
 {
     public interface IListItemRepository
     {
-        Task<ListItemEntity> GetListItemById(Guid userId, Guid listItemId);
+        Task<ListItemEntity> GetListItemByIdAsync(Guid userId, Guid listItemId);
 
         Task<List<ListItemEntity>> GetListItemsAsync(Guid userId);
 

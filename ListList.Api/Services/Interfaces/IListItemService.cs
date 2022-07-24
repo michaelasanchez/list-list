@@ -7,5 +7,6 @@ namespace ListList.Api.Services.Interfaces
         Task<Guid> CreateListItemAsync(ListItem listItem, Guid? parentId);
 
         Task<IEnumerable<ListItem>> GetListItemsAsync();
+        Task<ListItem> GetListItemByIdAsync(Guid listItemId);
     }
 }
