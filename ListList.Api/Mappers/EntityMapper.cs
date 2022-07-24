@@ -14,14 +14,24 @@ namespace ListList.Api.Mappers
             _autoMapper = autoMapper;
         }
 
-        public TApi Map(TEntity entity)
+        public TApi ToApi(TEntity entity)
         {
             return _autoMapper.Map<TApi>(entity);
         }
 
-        public IEnumerable<TApi> Map(IEnumerable<TEntity> entities)
+        public IEnumerable<TApi> ToApi(IEnumerable<TEntity> entities)
         {
             return _autoMapper.Map<IEnumerable<TApi>>(entities);
+        }
+
+        public TEntity ToDb(TApi resource)
+        {
+            return _autoMapper.Map<TEntity>(resource);
+        }
+
+        public IEnumerable<TEntity> ToDb(IEnumerable<TApi> entities)
+        {
+            return _autoMapper.Map<IEnumerable<TEntity>>(entities);
         }
     }
 }

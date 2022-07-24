@@ -1,4 +1,5 @@
-﻿using ListList.Data.Models.Entities;
+﻿using Listlist.Data.Models;
+using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
 using ListList.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -14,9 +15,33 @@ namespace ListList.Data.Repositories
             _context = context;
         }
 
-        public Task CreateListItemAsync(Guid userId, ListItemEntity listItem, Guid? parentId)
+        public async Task CreateListItemAsync(Guid userId, ListItemEntity creation, Guid? parentId)
         {
-            throw new NotImplementedException();
+            creation.UserId = userId;
+
+            if (parentId is null)
+            {
+                creation.Left = 1;
+                creation.Right = 2;
+            }
+            else
+            {
+                var parent = await _context.ListItems.SingleAsync(z => z.Id == parentId);
+
+                creation.RootId = parent.Id;
+                creation.Left = parent.Left + 1;
+                creation.Right = parent.Left + 2;
+
+                var subsequentItems = await _context.ListItems.Where(z => z.RootId == parent.RootId && z.Right >= parent.Left).ToListAsync();
+
+                foreach (var item in subsequentItems)
+                {
+                    item.Left = item.Left > parent.Left ? item.Left + 2 : item.Left;
+                    item.Right += 2;
+                }
+            }
+
+            await _context.ListItems.AddAsync(creation);
         }
 
         public Task DeleteListItemAsync(Guid userId, Guid listItemId)
@@ -24,7 +49,12 @@ namespace ListList.Data.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<List<ListItemEntity>> GetListItemAsync(Guid userId, Guid listItemId)
+        Task<ListItemEntity> IListItemRepository.GetListItemById(Guid userId, Guid listItemId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<ListItemEntity>> GetListItemsAsync(Guid userId)
         {
             throw new NotImplementedException();
         }
@@ -33,5 +63,4 @@ namespace ListList.Data.Repositories
         {
             throw new NotImplementedException();
         }
-    }
 }

@@ -4,6 +4,7 @@ using ListList.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Listlist.Data.Migrations
 {
     [DbContext(typeof(ListListContext))]
-    partial class ListListContextModelSnapshot : ModelSnapshot
+    [Migration("20220724183324_AddListItemIdKey")]
+    partial class AddListItemIdKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,9 +48,6 @@ namespace Listlist.Data.Migrations
                     b.Property<int>("Right")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("RootId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTimeOffset?>("Updated")
                         .HasColumnType("datetimeoffset");
 
@@ -58,8 +57,6 @@ namespace Listlist.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Id");
-
-                    b.HasIndex("RootId");
 
                     b.HasIndex("UserId");
 
@@ -91,10 +88,6 @@ namespace Listlist.Data.Migrations
 
             modelBuilder.Entity("ListList.Data.Models.Entities.ListItemEntity", b =>
                 {
-                    b.HasOne("ListList.Data.Models.Entities.ListItemEntity", null)
-                        .WithMany()
-                        .HasForeignKey("RootId");
-
                     b.HasOne("ListList.Data.Models.Entities.UserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")

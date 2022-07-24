@@ -27,13 +27,26 @@ namespace ListList.Api.Services
             _listItemRepository = unitOfWork.ListItemRepository;
         }
 
+        public async Task<Guid> CreateListItemAsync(ListItem listItem, Guid? parentId)
+        {
+            var userId = await _userService.GetUserIdAsync();
+
+            var entity = _listItemMapper.ToDb(listItem);
+
+            await _listItemRepository.CreateListItemAsync(userId, entity, parentId);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return entity.Id;
+        }
+
         public async Task<IEnumerable<ListItem>> GetListItemsAsync()
         {
             var userId = await _userService.GetUserIdAsync();
 
-            var listItems = await _listItemRepository.GetListItemAsync(userId);
+            var listItems = await _listItemRepository.GetListItemsAsync(userId);
 
-            return _listItemMapper.Map(listItems);
+            return _listItemMapper.ToApi(listItems);
         }
     }
 }

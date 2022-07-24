@@ -21,11 +21,15 @@ namespace ListList.Data.Models
 
                 entity.HasIndex(e => e.Id);
 
-                entity.HasKey(e => new { e.Id, e.UserId, e.Left, e.Right });
+                entity.HasKey(e => e.Id);
 
                 entity.HasOne<UserEntity>()
                     .WithMany()
                     .HasForeignKey(e => e.UserId);
+
+                entity.HasOne<ListItemEntity>()
+                    .WithMany()
+                    .HasForeignKey(e => e.RootId);
             });
 
             modelBuilder.Entity<UserEntity>(entity =>

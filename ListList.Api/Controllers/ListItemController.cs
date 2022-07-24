@@ -31,5 +31,22 @@ namespace ListList.Api.Controllers
 
             return Ok(listItems);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<Guid>> Create(ListItem listItem, Guid? parentId)
+        {
+            Guid id;
+
+            try
+            {
+                id = await _service.CreateListItemAsync(listItem, parentId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok(id);
+        }
     }
 }

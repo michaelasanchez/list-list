@@ -9,6 +9,8 @@ namespace ListList.Api.Mappers.Profiles
         public ListItemProfile()
         {
             CreateMap<ListItemEntity, ListItem>();
+
+            CreateMap<ListItem, ListItemEntity>();
         }
     }
 }

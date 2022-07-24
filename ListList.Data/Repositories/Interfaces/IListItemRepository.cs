@@ -1,10 +1,13 @@
-﻿using ListList.Data.Models.Entities;
+﻿using Listlist.Data.Models;
+using ListList.Data.Models.Entities;
 
 namespace ListList.Data.Repositories.Interfaces
 {
     public interface IListItemRepository
     {
-        Task<List<ListItemEntity>> GetListItemAsync(Guid userId, Guid listItemId);
+        Task<ListItemEntity> GetListItemById(Guid userId, Guid listItemId);
+
+        Task<List<ListItemEntity>> GetListItemsAsync(Guid userId);
 
         Task CreateListItemAsync(Guid userId, ListItemEntity listItem, Guid? parentId);
 
