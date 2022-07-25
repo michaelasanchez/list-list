@@ -1,0 +1,24 @@
+.list-node {
+  display: flex;
+  flex-direction: column;
+
+  padding: 0.5em;
+
+  .node-heading {
+    display: flex;
+    justify-content: space-between;
+
+    margin-bottom: 0.5em;
+
+    button:not(:first-child) {
+      margin-left: 0.5em;
+    }
+    button:last-child {
+      width: 2em;
+    }
+  }
+  .node-children {
+    border: 1px solid gray;
+    padding: 0.5em;
+  }
+}

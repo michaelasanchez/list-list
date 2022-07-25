@@ -1,5 +1,5 @@
 import { filter, findIndex } from 'lodash';
-import { ApiListItem } from '../models/api';
+import { ApiListItem } from '../models/contracts';
 import { ListNode } from '../models/ListNode';
 
 const mapChildNodes = (
@@ -43,6 +43,7 @@ const mapToNode = (items: ApiListItem[]): ListNode => {
 
   return {
     ...userItem,
+    label: 'Root',
     expanded: false,
     children: userNodes,
   };

@@ -57,9 +57,20 @@ namespace ListList.Data.Repositories
             await _context.ListItems.AddAsync(creation);
         }
 
-        public Task DeleteListItemAsync(Guid userId, Guid listItemId)
+        public async Task DeleteListItemAsync(ListItemEntity userNode, Guid listItemId)
         {
-            throw new NotImplementedException();
+            var targetNode = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
+            
+            var listItemQuery = await _context.ListItems
+                .Where(z => z.UserId == userNode.UserId && z.Right >= targetNode.Left)
+                .ToListAsync();
+
+            foreach (var item in listItemQuery)
+            {
+                item.Left = item.Left > targetNode.Left ? item.Left - 2 : item.Left;
+                item.Right -= 2;
+            }
+            _context.ListItems.Remove(targetNode);
         }
 
         public async Task<ListItemEntity> GetListItemByIdAsync(Guid userId, Guid listItemId)

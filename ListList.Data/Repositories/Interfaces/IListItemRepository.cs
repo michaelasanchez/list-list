@@ -15,6 +15,6 @@ namespace ListList.Data.Repositories.Interfaces
 
         Task MoveListItemAsync(Guid userId, Guid listItemId, Guid parentId);
 
-        Task DeleteListItemAsync(Guid userId, Guid listItemId);
+        Task DeleteListItemAsync(ListItemEntity userNode, Guid listItemId);
     }
 }

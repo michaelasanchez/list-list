@@ -5,5 +5,6 @@ namespace ListList.Api.Mappers.Interfaces
 {
     public interface IListItemMapper : IEntityMapper<ListItemEntity, ListItem>
     {
+        ListItemEntity ToDb(ListItemCreation creation);
     }
 }

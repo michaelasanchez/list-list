@@ -11,6 +11,7 @@ namespace ListList.Api.Mappers.Profiles
             CreateMap<ListItemEntity, ListItem>();
 
             CreateMap<ListItem, ListItemEntity>();
+            CreateMap<ListItemCreation, ListItemEntity>();
         }
     }
 }

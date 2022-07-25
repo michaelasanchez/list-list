@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "listlist.web"
+		}
+	],
+	"settings": {
+        "files.exclude": {
+            "**/node_modules": true,
+            "dist": true
+        }
+    }
+}

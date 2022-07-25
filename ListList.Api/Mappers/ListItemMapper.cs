@@ -14,5 +14,10 @@ namespace ListList.Api.Mappers
         {
             _autoMapper = autoMapper;
         }
+
+        public ListItemEntity ToDb(ListItemCreation creation)
+        {
+            return _autoMapper.Map<ListItemEntity>(creation);
+        }
     }
 }

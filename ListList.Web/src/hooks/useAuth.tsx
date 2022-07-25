@@ -4,8 +4,8 @@ import {
   useGoogleLogin,
   useGoogleLogout,
 } from 'react-google-login';
-import { GoogleProfile, User } from '../models/auth';
 import { config } from '../shared';
+import { GoogleProfile, User } from '../models/auth';
 
 export interface useAuthState {
   loading: boolean;
@@ -54,7 +54,8 @@ export const useAuth = (): useAuthState => {
     isSignedIn: true,
     onSuccess: handleSignInSuccess,
     onFailure: handleSignInFailure,
-    onAutoLoadFinished: (success: boolean) => console.log('[Login finished]:', success),
+    onAutoLoadFinished: (success: boolean) =>
+      console.log('[Login finished]:', success),
   });
 
   /* Sign out */

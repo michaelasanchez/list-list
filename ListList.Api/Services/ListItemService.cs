@@ -27,10 +27,9 @@ namespace ListList.Api.Services
             _listItemRepository = unitOfWork.ListItemRepository;
         }
 
-        public async Task<Guid> CreateListItemAsync(ListItem listItem, Guid? parentId)
+        public async Task<Guid> CreateListItemAsync(ListItemCreation listItem, Guid? parentId)
         {
             var userId = await _userService.GetUserIdAsync();
-
             var userNode = await _listItemRepository.GetOrCreateUserNodeAsync(userId);
 
             await _unitOfWork.SaveChangesAsync();
@@ -47,10 +46,23 @@ namespace ListList.Api.Services
         public async Task<ListItem> GetListItemByIdAsync(Guid listItemId)
         {
             var userId = await _userService.GetUserIdAsync();
+            await _listItemRepository.GetOrCreateUserNodeAsync(userId);
+
+            await _unitOfWork.SaveChangesAsync();
 
             var listItems = await _listItemRepository.GetListItemByIdAsync(userId, listItemId);
 
             return _listItemMapper.ToApi(listItems);
+        }
+
+        public async Task DeleteListItemAsync(Guid listItemId)
+        {
+            var userId = await _userService.GetUserIdAsync();
+            var userNode = await _listItemRepository.GetOrCreateUserNodeAsync(userId);
+
+            await _listItemRepository.DeleteListItemAsync(userNode, listItemId);
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<ListItem>> GetListItemsAsync()

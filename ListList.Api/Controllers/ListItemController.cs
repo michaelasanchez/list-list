@@ -49,14 +49,14 @@ namespace ListList.Api.Controllers
             return Ok(listItem);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Guid>> Create(ListItem listItem, Guid? parentId)
+        [HttpPost("{parentId}")]
+        public async Task<ActionResult<Guid>> Create([FromRoute] Guid? parentId, ListItemCreation creation)
         {
             Guid id;
 
             try
             {
-                id = await _service.CreateListItemAsync(listItem, parentId);
+                id = await _service.CreateListItemAsync(creation, parentId);
             }
             catch (Exception ex)
             {
@@ -64,6 +64,21 @@ namespace ListList.Api.Controllers
             }
 
             return Ok(id);
+        }
+
+        [HttpDelete("{listItemId}")]
+        public async Task<ActionResult> Delete([FromRoute] Guid listItemId)
+        {
+            try
+            {
+                await _service.DeleteListItemAsync(listItemId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok();
         }
     }
 }

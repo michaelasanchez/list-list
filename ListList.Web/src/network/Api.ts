@@ -25,8 +25,15 @@ export class Api<T> {
     if (token) this._token = token;
   }
 
-  private async execute(init: RequestInit = null, toJson: boolean = true): Promise<any> {
-    const requestPath = formApiRequestPath(this._basePath, this._actionPath, this._queryParameters);
+  private async execute(
+    init: RequestInit = null,
+    toJson: boolean = true
+  ): Promise<any> {
+    const requestPath = formApiRequestPath(
+      this._basePath,
+      this._actionPath,
+      this._queryParameters
+    );
 
     if (this._token) {
       const authHeaders = new Headers({
@@ -35,7 +42,10 @@ export class Api<T> {
 
       if (init) {
         if (init.headers) {
-          (init.headers as Headers).append('Authorization', `Bearer ${this._token}`);
+          (init.headers as Headers).append(
+            'Authorization',
+            `Bearer ${this._token}`
+          );
         } else {
           init.headers = authHeaders;
         }
@@ -46,14 +56,19 @@ export class Api<T> {
       }
     }
 
-    const fetchInvocation = init ? fetch(requestPath, init) : fetch(requestPath);
+    const fetchInvocation = init
+      ? fetch(requestPath, init)
+      : fetch(requestPath);
 
     return fetchInvocation.then((result) =>
       result.ok && result.status == 200 && toJson ? result.json() : result
     );
   }
 
-  protected executeDelete(id: number, params: RequestInit = null): Promise<void> {
+  protected executeDelete(
+    id: string,
+    params: RequestInit = null
+  ): Promise<void> {
     this.setActionPath(`${id}`);
     return this.execute(
       {
@@ -64,13 +79,20 @@ export class Api<T> {
     );
   }
 
-  protected executeGet(queryParams?: QueryParameters, init: RequestInit = null): Promise<any> {
+  protected executeGet(
+    queryParams?: QueryParameters,
+    init: RequestInit = null
+  ): Promise<any> {
     if (!!queryParams) this.setQueryParameters(queryParams);
 
     return this.execute(init);
   }
 
-  protected executePatch(id: number, obj: any, init: RequestInit = null): Promise<any> {
+  protected executePatch(
+    id: number,
+    obj: any,
+    init: RequestInit = null
+  ): Promise<any> {
     this.setActionPath(`${id}`);
     return this.execute(
       {
@@ -118,7 +140,7 @@ export class Api<T> {
     this._queryParameters = new URLSearchParams(params).toString();
   };
 
-  public GetById = (id: number): Promise<T> => {
+  public GetById = (id: string): Promise<T> => {
     this.setActionPath(`${id}`);
 
     return this.executeGet() as Promise<T>;
@@ -128,8 +150,8 @@ export class Api<T> {
     return this.executeGet() as Promise<T[]>;
   };
 
-  public Create = (obj: any): Promise<number> => {
-    return this.executePost(obj) as Promise<number>;
+  public Create = (obj: any): Promise<string> => {
+    return this.executePost(obj) as Promise<string>;
   };
 
   // public Delete = (id: number): Promise<void> => {
