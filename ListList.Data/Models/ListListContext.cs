@@ -26,10 +26,6 @@ namespace ListList.Data.Models
                 entity.HasOne<UserEntity>()
                     .WithMany()
                     .HasForeignKey(e => e.UserId);
-
-                entity.HasOne<ListItemEntity>()
-                    .WithMany()
-                    .HasForeignKey(e => e.RootId);
             });
 
             modelBuilder.Entity<UserEntity>(entity =>

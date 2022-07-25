@@ -31,13 +31,17 @@ namespace ListList.Api.Services
         {
             var userId = await _userService.GetUserIdAsync();
 
-            var entity = _listItemMapper.ToDb(listItem);
-
-            await _listItemRepository.CreateListItemAsync(userId, entity, parentId);
+            var userNode = await _listItemRepository.GetOrCreateUserNodeAsync(userId);
 
             await _unitOfWork.SaveChangesAsync();
 
-            return entity.Id;
+            var creation = _listItemMapper.ToDb(listItem);
+
+            await _listItemRepository.CreateListItemAsync(userNode, creation, parentId);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return creation.Id;
         }
 
         public async Task<ListItem> GetListItemByIdAsync(Guid listItemId)

@@ -1,6 +1,8 @@
+import { map } from 'lodash';
 import * as React from 'react';
 import { useAuth } from '../hooks';
 import { ListItemMapper } from '../mappers';
+import { ListNode } from '../models/ListNode';
 import { ListItemApi } from '../network';
 import img from '../public/img/whoa.jpg';
 import { Navbar } from './Navbar';
@@ -10,16 +12,13 @@ interface AppProps {}
 export const App: React.FC<AppProps> = ({}) => {
   const authState = useAuth();
 
+  const [node, setNode] = React.useState<ListNode>();
+
   React.useEffect(() => {
     if (!!authState.user) {
-      const apiListItems = new ListItemApi(authState.user.tokenId)
+      new ListItemApi(authState.user.tokenId)
         .Get()
-        .then((resp) => {
-          console.log(resp);
-
-          const node = ListItemMapper.mapToNode(resp);
-          console.log(node);
-        });
+        .then((resp) => setNode(ListItemMapper.mapToNode(resp)));
     }
   }, [authState]);
 
@@ -38,6 +37,12 @@ export const App: React.FC<AppProps> = ({}) => {
             ? `hi ${authState.user.username}`
             : 'hey stranger'}
         </h4>
+        {map(node?.children, (item, i) => (
+          <div key={i}>
+            {item.label} ({item.children?.length})
+            <button>{item.expanded ? '-' : '+'}</button>
+          </div>
+        ))}
       </main>
     </>
   );

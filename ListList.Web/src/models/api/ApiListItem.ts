@@ -3,4 +3,7 @@ export interface ApiListItem {
   label: string;
   description: string;
   complete: boolean;
+
+  left: number;
+  right: number;
 }
