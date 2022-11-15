@@ -1,4 +1,5 @@
 ﻿using ListList.Data.Models.Entities;
+using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,16 +11,26 @@ namespace ListList.Data.Models
         {
         }
 
+        public DbSet<ListHeaderEntity> ListHeaders { get; set; }
         public DbSet<ListItemEntity> ListItems { get; set; }
         public DbSet<UserEntity> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<ListHeaderEntity>(entity =>
+            {
+                entity.ToTable("ListHeader");
+
+                entity.HasKey(e => e.Id);
+
+                entity.HasMany(e => e.ListItems)
+                    .WithOne()
+                    .HasForeignKey(e => e.GroupId);
+            });
+
             modelBuilder.Entity<ListItemEntity>(entity =>
             {
                 entity.ToTable("ListItem");
-
-                entity.HasIndex(e => e.Id);
 
                 entity.HasKey(e => e.Id);
 

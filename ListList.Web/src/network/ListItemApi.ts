@@ -1,10 +1,14 @@
 import { Api } from '.';
-import { ApiListItem } from '../models';
-import { ListItemCreation } from '../models/contracts/ListItemCreation';
+import { ApiListHeader, ApiListItem } from '../contracts';
+import { ListItemCreation } from '../contracts/put/ListItemCreation';
 
 export class ListItemApi extends Api<ApiListItem> {
   constructor(token?: string) {
     super('ListItem', token);
+  }
+
+  public GetHeaders = () => {
+    return this.executeGet() as Promise<ApiListHeader[]>;
   }
 
   public CreateItem = (creation: ListItemCreation, parentId: string) => {

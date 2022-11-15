@@ -1,10 +1,8 @@
-﻿namespace ListList.Data.Models.Entities;
+﻿namespace ListList.Api.Contracts;
 
-public class ListItemEntity : BaseEntity
+public class ListItem
 {
-    public Guid UserId { get; set; }
-    public Guid GroupId { get; set; }
-
+    public Guid? Id { get; set; }
     public string? Label { get; set; }
     public string? Description { get; set; }
     public bool Complete { get; set; }

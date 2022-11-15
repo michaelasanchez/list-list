@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Listlist.Data.Migrations
+namespace ListList.Data.Migrations
 {
     [DbContext(typeof(ListListContext))]
     [Migration("20220724190657_AddRootId")]

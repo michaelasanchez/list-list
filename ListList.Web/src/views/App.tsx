@@ -1,10 +1,10 @@
-import { map } from 'lodash';
+import { first } from 'lodash';
 import * as React from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 import { ListNodeDisplay } from '../components';
+import { ListItemCreation } from '../contracts/put/ListItemCreation';
 import { useAuth } from '../hooks';
 import { ListItemMapper } from '../mappers';
-import { ListItemCreation } from '../models/contracts/ListItemCreation';
 import { ListNode } from '../models/ListNode';
 import { ListItemApi } from '../network';
 import { Navbar } from './Navbar';
@@ -23,7 +23,7 @@ export const App: React.FC<AppProps> = ({}) => {
   const authState = useAuth();
 
   const [userNode, setUserNode] = React.useState<ListNode>();
-  
+
   const [modalState, setModalState] = React.useState<ModalState>({
     show: false,
   });
@@ -36,8 +36,10 @@ export const App: React.FC<AppProps> = ({}) => {
 
   const loadUserNode = () => {
     new ListItemApi(authState.user.tokenId)
-      .Get()
-      .then((resp) => setUserNode(ListItemMapper.mapToNode(resp)));
+      .GetHeaders()
+      .then((resp) =>
+        setUserNode(ListItemMapper.mapToNode(first(resp)?.items))
+      );
   };
 
   const handleNodeAction = (path: NodePath, action: string) => {
@@ -82,14 +84,13 @@ export const App: React.FC<AppProps> = ({}) => {
     <>
       <Navbar authState={authState} />
       <main>
-        {map(userNode?.children, (item, i) => (
+        {userNode && (
           <ListNodeDisplay
-            key={i}
-            path={[i]}
-            node={item}
+            path={[]}
+            node={userNode}
             invoke={handleNodeAction}
           />
-        ))}
+        )}
       </main>
       <Modal show={modalState.show}>
         <Modal.Header closeButton>

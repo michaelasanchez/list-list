@@ -1,4 +1,4 @@
-﻿using ListList.Api.Models;
+﻿using ListList.Api.Contracts;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;

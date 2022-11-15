@@ -1,4 +1,4 @@
-﻿using Listlist.Data.Models;
+﻿using ListList.Data.Models.Entities;
 using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
 using ListList.Data.Repositories.Interfaces;
@@ -15,54 +15,44 @@ namespace ListList.Data.Repositories
             _context = context;
         }
 
-        public async Task<ListItemEntity> GetOrCreateUserNodeAsync(Guid userId)
+        public async Task CreateListItemAsync(Guid userId, ListItemEntity creation, Guid? parentId)
         {
-            var userNode = await _context.ListItems.SingleOrDefaultAsync(z => z.UserId == userId && z.Left == 1);
+            creation.UserId = userId;
 
-            if (userNode is null)
+            if (parentId is null)
             {
-                userNode = new ListItemEntity
+                creation.GroupId = new Guid();
+                creation.Left = 1;
+                creation.Right = 2;
+            }
+            else
+            {
+                var parentNode = await _context.ListItems.SingleAsync(z => z.Id == parentId);
+
+                var listItemQuery = await _context.ListItems
+                        .Where(z => z.UserId == userId && z.Right >= parentNode.Left)
+                        .ToListAsync();
+
+                foreach (var item in listItemQuery)
                 {
-                    UserId = userId,
-                    Left = 1,
-                    Right = 2
-                };
+                    item.Left = item.Left > parentNode.Left ? item.Left + 2 : item.Left;
+                    item.Right += 2;
+                }
 
-                await _context.ListItems.AddAsync(userNode);
+                creation.GroupId = parentNode.GroupId;
+                creation.Left = parentNode.Left + 1;
+                creation.Right = parentNode.Left + 2;
             }
-
-            return userNode;
-        }
-
-        public async Task CreateListItemAsync(ListItemEntity userNode, ListItemEntity creation, Guid? parentId)
-        {
-            var parentNode = parentId is not null
-                ? await _context.ListItems.SingleAsync(z => z.Id == parentId)
-                : userNode;
-
-            var listItemQuery = await _context.ListItems
-                .Where(z => z.UserId == userNode.UserId && z.Right >= parentNode.Left)
-                .ToListAsync();
-
-            foreach (var item in listItemQuery)
-            {
-                item.Left = item.Left > parentNode.Left ? item.Left + 2 : item.Left;
-                item.Right += 2;
-            }
-
-            creation.UserId = parentNode.UserId;
-            creation.Left = parentNode.Left + 1;
-            creation.Right = parentNode.Left + 2;
 
             await _context.ListItems.AddAsync(creation);
         }
 
-        public async Task DeleteListItemAsync(ListItemEntity userNode, Guid listItemId)
+        public async Task DeleteListItemAsync(Guid userId, Guid listItemId)
         {
             var targetNode = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
             
             var listItemQuery = await _context.ListItems
-                .Where(z => z.UserId == userNode.UserId && z.Right >= targetNode.Left)
+                .Where(z => z.UserId == userId && z.Right >= targetNode.Left)
                 .ToListAsync();
 
             foreach (var item in listItemQuery)
@@ -70,6 +60,7 @@ namespace ListList.Data.Repositories
                 item.Left = item.Left > targetNode.Left ? item.Left - 2 : item.Left;
                 item.Right -= 2;
             }
+
             _context.ListItems.Remove(targetNode);
         }
 
@@ -82,7 +73,7 @@ namespace ListList.Data.Repositories
             return parent;
         }
 
-        public async Task<List<ListItemEntity>> GetListItemsAsync(Guid userId)
+        public async Task<List<ListHeaderEntity>> GetListItemsAsync(Guid userId)
         {
             //var listItems = await _context.ListItems.Where(z => z.UserId == userId).ToListAsync();
 
@@ -105,18 +96,11 @@ namespace ListList.Data.Repositories
             //    return root;
             //});
 
-            return await _context.ListItems.Where(z => z.UserId == userId)
-                .OrderBy(z => z.Left)
+            return await _context.ListHeaders
+                .Include(z => z.ListItems)
+                .Where(z => z.UserId == userId)
                 .ToListAsync();
         }
-
-        //private static ListItemEntity GetCurrent(List<ListItemEntity> items, List<int> limb)
-        //{
-        //    foreach (var branch in limb)
-        //    {
-
-        //    }
-        //}
 
         public Task MoveListItemAsync(Guid userId, Guid listItemId, Guid parentId)
         {

@@ -1,4 +1,5 @@
-﻿using ListList.Data.Repositories.Interfaces;
+﻿using ListList.Data.Validators.Interfaces;
+using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Data.Models.Interfaces
 {
@@ -6,6 +7,8 @@ namespace ListList.Data.Models.Interfaces
     {
         IListItemRepository ListItemRepository { get; }
         IUserRepository UserRepository { get; }
+
+        IListItemValidator ListItemValidator { get; }
 
         Task SaveChangesAsync();
     }

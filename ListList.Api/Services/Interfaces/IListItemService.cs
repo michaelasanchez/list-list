@@ -1,4 +1,5 @@
-﻿using ListList.Api.Models;
+﻿using ListList.Api.Contracts;
+using ListList.Api.Contracts.Put;
 
 namespace ListList.Api.Services.Interfaces
 {
@@ -6,7 +7,7 @@ namespace ListList.Api.Services.Interfaces
     {
         Task<Guid> CreateListItemAsync(ListItemCreation creation, Guid? parentId);
 
-        Task<IEnumerable<ListItem>> GetListItemsAsync();
+        Task<IEnumerable<ListHeader>> GetListItemsAsync();
         Task<ListItem> GetListItemByIdAsync(Guid listItemId);
         Task DeleteListItemAsync(Guid listItemId);
     }

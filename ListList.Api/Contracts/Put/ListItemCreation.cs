@@ -1,4 +1,4 @@
-﻿namespace ListList.Api.Models;
+﻿namespace ListList.Api.Contracts.Put;
 
 public class ListItemCreation
 {

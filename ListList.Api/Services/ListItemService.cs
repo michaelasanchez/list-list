@@ -1,6 +1,9 @@
-﻿using ListList.Api.Mappers.Interfaces;
-using ListList.Api.Models;
+﻿using AutoMapper;
+using ListList.Api.Contracts;
+using ListList.Api.Contracts.Put;
+using ListList.Api.Mappers.Interfaces;
 using ListList.Api.Services.Interfaces;
+using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
 using ListList.Data.Repositories.Interfaces;
 
@@ -10,17 +13,17 @@ namespace ListList.Api.Services
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        private readonly IListItemMapper _listItemMapper;
-
         private readonly IUserService _userService;
 
         private readonly IListItemRepository _listItemRepository;
 
-        public ListItemService(IUnitOfWork unitOfWork, IUserService userService, IListItemMapper listItemMapper)
+        private readonly IMapper _autoMapper;
+
+        public ListItemService(IUnitOfWork unitOfWork, IUserService userService, IMapper autoMapper)
         {
             _unitOfWork = unitOfWork;
 
-            _listItemMapper = listItemMapper;
+            _autoMapper = autoMapper;
 
             _userService = userService;
 
@@ -30,13 +33,10 @@ namespace ListList.Api.Services
         public async Task<Guid> CreateListItemAsync(ListItemCreation listItem, Guid? parentId)
         {
             var userId = await _userService.GetUserIdAsync();
-            var userNode = await _listItemRepository.GetOrCreateUserNodeAsync(userId);
 
-            await _unitOfWork.SaveChangesAsync();
+            var creation = _autoMapper.Map<ListItemEntity>(listItem);
 
-            var creation = _listItemMapper.ToDb(listItem);
-
-            await _listItemRepository.CreateListItemAsync(userNode, creation, parentId);
+            await _listItemRepository.CreateListItemAsync(userId, creation, parentId);
 
             await _unitOfWork.SaveChangesAsync();
 
@@ -46,32 +46,28 @@ namespace ListList.Api.Services
         public async Task<ListItem> GetListItemByIdAsync(Guid listItemId)
         {
             var userId = await _userService.GetUserIdAsync();
-            await _listItemRepository.GetOrCreateUserNodeAsync(userId);
 
-            await _unitOfWork.SaveChangesAsync();
+            var listItem = await _listItemRepository.GetListItemByIdAsync(userId, listItemId);
 
-            var listItems = await _listItemRepository.GetListItemByIdAsync(userId, listItemId);
-
-            return _listItemMapper.ToApi(listItems);
+            return _autoMapper.Map<ListItem>(listItem);
         }
 
         public async Task DeleteListItemAsync(Guid listItemId)
         {
             var userId = await _userService.GetUserIdAsync();
-            var userNode = await _listItemRepository.GetOrCreateUserNodeAsync(userId);
-
-            await _listItemRepository.DeleteListItemAsync(userNode, listItemId);
+            
+            await _listItemRepository.DeleteListItemAsync(userId, listItemId);
 
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<ListItem>> GetListItemsAsync()
+        async Task<IEnumerable<ListHeader>> IListItemService.GetListItemsAsync()
         {
             var userId = await _userService.GetUserIdAsync();
 
-            var listItems = await _listItemRepository.GetListItemsAsync(userId);
+            var listHeaders = await _listItemRepository.GetListItemsAsync(userId);
 
-            return _listItemMapper.ToApi(listItems);
+            return _autoMapper.Map<IEnumerable<ListHeader>>(listHeaders);
         }
     }
 }

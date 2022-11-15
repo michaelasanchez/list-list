@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using ListList.Api.Models;
+using ListList.Api.Contracts;
+using ListList.Api.Contracts.Put;
 using ListList.Data.Models.Entities;
 
 namespace ListList.Api.Mappers.Profiles

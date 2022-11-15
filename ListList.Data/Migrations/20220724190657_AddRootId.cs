@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Listlist.Data.Migrations
+namespace ListList.Data.Migrations
 {
     public partial class AddRootId : Migration
     {

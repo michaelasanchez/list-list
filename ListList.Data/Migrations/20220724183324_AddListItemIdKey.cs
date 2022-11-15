@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Listlist.Data.Migrations
+namespace ListList.Data.Migrations
 {
     public partial class AddListItemIdKey : Migration
     {

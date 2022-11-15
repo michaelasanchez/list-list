@@ -18,6 +18,7 @@ builder.Services.RegisterDataServices(builder.Configuration.GetConnectionString(
 // Auto Mapper Configurations
 var mapperConfig = new MapperConfiguration(mc =>
 {
+    mc.AddProfile(new ListHeaderProfile());
     mc.AddProfile(new ListItemProfile());
 });
 
@@ -51,7 +52,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         builder =>
         {
-            builder.WithOrigins("http://localhost:9000")
+            builder.AllowAnyOrigin()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -103,11 +104,11 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
 app.UseHttpsRedirection();
 

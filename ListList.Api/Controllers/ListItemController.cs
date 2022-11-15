@@ -1,4 +1,5 @@
-﻿using ListList.Api.Models;
+﻿using ListList.Api.Contracts;
+using ListList.Api.Contracts.Put;
 using ListList.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,20 +17,20 @@ namespace ListList.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ListItem>>> Get()
+        public async Task<ActionResult<IEnumerable<ListHeader>>> Get()
         {
-            IEnumerable<ListItem> listItems;
+            IEnumerable<ListHeader> listHeaders;
 
             try
             {
-                listItems = await _service.GetListItemsAsync();
+                listHeaders = await _service.GetListItemsAsync();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
 
-            return Ok(listItems);
+            return Ok(listHeaders);
         }
 
         [HttpGet("{listItemId}")]

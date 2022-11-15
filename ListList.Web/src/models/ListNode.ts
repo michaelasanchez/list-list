@@ -1,4 +1,4 @@
-import { ApiListItem } from "./contracts";
+import { ApiListItem } from "../contracts";
 
 export interface ListNode extends ApiListItem {
   expanded: boolean;

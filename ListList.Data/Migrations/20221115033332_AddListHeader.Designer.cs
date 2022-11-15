@@ -4,6 +4,7 @@ using ListList.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ListList.Data.Migrations
 {
     [DbContext(typeof(ListListContext))]
-    partial class ListListContextModelSnapshot : ModelSnapshot
+    [Migration("20221115033332_AddListHeader")]
+    partial class AddListHeader
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,6 +72,9 @@ namespace ListList.Data.Migrations
                     b.Property<int>("Left")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("ListHeaderEntityId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("Right")
                         .HasColumnType("int");
 
@@ -81,7 +86,7 @@ namespace ListList.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GroupId");
+                    b.HasIndex("ListHeaderEntityId");
 
                     b.HasIndex("UserId");
 
@@ -115,9 +120,7 @@ namespace ListList.Data.Migrations
                 {
                     b.HasOne("ListList.Data.Models.Entities.ListHeaderEntity", null)
                         .WithMany("ListItems")
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ListHeaderEntityId");
 
                     b.HasOne("ListList.Data.Models.Entities.UserEntity", null)
                         .WithMany()

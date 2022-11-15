@@ -6,19 +6,43 @@
 
   .node-heading {
     display: flex;
+    align-items: center;
     justify-content: space-between;
 
     margin-bottom: 0.5em;
 
+    & > span {
+      display: flex;
+      align-items: center;
+    }
+
+    input[type=checkbox] {
+      margin-right: 0.5em;
+    }
+
+    h5 {
+      margin-bottom: 0.25em;
+    }
+
+    .btn {
+      &.btn-none:focus {
+        box-shadow: none;
+      }
+    }
     button:not(:first-child) {
       margin-left: 0.5em;
     }
     button:last-child {
       width: 2em;
     }
+
+    button.btn-outline-danger:disabled {
+      opacity: 0.25;
+    }
   }
   .node-children {
-    border: 1px solid gray;
+    border: 1px solid var(--bs-gray-400);
+    border-radius: 6px;
     padding: 0.5em;
   }
 }
