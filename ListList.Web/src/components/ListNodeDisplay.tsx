@@ -18,7 +18,10 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
       <div className="node-heading">
         <span>
           {props.path.length > 0 && (
-            <Form.Check checked={props.node?.complete} />
+            <Form.Check
+              checked={props.node?.complete}
+              onChange={() => console.log('click click')}
+            />
           )}
           <h5>{props.node?.label}</h5>
         </span>

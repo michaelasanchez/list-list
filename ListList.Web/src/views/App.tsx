@@ -1,10 +1,11 @@
-import { first } from 'lodash';
 import * as React from 'react';
-import { Button, Form, Modal } from 'react-bootstrap';
+import { Button, Modal } from 'react-bootstrap';
 import { ListNodeDisplay } from '../components';
+import { CreateListItemForm, ModalState } from '../components/forms';
 import { ListItemCreation } from '../contracts/put/ListItemCreation';
 import { useAuth } from '../hooks';
 import { ListItemMapper } from '../mappers';
+import { ListHeader } from '../models/ListHeader';
 import { ListNode } from '../models/ListNode';
 import { ListItemApi } from '../network';
 import { Navbar } from './Navbar';
@@ -13,16 +14,10 @@ interface AppProps {}
 
 export type NodePath = number[];
 
-interface ModalState {
-  show: boolean;
-  creation?: ListItemCreation;
-  parentId?: string;
-}
-
 export const App: React.FC<AppProps> = ({}) => {
   const authState = useAuth();
 
-  const [userNode, setUserNode] = React.useState<ListNode>();
+  const [listHeaders, setHeaders] = React.useState<ListHeader[]>();
 
   const [modalState, setModalState] = React.useState<ModalState>({
     show: false,
@@ -37,17 +32,15 @@ export const App: React.FC<AppProps> = ({}) => {
   const loadUserNode = () => {
     new ListItemApi(authState.user.tokenId)
       .GetHeaders()
-      .then((resp) =>
-        setUserNode(ListItemMapper.mapToNode(first(resp)?.items))
-      );
+      .then((resp) => setHeaders(ListItemMapper.mapHeaders(resp)));
   };
 
   const handleNodeAction = (path: NodePath, action: string) => {
-    const targetNode = getItem(userNode, path);
+    const targetNode = getItem(listHeaders[0].nodes, path);
     switch (action) {
       case 'toggle': {
         targetNode.expanded = !targetNode.expanded;
-        setUserNode({ ...userNode });
+        setHeaders({ ...listHeaders });
         break;
       }
       case 'create-init': {
@@ -84,10 +77,10 @@ export const App: React.FC<AppProps> = ({}) => {
     <>
       <Navbar authState={authState} />
       <main>
-        {userNode && (
+        {listHeaders && (
           <ListNodeDisplay
             path={[]}
-            node={userNode}
+            node={listHeaders[0].nodes}
             invoke={handleNodeAction}
           />
         )}
@@ -97,32 +90,12 @@ export const App: React.FC<AppProps> = ({}) => {
           <Modal.Title>Create Item</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Label>Label</Form.Label>
-          <Form.Control
-            type="text"
-            value={modalState.creation?.label || ''}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          <CreateListItemForm
+            creation={modalState.creation}
+            onUpdate={(update: Partial<ListItemCreation>) =>
               setModalState({
                 ...modalState,
-                creation: {
-                  ...modalState.creation,
-                  label: e.target.value,
-                },
-              })
-            }
-          ></Form.Control>
-          <Form.Label>Description</Form.Label>
-          <Form.Control
-            as="textarea"
-            rows={3}
-            value={modalState.creation?.description || ''}
-            onChange={(e) =>
-              setModalState({
-                ...modalState,
-                creation: {
-                  ...modalState.creation,
-                  description: e.target.value,
-                },
+                creation: { ...modalState.creation, ...update },
               })
             }
           />

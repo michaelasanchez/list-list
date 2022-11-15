@@ -1,5 +1,6 @@
-import { filter, findIndex } from 'lodash';
-import { ApiListItem } from '../contracts';
+import { filter, findIndex, map, orderBy, reverse } from 'lodash';
+import { ApiListHeader, ApiListItem } from '../contracts';
+import { ListHeader } from '../models';
 import { ListNode } from '../models/ListNode';
 
 const mapChildNodes = (
@@ -13,42 +14,52 @@ const mapChildNodes = (
   let index = 0;
 
   do {
-    const childItem = items[index];
+    const currentItem = items[index];
 
-    const grandChildren = filter(
+    const currentChildren = filter(
       items,
-      (i) => i.left > childItem.left && i.right < childItem.right
+      (i) => i.left > currentItem.left && i.right < currentItem.right
     );
 
-    index += grandChildren.length + 1;
+    index += currentChildren.length + 1;
 
     childNodes.push({
-      ...childItem,
+      ...currentItem,
       expanded: false,
       parentId: parentItem.id,
-      children: mapChildNodes(childItem, grandChildren),
+      children: mapChildNodes(currentItem, currentChildren),
     });
   } while (index < items.length);
 
   return childNodes;
 };
 
-const mapToNode = (items: ApiListItem[]): ListNode => {
+const mapHeaders = (headers: ApiListHeader[]): ListHeader[] => {
+  return map(headers, (h) => ({
+    title: h.title,
+    nodes: mapListItems(h.items),
+  }));
+};
+
+const mapListItems = (items: ApiListItem[]): ListNode => {
   const userNodeIndex = findIndex(items, (i) => i.left == 1);
 
   const userItem = items[userNodeIndex];
   items.splice(userNodeIndex, 1);
 
-  const userNodes = mapChildNodes(userItem, items);
+  const userNodes = mapChildNodes(
+    userItem,
+    orderBy(items, (i) => i.left)
+  );
 
   return {
     ...userItem,
     label: '',
     expanded: true,
-    children: userNodes,
+    children: reverse(userNodes),
   };
 };
 
 export const ListItemMapper = {
-  mapToNode,
+  mapHeaders,
 };
