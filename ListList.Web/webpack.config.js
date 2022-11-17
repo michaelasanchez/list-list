@@ -9,7 +9,7 @@ var ENV = process.env.npm_lifecycle_event;
 // var isTest = ENV === 'test' || ENV === 'test-watch';
 var isProd = ENV === 'build';
 
-const pageTitle = 'Template';
+const pageTitle = 'List-List';
 
 module.exports = function makeWebpackConfig() {
 

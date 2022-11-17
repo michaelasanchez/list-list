@@ -1,5 +1,4 @@
 ﻿using ListList.Data.Models.Entities;
-using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
 using ListList.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +12,18 @@ namespace ListList.Data.Repositories
         public ListItemRepository(IListListContext context)
         {
             _context = context;
+        }
+
+        public async Task CompleteListItemAsync(Guid listItemId)
+        {
+            var listItem = await _context.ListItems.SingleOrDefaultAsync(z => z.Id == listItemId);
+
+            if (listItem is null)
+            {
+                return;
+            }
+
+            listItem.Complete = !listItem.Complete;
         }
 
         public async Task CreateListItemAsync(Guid userId, ListItemEntity creation, Guid? parentId)
@@ -30,7 +41,7 @@ namespace ListList.Data.Repositories
                 var parentNode = await _context.ListItems.SingleAsync(z => z.Id == parentId);
 
                 var listItemQuery = await _context.ListItems
-                        .Where(z => z.UserId == userId && z.Right >= parentNode.Left)
+                        .Where(z => z.UserId == userId && z.Right > parentNode.Left)
                         .ToListAsync();
 
                 foreach (var item in listItemQuery)
@@ -61,7 +72,11 @@ namespace ListList.Data.Repositories
                 item.Right -= 2;
             }
 
-            _context.ListItems.Remove(targetNode);
+            targetNode.Left = 0;
+            targetNode.Right = 0;
+
+            targetNode.Deleted = true;
+            targetNode.DeletedOn = DateTime.UtcNow;
         }
 
         public async Task<ListItemEntity> GetListItemByIdAsync(Guid userId, Guid listItemId)
@@ -75,27 +90,6 @@ namespace ListList.Data.Repositories
 
         public async Task<List<ListHeaderEntity>> GetListItemsAsync(Guid userId)
         {
-            //var listItems = await _context.ListItems.Where(z => z.UserId == userId).ToListAsync();
-
-            //var groupedListItems = listItems
-            //    .OrderBy(z => z.RootId)
-            //    .ThenBy(z => z.Left)
-            //    .GroupBy(z => z.RootId);
-
-            //var nodes = groupedListItems.ToDictionary(z => z.Key, z =>
-            //{
-            //    var root = z.First();
-
-            //    var limb = new List<int> { 0 };
-
-            //    foreach (var node in z.Skip(1))
-            //    {
-            //        var current = GetCurrent(z, limb);
-            //    }
-
-            //    return root;
-            //});
-
             return await _context.ListHeaders
                 .Include(z => z.ListItems)
                 .Where(z => z.UserId == userId)

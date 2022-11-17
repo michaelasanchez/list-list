@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
 using ListList.Api.Contracts.Put;
-using ListList.Api.Mappers.Interfaces;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
@@ -61,13 +60,22 @@ namespace ListList.Api.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        async Task<IEnumerable<ListHeader>> IListItemService.GetListItemsAsync()
+        public async Task<IEnumerable<ListHeader>> GetListItemsAsync()
         {
             var userId = await _userService.GetUserIdAsync();
 
             var listHeaders = await _listItemRepository.GetListItemsAsync(userId);
 
             return _autoMapper.Map<IEnumerable<ListHeader>>(listHeaders);
+        }
+
+        public async Task CompleteListItemAsync(Guid listItemId)
+        {
+            var userId = await _userService.GetUserIdAsync();
+
+            await _listItemRepository.CompleteListItemAsync(listItemId);
+
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

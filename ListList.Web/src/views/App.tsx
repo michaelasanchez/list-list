@@ -1,128 +1,146 @@
+import { filter, map } from 'lodash';
 import * as React from 'react';
-import { Button, Modal } from 'react-bootstrap';
-import { ListNodeDisplay } from '../components';
-import { CreateListItemForm, ModalState } from '../components/forms';
-import { ListItemCreation } from '../contracts/put/ListItemCreation';
+import { Container } from 'react-bootstrap';
+import { CreateListItemModal, ListNodeDisplay } from '../components';
+import { ListItemCreation } from '../contracts';
 import { useAuth } from '../hooks';
 import { ListItemMapper } from '../mappers';
-import { ListHeader } from '../models/ListHeader';
-import { ListNode } from '../models/ListNode';
+import { ListHeader, ListNode } from '../models';
 import { ListItemApi } from '../network';
 import { Navbar } from './Navbar';
+
+const getItem = (node: ListNode, path: NodePath): ListNode => {
+  if (!path?.length) return node;
+  const first = path.shift();
+  return getItem(node.children[first], path);
+};
 
 interface AppProps {}
 
 export type NodePath = number[];
+
+interface AppViewModel {
+  expanded: string[];
+  showModal: boolean;
+  parentId?: string;
+  creation?: ListItemCreation;
+}
 
 export const App: React.FC<AppProps> = ({}) => {
   const authState = useAuth();
 
   const [listHeaders, setHeaders] = React.useState<ListHeader[]>();
 
-  const [modalState, setModalState] = React.useState<ModalState>({
-    show: false,
+  const [viewModel, setViewModel] = React.useState<AppViewModel>({
+    expanded: [],
+    showModal: false,
   });
 
   React.useEffect(() => {
     if (!!authState.user) {
-      loadUserNode();
+      loadNodeHeaders();
     }
   }, [authState.user]);
 
-  const loadUserNode = () => {
+  const loadNodeHeaders = (expanded?: string[]) => {
     new ListItemApi(authState.user.tokenId)
       .GetHeaders()
-      .then((resp) => setHeaders(ListItemMapper.mapHeaders(resp)));
+      .then((resp) => setHeaders(ListItemMapper.mapHeaders(resp, expanded)));
   };
 
   const handleNodeAction = (path: NodePath, action: string) => {
-    const targetNode = getItem(listHeaders[0].nodes, path);
+    const targetNode = getItem(listHeaders[0].root, path);
+
     switch (action) {
-      case 'toggle': {
-        targetNode.expanded = !targetNode.expanded;
-        setHeaders({ ...listHeaders });
+      case 'complete': {
+        handleCompleteNode(targetNode.id);
         break;
       }
       case 'create-init': {
-        setModalState({
-          show: true,
+        setViewModel((vm) => ({
+          ...vm,
+          showModal: true,
           creation: { label: '', description: '', complete: false },
           parentId: targetNode.id,
-        });
+        }));
         break;
       }
       case 'delete': {
         handleDeleteNode(targetNode.id);
         break;
       }
+      case 'toggle': {
+        targetNode.expanded = !targetNode.expanded;
+        if (targetNode.expanded) {
+          setViewModel((vm) => ({
+            ...vm,
+            expanded: [...vm.expanded, targetNode.id],
+          }));
+        } else {
+          setViewModel((vm) => {
+            return {
+              ...vm,
+              expanded: filter(vm.expanded, targetNode.id),
+            };
+          });
+        }
+        setHeaders({ ...listHeaders });
+        break;
+      }
     }
+  };
+
+  const handleCompleteNode = (listItemId: string) => {
+    new ListItemApi(authState.user.tokenId)
+      .CompleteItem(listItemId)
+      .then(() => {
+        loadNodeHeaders(viewModel.expanded);
+      });
   };
 
   const handleCreateNode = (listItem: ListItemCreation, parentId: string) => {
     new ListItemApi(authState.user.tokenId)
       .CreateItem(listItem, parentId)
       .then(() => {
-        setModalState({ show: false });
-        loadUserNode();
+        setViewModel((vm) => ({ ...vm, showModal: false }));
+        loadNodeHeaders(viewModel.expanded);
       });
   };
 
   const handleDeleteNode = (listItemId: string) => {
     new ListItemApi(authState.user.tokenId)
       .DeleteItem(listItemId)
-      .then(() => loadUserNode());
+      .then(() => loadNodeHeaders(viewModel.expanded));
   };
 
   return (
     <>
       <Navbar authState={authState} />
       <main>
-        {listHeaders && (
-          <ListNodeDisplay
-            path={[]}
-            node={listHeaders[0].nodes}
-            invoke={handleNodeAction}
-          />
-        )}
+        <Container>
+          {map(listHeaders, (h, i) => (
+            <ListNodeDisplay
+              key={i}
+              path={[]}
+              node={h.root}
+              invoke={handleNodeAction}
+            />
+          ))}
+        </Container>
       </main>
-      <Modal show={modalState.show}>
-        <Modal.Header closeButton>
-          <Modal.Title>Create Item</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <CreateListItemForm
-            creation={modalState.creation}
-            onUpdate={(update: Partial<ListItemCreation>) =>
-              setModalState({
-                ...modalState,
-                creation: { ...modalState.creation, ...update },
-              })
-            }
-          />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant="secondary"
-            onClick={() => setModalState({ show: false })}
-          >
-            Close
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() =>
-              handleCreateNode(modalState.creation, modalState.parentId)
-            }
-          >
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <CreateListItemModal
+        show={viewModel.showModal}
+        creation={viewModel.creation}
+        parentId={viewModel.parentId}
+        onUpdate={(update: Partial<ListItemCreation>) =>
+          setViewModel({
+            ...viewModel,
+            creation: { ...viewModel.creation, ...update },
+          })
+        }
+        onClose={() => setViewModel({ ...viewModel, showModal: false })}
+        handleCreateNode={handleCreateNode}
+      />
     </>
   );
-};
-
-const getItem = (node: ListNode, path: NodePath): ListNode => {
-  if (!path?.length) return node;
-  const first = path.shift();
-  return getItem(node.children[first], path);
 };

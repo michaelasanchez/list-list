@@ -107,15 +107,22 @@ export class Api<T> {
     );
   }
 
-  protected executePost(obj: any, init: RequestInit = null): Promise<any> {
-    return this.execute({
-      ...init,
-      method: 'POST',
-      headers: new Headers({
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify(obj),
-    });
+  protected executePost(
+    obj: any,
+    init: RequestInit = null,
+    toJson?: boolean
+  ): Promise<any> {
+    return this.execute(
+      {
+        ...init,
+        method: 'POST',
+        headers: new Headers({
+          'Content-Type': 'application/json',
+        }),
+        body: JSON.stringify(obj),
+      },
+      toJson
+    );
   }
 
   protected executePut(obj: any, id: number = null): Promise<any> {

@@ -7,9 +7,10 @@ export class ListItemApi extends Api<ApiListItem> {
     super('ListItem', token);
   }
 
-  public GetHeaders = () => {
-    return this.executeGet() as Promise<ApiListHeader[]>;
-  }
+  public CompleteItem = (listItemId: string) => {
+    this.setActionPath(`complete/${listItemId}`);
+    return this.executePost(null, null, false) as Promise<void>;
+  };
 
   public CreateItem = (creation: ListItemCreation, parentId: string) => {
     this.setActionPath(`${parentId}`);
@@ -19,5 +20,9 @@ export class ListItemApi extends Api<ApiListItem> {
 
   public DeleteItem = (listItemId: string) => {
     return this.executeDelete(listItemId);
-  }
+  };
+
+  public GetHeaders = () => {
+    return this.executeGet() as Promise<ApiListHeader[]>;
+  };
 }

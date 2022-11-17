@@ -7,12 +7,6 @@ export interface CreateListItemFormProps {
   onUpdate: (update: Partial<ListItemCreation>) => void;
 }
 
-export interface ModalState {
-  show: boolean;
-  creation?: ListItemCreation;
-  parentId?: string;
-}
-
 export const CreateListItemForm: React.FC<CreateListItemFormProps> = (
   props
 ) => {

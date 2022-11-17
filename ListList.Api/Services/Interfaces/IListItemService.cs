@@ -10,5 +10,6 @@ namespace ListList.Api.Services.Interfaces
         Task<IEnumerable<ListHeader>> GetListItemsAsync();
         Task<ListItem> GetListItemByIdAsync(Guid listItemId);
         Task DeleteListItemAsync(Guid listItemId);
+        public Task CompleteListItemAsync(Guid listItemId);
     }
 }

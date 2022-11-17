@@ -81,5 +81,20 @@ namespace ListList.Api.Controllers
 
             return Ok();
         }
+
+        [HttpPost("complete/{listItemId}")]
+        public async Task<ActionResult> Complete(Guid listItemId)
+        {
+            try
+            {
+                await _service.CompleteListItemAsync(listItemId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok();
+        }
     }
 }

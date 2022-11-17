@@ -12,7 +12,7 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
   return (
     <BSNavbar bg="dark" variant="dark">
       <Container>
-        <BSNavbar.Brand href="#">{strings.components.navbar.label}</BSNavbar.Brand>
+        <BSNavbar.Brand href="#">{strings.components.navbar.brand}</BSNavbar.Brand>
         {!!props.authState && (
           <MemoizedAuthButton authState={props.authState} />
         )}
