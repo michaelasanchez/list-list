@@ -71,20 +71,14 @@ export const App: React.FC<AppProps> = ({}) => {
       }
       case 'toggle': {
         targetNode.expanded = !targetNode.expanded;
-        if (targetNode.expanded) {
-          setViewModel((vm) => ({
-            ...vm,
-            expanded: [...vm.expanded, targetNode.id],
-          }));
-        } else {
-          setViewModel((vm) => {
-            return {
-              ...vm,
-              expanded: filter(vm.expanded, targetNode.id),
-            };
-          });
-        }
-        setHeaders({ ...listHeaders });
+
+        setViewModel((vm) => ({
+          ...vm,
+          expanded: targetNode.expanded
+            ? [...vm.expanded, targetNode.id]
+            : filter(vm.expanded, targetNode.id),
+        }));
+        setHeaders((headers) => ({ ...headers }));
         break;
       }
     }

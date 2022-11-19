@@ -1,4 +1,5 @@
 ﻿using ListList.Api.Contracts;
+using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -88,6 +89,21 @@ namespace ListList.Api.Controllers
             try
             {
                 await _service.CompleteListItemAsync(listItemId);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok();
+        }
+
+        [HttpPut("{listItemId}")]
+        public async Task<ActionResult> Put(Guid listItemId, ListItemPut listItemPut)
+        {
+            try
+            {
+                await _service.PutListItemAsync(listItemId, listItemPut);
             }
             catch (Exception ex)
             {

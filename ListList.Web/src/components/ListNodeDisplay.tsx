@@ -1,8 +1,6 @@
-import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { countBy, map } from 'lodash';
 import { Button, Form } from 'react-bootstrap';
-import { Icon, MemoizedIcon } from '.';
+import { LabelEditor, MemoizedIcon } from '.';
 import { ListNode } from '../models';
 import { NodePath } from '../views';
 import React = require('react');
@@ -30,7 +28,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
         <div className="node-heading">
           <span>
             <h5>
-              {props.node.label}
+              <LabelEditor label={props.node.label} />
               {hasChildren && (
                 <span className="completed">
                   (
@@ -62,8 +60,8 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
                 onClick={() => props.invoke(props.path, 'toggle')}
               >
                 {props.node.children.length > 0 && (
-                  <FontAwesomeIcon
-                    icon={props.node.expanded ? faChevronDown : faChevronUp}
+                  <MemoizedIcon
+                    type={props.node.expanded ? 'expanded' : 'collapsed'}
                   />
                 )}
               </Button>

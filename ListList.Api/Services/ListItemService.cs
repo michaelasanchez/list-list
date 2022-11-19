@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
+using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
@@ -71,11 +72,18 @@ namespace ListList.Api.Services
 
         public async Task CompleteListItemAsync(Guid listItemId)
         {
-            var userId = await _userService.GetUserIdAsync();
+            //var userId = await _userService.GetUserIdAsync();
 
             await _listItemRepository.CompleteListItemAsync(listItemId);
 
             await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task PutListItemAsync(Guid listItemId, ListItemPut listItemPut)
+        {
+            var userId = await _userService.GetUserIdAsync();
+
+            await _listItemRepository.PutListItemAsync
         }
     }
 }

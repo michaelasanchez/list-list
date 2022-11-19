@@ -35,7 +35,25 @@
     }
 
     h5 {
+      display: flex;
+      align-items: center;
+
       margin: 0;
+
+      .form-control-plaintext {
+        font-weight: 500;
+      }
+
+      .form-control,
+      .form-control-plaintext {
+        width: fit-content;
+        padding: 0.175rem 0.5rem;
+        margin-left: -0.5rem;
+
+        font-size: 1.25rem;
+
+        transition: width 100ms;
+      }
     }
 
     .completed {
