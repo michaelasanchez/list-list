@@ -1,7 +1,6 @@
 import React = require('react');
 import { Button } from 'react-bootstrap';
 import { ListItemCreation } from '../contracts';
-import { NodePath } from '../views';
 import { Icon } from './Icon';
 import { LabelEditor } from './LabelEditor';
 
@@ -24,7 +23,8 @@ export const ListNodeCreation: React.FC<ListNodeCreationProps> = (props) => {
           <span>
             <h5>
               <LabelEditor
-                label={props.node?.label || 'List Item'}
+                label={props.node?.label}
+                placeholder="New Item"
                 onChange={(updatedLabel) =>
                   props.onUpdate({ ...props.node, label: updatedLabel })
                 }

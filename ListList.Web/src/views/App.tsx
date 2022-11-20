@@ -1,7 +1,7 @@
 import { filter, map } from 'lodash';
 import * as React from 'react';
-import { Button, Container } from 'react-bootstrap';
-import { CreateListItemModal, ListNodeDisplay } from '../components';
+import { Container } from 'react-bootstrap';
+import { ListNodeDisplay } from '../components';
 import { ListItemCreation } from '../contracts';
 import { useAuth } from '../hooks';
 import { ListItemMapper } from '../mappers';
@@ -21,7 +21,6 @@ export type NodePath = number[];
 
 interface AppViewModel {
   expanded: string[];
-  showModal: boolean;
   parentId?: string;
   creation?: ListItemCreation;
 }
@@ -33,7 +32,6 @@ export const App: React.FC<AppProps> = ({}) => {
 
   const [viewModel, setViewModel] = React.useState<AppViewModel>({
     expanded: [],
-    showModal: false,
   });
 
   React.useEffect(() => {
@@ -48,46 +46,40 @@ export const App: React.FC<AppProps> = ({}) => {
       .then((resp) => setHeaders(ListItemMapper.mapHeaders(resp, expanded)));
   };
 
-  const handleNodeAction = (path: NodePath, action: string, payload?: any) => {
-    const headerIndex = path.shift();
-    const targetNode = getItem(listHeaders[headerIndex].root, path);
+  const handleNodeAction = React.useCallback(
+    (path: NodePath, action: string, payload?: any) => {
+      const headerIndex = path.shift();
+      const targetNode = getItem(listHeaders[headerIndex].root, path);
 
-    switch (action) {
-      case 'complete': {
-        handleCompleteNode(targetNode.id);
-        break;
-      }
-      case 'create-init': {
-        setViewModel((vm) => ({
-          ...vm,
-          showModal: true,
-          creation: { label: '', description: '', complete: false },
-          parentId: targetNode.id,
-        }));
-        break;
-      }
-      case 'create-save': {
-        handleCreateNode(payload, targetNode.id);
-        break;
-      }
-      case 'delete': {
-        handleDeleteNode(targetNode.id);
-        break;
-      }
-      case 'toggle': {
-        targetNode.expanded = !targetNode.expanded;
+      switch (action) {
+        case 'complete': {
+          handleCompleteNode(targetNode.id);
+          break;
+        }
+        case 'create-save': {
+          handleCreateNode(payload, targetNode.id);
+          break;
+        }
+        case 'delete': {
+          handleDeleteNode(targetNode.id);
+          break;
+        }
+        case 'toggle': {
+          targetNode.expanded = !targetNode.expanded;
 
-        setViewModel((vm) => ({
-          ...vm,
-          expanded: targetNode.expanded
-            ? [...vm.expanded, targetNode.id]
-            : filter(vm.expanded, targetNode.id),
-        }));
-        setHeaders((headers) => ({ ...headers }));
-        break;
+          setViewModel((vm) => ({
+            ...vm,
+            expanded: targetNode.expanded
+              ? [...vm.expanded, targetNode.id]
+              : filter(vm.expanded, targetNode.id),
+          }));
+          setHeaders((headers) => ({ ...headers }));
+          break;
+        }
       }
-    }
-  };
+    },
+    [viewModel, listHeaders]
+  );
 
   const handleCompleteNode = (listItemId: string) => {
     new ListItemApi(authState.user.tokenId)
@@ -127,19 +119,6 @@ export const App: React.FC<AppProps> = ({}) => {
           ))}
         </Container>
       </main>
-      <CreateListItemModal
-        show={viewModel.showModal}
-        creation={viewModel.creation}
-        parentId={viewModel.parentId}
-        onUpdate={(update: Partial<ListItemCreation>) =>
-          setViewModel({
-            ...viewModel,
-            creation: { ...viewModel.creation, ...update },
-          })
-        }
-        onClose={() => setViewModel({ ...viewModel, showModal: false })}
-        handleCreateNode={handleCreateNode}
-      />
     </>
   );
 };

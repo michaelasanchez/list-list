@@ -4,16 +4,32 @@
 
   padding: 0.5em;
 
+  // position: relative;
+
+  cursor: pointer;
+
   &.parent {
     border: 1px solid rgba(0, 0, 0, 0.175);
     border-radius: 3px;
     padding: 0.5em;
-  
   }
 
   &.pending {
     opacity: 0.5;
   }
+
+  // .handle {
+  //   position: absolute;
+  //   top: 0;
+  //   left: 0;
+
+
+  //   background: red;
+  //   z-index: -1;
+
+  //   height: 3.5em;
+  //   width: 100%;
+  // }
 
   .node-check {
     & > .btn {
@@ -52,22 +68,6 @@
       align-items: center;
 
       margin: 0;
-
-      .form-control,
-      .form-control-plaintext {
-        font-weight: 500;
-      }
-
-      .form-control,
-      .form-control-plaintext {
-        width: fit-content;
-        padding: 0.175rem 0.5rem;
-        margin-left: -0.5rem;
-
-        font-size: 1.25rem;
-
-        transition: width 100ms;
-      }
     }
 
     .completed {

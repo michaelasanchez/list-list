@@ -1,4 +1,4 @@
-import { countBy, map } from 'lodash';
+import { countBy, isNil, map } from 'lodash';
 import { useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import { LabelEditor, ListNodeCreation, MemoizedIcon } from '.';
@@ -13,22 +13,41 @@ interface ListNodeDisplayProps {
   invoke?: (path: NodePath, action: string, payload?: any) => void;
 }
 
+interface ListNodeViewModel {
+  pendingLabel?: string;
+  pendingNode?: ListItemCreation;
+}
+
 export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   const hasChildren = props.node.children?.length > 0;
 
-  const [pendingNode, setPendingNode] = useState<ListItemCreation>();
+  const [viewModel, setViewModel] = useState<ListNodeViewModel>({});
 
-  const handleSaveNode = () => {
-    if (!!pendingNode) {
-      props.invoke(props.path, 'create-save', pendingNode);
-      setPendingNode(null);
+  const handleToggleNode = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (e.button === 0) props.invoke(props.path, 'toggle');
+  };
+
+  const handleCreateNode = () => {
+    if (viewModel.pendingNode?.label?.length > 0) {
+      props.invoke(props.path, 'create-save', viewModel);
+      setViewModel({});
     }
   };
 
-  console.log('PENDING', pendingNode);
+  const handleUpdateNode = () => {
+    if (viewModel.pendingLabel != props.node.label) {
+      console.log('SAVE ME', viewModel.pendingLabel);
+      setViewModel({ ...viewModel, pendingLabel: null });
+    }
+  };
 
   return (
-    <div className={`list-node${hasChildren ? ' parent' : ''}`}>
+    <div
+      className={`list-node${hasChildren ? ' parent' : ''}`}
+      onClick={handleToggleNode}
+    >
+      {/* <div className="handle" onClick={handleToggleNode}></div> */}
       {props.path.length > 0 && (
         <Form.Check
           className="node-check"
@@ -40,7 +59,20 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
         <div className="node-heading">
           <span>
             <h5>
-              <LabelEditor label={props.node.label} />
+              <LabelEditor
+                label={
+                  isNil(viewModel?.pendingLabel)
+                    ? props.node.label
+                    : viewModel.pendingLabel
+                }
+                onFocus={() =>
+                  setViewModel({ ...viewModel, pendingLabel: props.node.label })
+                }
+                onBlur={handleUpdateNode}
+                onChange={(update: string) =>
+                  setViewModel({ ...viewModel, pendingLabel: update })
+                }
+              />
               {hasChildren && (
                 <span className="completed">
                   (
@@ -51,26 +83,18 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
             </h5>
           </span>
           <span>
-            <Button
-              size="sm"
-              variant="outline-danger"
-              disabled={props.node.children.length > 0}
-              onClick={() => props.invoke(props.path, 'delete')}
-            >
-              <MemoizedIcon type="remove" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline-success"
-              onClick={() => props.invoke(props.path, 'create-init')}
-            >
-              <MemoizedIcon type="createOutline" />
-            </Button>
-            {hasChildren && (
+            {!hasChildren && (
               <Button
-                variant="none"
-                onClick={() => props.invoke(props.path, 'toggle')}
+                size="sm"
+                variant="outline-danger"
+                disabled={props.node.children.length > 0}
+                onClick={() => props.invoke(props.path, 'delete')}
               >
+                <MemoizedIcon type="remove" />
+              </Button>
+            )}
+            {hasChildren && (
+              <Button variant="none">
                 {props.node.children.length > 0 && (
                   <MemoizedIcon
                     type={props.node.expanded ? 'expanded' : 'collapsed'}
@@ -92,9 +116,11 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
               />
             ))}
             <ListNodeCreation
-              node={pendingNode}
-              onUpdate={setPendingNode}
-              onSave={handleSaveNode}
+              node={viewModel.pendingNode}
+              onUpdate={(node) =>
+                setViewModel((vm) => ({ ...vm, pendingNode: node }))
+              }
+              onSave={handleCreateNode}
             />
           </div>
         )}

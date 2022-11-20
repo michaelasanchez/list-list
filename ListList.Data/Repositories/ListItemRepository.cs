@@ -78,7 +78,8 @@ namespace ListList.Data.Repositories
                 var listItems = await _context.ListItems
                         .Where(z =>
                             z.GroupId == parentNode.GroupId &&
-                            z.Right >= parentNode.Right)
+                            z.Right >= parentNode.Right &&
+                            !z.Deleted)
                         .OrderBy(z => z.Left)
                         .ToListAsync();
 
@@ -101,7 +102,10 @@ namespace ListList.Data.Repositories
             var targetNode = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
             
             var listItemQuery = await _context.ListItems
-                .Where(z => z.UserId == userId && z.Right >= targetNode.Left)
+                .Where(z =>
+                    z.UserId == userId &&
+                    z.Right >= targetNode.Left &&
+                    !z.Deleted)
                 .ToListAsync();
 
             foreach (var item in listItemQuery)
@@ -121,7 +125,12 @@ namespace ListList.Data.Repositories
         {
             var parent = await _context.ListItems.Where(z => z.Id == listItemId).SingleAsync();
 
-            var children = await _context.ListItems.Where(z => z.Left > parent.Left && z.Right < parent.Right).ToListAsync();
+            var children = await _context.ListItems
+                .Where(z =>
+                    z.Left > parent.Left &&
+                    z.Right < parent.Right &&
+                    !z.Deleted)
+                .ToListAsync();
 
             return parent;
         }
@@ -129,7 +138,7 @@ namespace ListList.Data.Repositories
         public async Task<List<ListHeaderEntity>> GetListItemsAsync(Guid userId)
         {
             return await _context.ListHeaders
-                .Include(z => z.ListItems)
+                .Include(z => z.ListItems.Where(y => !y.Deleted))
                 .Where(z => z.UserId == userId)
                 .ToListAsync();
         }
