@@ -83,7 +83,11 @@ namespace ListList.Api.Services
         {
             var userId = await _userService.GetUserIdAsync();
 
-            await _listItemRepository.PutListItemAsync
+            var entityPut = _autoMapper.Map<ListItemEntity>(listItemPut);
+
+            await _listItemRepository.PutListItemAsync(listItemId, entityPut);
+
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

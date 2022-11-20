@@ -4,6 +4,9 @@ import { useClickOutside } from '../hooks';
 
 export interface LabelEditorProps {
   label: string;
+  onBlur?: () => void;
+  onChange?: (update: string) => void;
+  onFocus?: () => void;
 }
 
 export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
@@ -23,7 +26,9 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
         }}
         plaintext={!editing}
         value={props.label}
-        onChange={() => {}}
+        onChange={(e) => props.onChange(e.target.value)}
+        onBlur={props.onBlur}
+        onFocus={props.onFocus}
       />
     </div>
   );

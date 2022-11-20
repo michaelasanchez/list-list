@@ -1,6 +1,6 @@
 import { filter, map } from 'lodash';
 import * as React from 'react';
-import { Container } from 'react-bootstrap';
+import { Button, Container } from 'react-bootstrap';
 import { CreateListItemModal, ListNodeDisplay } from '../components';
 import { ListItemCreation } from '../contracts';
 import { useAuth } from '../hooks';
@@ -48,8 +48,9 @@ export const App: React.FC<AppProps> = ({}) => {
       .then((resp) => setHeaders(ListItemMapper.mapHeaders(resp, expanded)));
   };
 
-  const handleNodeAction = (path: NodePath, action: string) => {
-    const targetNode = getItem(listHeaders[0].root, path);
+  const handleNodeAction = (path: NodePath, action: string, payload?: any) => {
+    const headerIndex = path.shift();
+    const targetNode = getItem(listHeaders[headerIndex].root, path);
 
     switch (action) {
       case 'complete': {
@@ -63,6 +64,10 @@ export const App: React.FC<AppProps> = ({}) => {
           creation: { label: '', description: '', complete: false },
           parentId: targetNode.id,
         }));
+        break;
+      }
+      case 'create-save': {
+        handleCreateNode(payload, targetNode.id);
         break;
       }
       case 'delete': {
@@ -115,7 +120,7 @@ export const App: React.FC<AppProps> = ({}) => {
           {map(listHeaders, (h, i) => (
             <ListNodeDisplay
               key={i}
-              path={[]}
+              path={[i]}
               node={h.root}
               invoke={handleNodeAction}
             />

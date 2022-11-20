@@ -26,6 +26,41 @@ namespace ListList.Data.Repositories
             listItem.Complete = !listItem.Complete;
         }
 
+        public async Task CreateListItemAtTopAsync(Guid userId, ListItemEntity creation, Guid? parentId)
+        {
+            creation.UserId = userId;
+
+            if (parentId is null)
+            {
+                creation.GroupId = new Guid();
+                creation.Left = 1;
+                creation.Right = 2;
+            }
+            else
+            {
+                var parentNode = await _context.ListItems.SingleAsync(z => z.Id == parentId);
+
+                var listItems = await _context.ListItems
+                        .Where(z =>
+                            z.GroupId == parentNode.GroupId &&
+                            z.Right > parentNode.Left)
+                        .OrderBy(z => z.Left)
+                        .ToListAsync();
+
+                foreach (var item in listItems)
+                {
+                    item.Left = item.Left > parentNode.Left ? item.Left + 2 : item.Left;
+                    item.Right += 2;
+                }
+
+                creation.GroupId = parentNode.GroupId;
+                creation.Left = parentNode.Left + 1;
+                creation.Right = parentNode.Left + 2;
+            }
+
+            await _context.ListItems.AddAsync(creation);
+        }
+
         public async Task CreateListItemAsync(Guid userId, ListItemEntity creation, Guid? parentId)
         {
             creation.UserId = userId;
@@ -40,19 +75,22 @@ namespace ListList.Data.Repositories
             {
                 var parentNode = await _context.ListItems.SingleAsync(z => z.Id == parentId);
 
-                var listItemQuery = await _context.ListItems
-                        .Where(z => z.UserId == userId && z.Right > parentNode.Left)
+                var listItems = await _context.ListItems
+                        .Where(z =>
+                            z.GroupId == parentNode.GroupId &&
+                            z.Right >= parentNode.Right)
+                        .OrderBy(z => z.Left)
                         .ToListAsync();
 
-                foreach (var item in listItemQuery)
+                foreach (var item in listItems)
                 {
                     item.Left = item.Left > parentNode.Left ? item.Left + 2 : item.Left;
                     item.Right += 2;
                 }
 
                 creation.GroupId = parentNode.GroupId;
-                creation.Left = parentNode.Left + 1;
-                creation.Right = parentNode.Left + 2;
+                creation.Left = parentNode.Right - 2;
+                creation.Right = parentNode.Right - 1;
             }
 
             await _context.ListItems.AddAsync(creation);
@@ -99,6 +137,14 @@ namespace ListList.Data.Repositories
         public Task MoveListItemAsync(Guid userId, Guid listItemId, Guid parentId)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task PutListItemAsync(Guid listItemId, ListItemEntity entityPut)
+        {
+            var entity = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
+
+            entity.Label = entityPut.Label;
+            entity.Description = entityPut.Description;
         }
     }
 }
