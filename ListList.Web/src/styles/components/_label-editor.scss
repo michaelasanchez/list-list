@@ -2,6 +2,9 @@
   position: relative;
   line-height: 1.5;
 
+  font-weight: 500;
+  font-size: 1.25rem;
+
   color: transparent;
   user-select: none;
 
@@ -17,11 +20,9 @@
   .form-control,
   .form-control-plaintext {
     position: absolute;
-    top: -0.175rem;
+    top: 0;
+    padding: 0;
 
-    padding: 0.175rem 0;
-
-    color: auto;
     font-weight: 500;
     font-size: 1.25rem;
 

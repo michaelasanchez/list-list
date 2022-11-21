@@ -13,26 +13,23 @@ export interface ListNodeCreationProps {
 export const ListNodeCreation: React.FC<ListNodeCreationProps> = (props) => {
   return (
     <div className="list-node pending">
-      <div className="node-check">
-        <Button variant="none">
-          <Icon type="create" />
-        </Button>
-      </div>
-      <div className="node-content">
-        <div className="node-heading">
-          <span>
-            <h5>
-              <LabelEditor
-                label={props.node?.label}
-                placeholder="New Item"
-                onChange={(updatedLabel) =>
-                  props.onUpdate({ ...props.node, label: updatedLabel })
-                }
-                onBlur={props.onSave}
-              />
-            </h5>
+      <div className="node-header">
+        <div className="node-control">
+          <Button variant="none">
+            <Icon type="create" />
+          </Button>
+        </div>
+        <div className="node-title">
+          <span className="heading">
+            <LabelEditor
+              label={props.node?.label}
+              placeholder="New Item"
+              onChange={(updatedLabel) =>
+                props.onUpdate({ ...props.node, label: updatedLabel })
+              }
+              onBlur={props.onSave}
+            />
           </span>
-          <span></span>
         </div>
       </div>
     </div>

@@ -43,46 +43,41 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   };
 
   return (
-    <div
-      className={`list-node${hasChildren ? ' parent' : ''}`}
-      onClick={handleToggleNode}
-    >
-      {/* <div className="handle" onClick={handleToggleNode}></div> */}
-      {props.path.length > 0 && (
-        <Form.Check
-          className="node-check"
-          checked={props.node.complete}
-          onChange={() => props.invoke(props.path, 'complete')}
-        />
-      )}
-      <div className="node-content">
-        <div className="node-heading">
-          <span>
-            <h5>
-              <LabelEditor
-                label={
-                  isNil(viewModel?.pendingLabel)
-                    ? props.node.label
-                    : viewModel.pendingLabel
-                }
-                onFocus={() =>
-                  setViewModel({ ...viewModel, pendingLabel: props.node.label })
-                }
-                onBlur={handleUpdateNode}
-                onChange={(update: string) =>
-                  setViewModel({ ...viewModel, pendingLabel: update })
-                }
-              />
-              {hasChildren && (
-                <span className="completed">
-                  (
-                  {countBy(props.node.children, (n) => n.complete)['true'] ?? 0}
-                  /{props.node.children.length})
-                </span>
-              )}
-            </h5>
+    <div className={`list-node${hasChildren ? ' parent' : ''}`}>
+      <div className="node-header" onClick={handleToggleNode}>
+        <div className="node-control">
+          {props.path.length > 0 && (
+            <Form.Check
+              className="node-check"
+              checked={props.node.complete}
+              onChange={() => props.invoke(props.path, 'complete')}
+            />
+          )}
+        </div>
+        <div className="node-title">
+          <span className="heading">
+            <LabelEditor
+              label={
+                isNil(viewModel?.pendingLabel)
+                  ? props.node.label
+                  : viewModel.pendingLabel
+              }
+              onFocus={() =>
+                setViewModel({ ...viewModel, pendingLabel: props.node.label })
+              }
+              onBlur={handleUpdateNode}
+              onChange={(update: string) =>
+                setViewModel({ ...viewModel, pendingLabel: update })
+              }
+            />
+            {hasChildren && (
+              <span className="completed">
+                ({countBy(props.node.children, (n) => n.complete)['true'] ?? 0}/
+                {props.node.children.length})
+              </span>
+            )}
           </span>
-          <span>
+          <div>
             {!hasChildren && (
               <Button
                 size="sm"
@@ -102,29 +97,29 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
                 )}
               </Button>
             )}
-          </span>
-        </div>
-        {props.node.description && <p>{props.node.description}</p>}
-        {props.node.expanded && (
-          <div className="node-children">
-            {map(props.node.children, (item, i) => (
-              <ListNodeDisplay
-                key={i}
-                node={item}
-                path={[...props.path, i]}
-                invoke={props.invoke}
-              />
-            ))}
-            <ListNodeCreation
-              node={viewModel.pendingNode}
-              onUpdate={(node) =>
-                setViewModel((vm) => ({ ...vm, pendingNode: node }))
-              }
-              onSave={handleCreateNode}
-            />
           </div>
-        )}
+        </div>
       </div>
+      {props.node.expanded && (
+        <div className="node-body">
+          {props.node.description && <p>{props.node.description}</p>}
+          {map(props.node.children, (item, i) => (
+            <ListNodeDisplay
+              key={i}
+              node={item}
+              path={[...props.path, i]}
+              invoke={props.invoke}
+            />
+          ))}
+          <ListNodeCreation
+            node={viewModel.pendingNode}
+            onUpdate={(node) =>
+              setViewModel((vm) => ({ ...vm, pendingNode: node }))
+            }
+            onSave={handleCreateNode}
+          />
+        </div>
+      )}
     </div>
   );
 };

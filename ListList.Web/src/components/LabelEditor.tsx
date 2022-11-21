@@ -18,7 +18,6 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
   useClickOutside(ref, () => setEditing(false));
 
   const handleOnClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    console.log('why');
     e.stopPropagation();
     if (!editing) {
       setEditing(true);
