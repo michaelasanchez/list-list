@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Container } from 'react-bootstrap';
 import { ListNodeDisplay } from '../components';
 import { ListItemCreation } from '../contracts';
-import { useAuth } from '../hooks';
+import { useAuth, useLocalStorage } from '../hooks';
 import { ListItemMapper } from '../mappers';
 import { ListHeader, ListNode } from '../models';
 import { ListItemApi } from '../network';
@@ -28,15 +28,17 @@ interface AppViewModel {
 export const App: React.FC<AppProps> = ({}) => {
   const authState = useAuth();
 
+  const localStorage = useLocalStorage('expanded');
+
   const [listHeaders, setHeaders] = React.useState<ListHeader[]>();
 
   const [viewModel, setViewModel] = React.useState<AppViewModel>({
-    expanded: [],
+    expanded: localStorage.exists() ? JSON.parse(localStorage.fetch()) : [],
   });
 
   React.useEffect(() => {
     if (!!authState.user) {
-      loadNodeHeaders();
+      loadNodeHeaders(viewModel.expanded);
     }
   }, [authState.user]);
 
@@ -67,13 +69,20 @@ export const App: React.FC<AppProps> = ({}) => {
         case 'toggle': {
           targetNode.expanded = !targetNode.expanded;
 
+          const expanded = targetNode.expanded
+            ? [...viewModel.expanded, targetNode.id]
+            : filter(viewModel.expanded, targetNode.id);
+
+          localStorage.commit(JSON.stringify(expanded));
           setViewModel((vm) => ({
             ...vm,
-            expanded: targetNode.expanded
-              ? [...vm.expanded, targetNode.id]
-              : filter(vm.expanded, targetNode.id),
+            expanded,
           }));
           setHeaders((headers) => ({ ...headers }));
+          break;
+        }
+        case 'update-save': {
+          handlePutNode(targetNode, payload);
           break;
         }
       }
@@ -104,6 +113,17 @@ export const App: React.FC<AppProps> = ({}) => {
       .then(() => loadNodeHeaders(viewModel.expanded));
   };
 
+  const handlePutNode = (current: ListNode, updatedLabel: string) => {
+    const listItemPut = {
+      label: updatedLabel,
+      description: current.description,
+    };
+
+    new ListItemApi(authState.user.tokenId)
+      .PutItem(current.id, listItemPut)
+      .then(() => loadNodeHeaders(viewModel.expanded));
+  };
+
   return (
     <>
       <Navbar authState={authState} />
@@ -114,6 +134,7 @@ export const App: React.FC<AppProps> = ({}) => {
               key={i}
               path={[i]}
               node={h.root}
+              className="root"
               invoke={handleNodeAction}
             />
           ))}

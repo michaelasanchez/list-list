@@ -10,6 +10,7 @@ import React = require('react');
 interface ListNodeDisplayProps {
   node: ListNode;
   path: NodePath;
+  className?: string;
   invoke?: (path: NodePath, action: string, payload?: any) => void;
 }
 
@@ -30,29 +31,36 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
 
   const handleCreateNode = () => {
     if (viewModel.pendingNode?.label?.length > 0) {
-      props.invoke(props.path, 'create-save', viewModel);
+      props.invoke(props.path, 'create-save', viewModel.pendingNode);
       setViewModel({});
     }
   };
 
+  const handleDeleteNode = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    props.invoke(props.path, 'delete');
+  };
+
   const handleUpdateNode = () => {
     if (viewModel.pendingLabel != props.node.label) {
-      console.log('SAVE ME', viewModel.pendingLabel);
+      props.invoke(props.path, 'update-save', viewModel.pendingLabel);
       setViewModel({ ...viewModel, pendingLabel: null });
     }
   };
 
   return (
-    <div className={`list-node${hasChildren ? ' parent' : ''}`}>
+    <div
+      className={`list-node${props.className ? ` ${props.className}` : ''}${
+        hasChildren ? ' parent' : ''
+      }`}
+    >
       <div className="node-header" onClick={handleToggleNode}>
         <div className="node-control">
-          {props.path.length > 0 && (
-            <Form.Check
-              className="node-check"
-              checked={props.node.complete}
-              onChange={() => props.invoke(props.path, 'complete')}
-            />
-          )}
+          <Form.Check
+            className="node-check"
+            checked={props.node.complete}
+            onChange={() => props.invoke(props.path, 'complete')}
+          />
         </div>
         <div className="node-title">
           <span className="heading">
@@ -83,7 +91,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
                 size="sm"
                 variant="outline-danger"
                 disabled={props.node.children.length > 0}
-                onClick={() => props.invoke(props.path, 'delete')}
+                onClick={handleDeleteNode}
               >
                 <MemoizedIcon type="remove" />
               </Button>

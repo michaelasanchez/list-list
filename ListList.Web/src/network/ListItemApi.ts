@@ -1,5 +1,5 @@
 import { Api } from '.';
-import { ApiListHeader, ApiListItem } from '../contracts';
+import { ApiListHeader, ApiListItem, ApiListItemPut } from '../contracts';
 import { ListItemCreation } from '../contracts/put/ListItemCreation';
 
 export class ListItemApi extends Api<ApiListItem> {
@@ -25,4 +25,8 @@ export class ListItemApi extends Api<ApiListItem> {
   public GetHeaders = () => {
     return this.executeGet() as Promise<ApiListHeader[]>;
   };
+
+  public PutItem = (listItemId: string, put: ApiListItemPut) => {
+    return this.executePut(put, listItemId) as Promise<void>;
+  }
 }

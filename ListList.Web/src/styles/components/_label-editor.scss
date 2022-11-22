@@ -8,6 +8,10 @@
   color: transparent;
   user-select: none;
 
+  & > span {
+    white-space: nowrap;
+  }
+
   &.active {
     .form-control,
     .form-control-plaintext {

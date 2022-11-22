@@ -125,7 +125,7 @@ export class Api<T> {
     );
   }
 
-  protected executePut(obj: any, id: number = null): Promise<any> {
+  protected executePut(obj: any, id: string = null): Promise<any> {
     if (id !== null) this.setActionPath(`${id}`);
     return this.execute(
       {
