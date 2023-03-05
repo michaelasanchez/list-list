@@ -13,7 +13,7 @@ export interface LabelEditorProps {
 export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
   const [editing, setEditing] = React.useState<boolean>(false);
 
-  const ref = React.useRef();
+  const ref = React.useRef<HTMLInputElement>();
 
   useClickOutside(ref, () => setEditing(false));
 
@@ -21,6 +21,12 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
     e.stopPropagation();
     if (!editing) {
       setEditing(true);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key == 'Enter') {
+      ref.current.blur();
     }
   };
 
@@ -36,6 +42,7 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
         onChange={(e) => props.onChange(e.target.value)}
         onBlur={props.onBlur}
         onFocus={props.onFocus}
+        onKeyDown={handleKeyDown}
       />
     </div>
   );

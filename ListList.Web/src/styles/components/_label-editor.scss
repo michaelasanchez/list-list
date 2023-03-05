@@ -45,5 +45,10 @@
     &::placeholder {
       transition: opacity 100ms;
     }
+
+    &[value='']:not(:placeholder-shown) {
+      top: -1rem;
+      min-width: 100px;
+    }
   }
 }

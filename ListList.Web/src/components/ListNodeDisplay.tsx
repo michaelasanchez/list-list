@@ -59,6 +59,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           <Form.Check
             className="node-check"
             checked={props.node.complete}
+            onClick={e => e.stopPropagation()}
             onChange={() => props.invoke(props.path, 'complete')}
           />
         </div>
