@@ -1,15 +1,13 @@
+using Auth;
 using AutoMapper;
 using ListList.Api.Mappers;
 using ListList.Api.Mappers.Interfaces;
 using ListList.Api.Mappers.Profiles;
-using ListList.Api.Middleware;
 using ListList.Api.Services;
 using ListList.Api.Services.Interfaces;
 using ListList.Data;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,21 +29,12 @@ builder.Services.AddScoped<IListItemMapper, ListItemMapper>();
 
 builder.Services.AddScoped<IListItemService, ListItemService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<UserService, UserService>();
 
 builder.Services.AddHttpContextAccessor();
 
 // Authentication
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-    .AddJwtBearer(o =>
-    {
-        o.SecurityTokenValidators.Clear();
-        o.SecurityTokenValidators.Add(new GoogleTokenValidator("761782415642-dmpa7o13ppv0h3qa0su755368jd72qfu.apps.googleusercontent.com"));
-    });
+builder.Services.AddAuthServices(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
@@ -57,6 +46,8 @@ builder.Services.AddCors(options =>
                 .AllowAnyMethod();
         });
 });
+
+builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();
 
@@ -104,11 +95,11 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // HTTP request pipeline.
-//if (app.Environment.IsDevelopment())
-//{
+if (app.Environment.IsDevelopment())
+{
     app.UseSwagger();
     app.UseSwaggerUI();
-//}
+}
 
 app.UseHttpsRedirection();
 

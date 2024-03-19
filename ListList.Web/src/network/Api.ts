@@ -12,7 +12,7 @@ const formApiRequestPath = (
 
 export type QueryParameters = { [key: string]: any };
 
-export class Api<T> {
+export class Api {
   private _token: string;
 
   private _basePath: string;
@@ -146,30 +146,4 @@ export class Api<T> {
   protected setQueryParameters = (params: { [key: string]: any }) => {
     this._queryParameters = new URLSearchParams(params).toString();
   };
-
-  public GetById = (id: string): Promise<T> => {
-    this.setActionPath(`${id}`);
-
-    return this.executeGet() as Promise<T>;
-  };
-
-  public Get = (): Promise<T[]> => {
-    return this.executeGet() as Promise<T[]>;
-  };
-
-  public Create = (obj: any): Promise<string> => {
-    return this.executePost(obj) as Promise<string>;
-  };
-
-  // public Delete = (id: number): Promise<void> => {
-  //   return this.executeDelete(id) as Promise<void>;
-  // };
-
-  // public Patch = (id: number, obj: any): Promise<void> => {
-  //   return this.executePatch(id, obj) as Promise<void>;
-  // };
-
-  // public Put = (obj: T, id?: number): Promise<void> => {
-  //   return this.executePut(obj, id) as Promise<void>;
-  // };
 }

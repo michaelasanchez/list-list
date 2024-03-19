@@ -7,6 +7,7 @@ import { useAuth, useLocalStorage } from '../hooks';
 import { ListItemMapper } from '../mappers';
 import { ListHeader, ListNode } from '../models';
 import { ListItemApi } from '../network';
+import { config } from '../shared';
 import { Navbar } from './Navbar';
 
 const getItem = (node: ListNode, path: NodePath): ListNode => {
@@ -26,7 +27,7 @@ interface AppViewModel {
 }
 
 export const App: React.FC<AppProps> = ({}) => {
-  const authState = useAuth();
+  const authState = useAuth(config.clientId);
 
   const localStorage = useLocalStorage('expanded');
 
@@ -37,13 +38,15 @@ export const App: React.FC<AppProps> = ({}) => {
   });
 
   React.useEffect(() => {
-    if (!!authState.user) {
+    if (authState.authenticated) {
       loadNodeHeaders(viewModel.expanded);
+    } else {
+      setHeaders([]);
     }
-  }, [authState.user]);
+  }, [authState.authenticated]);
 
   const loadNodeHeaders = (expanded?: string[]) => {
-    new ListItemApi(authState.user.tokenId)
+    new ListItemApi(authState.token)
       .GetHeaders()
       .then((resp) => setHeaders(ListItemMapper.mapHeaders(resp, expanded)));
   };
@@ -91,24 +94,20 @@ export const App: React.FC<AppProps> = ({}) => {
   );
 
   const handleCompleteNode = (listItemId: string) => {
-    new ListItemApi(authState.user.tokenId)
-      .CompleteItem(listItemId)
-      .then(() => {
-        loadNodeHeaders(viewModel.expanded);
-      });
+    new ListItemApi(authState.token).CompleteItem(listItemId).then(() => {
+      loadNodeHeaders(viewModel.expanded);
+    });
   };
 
   const handleCreateNode = (listItem: ListItemCreation, parentId: string) => {
-    new ListItemApi(authState.user.tokenId)
-      .CreateItem(listItem, parentId)
-      .then(() => {
-        setViewModel((vm) => ({ ...vm, showModal: false }));
-        loadNodeHeaders(viewModel.expanded);
-      });
+    new ListItemApi(authState.token).CreateItem(listItem, parentId).then(() => {
+      setViewModel((vm) => ({ ...vm, showModal: false }));
+      loadNodeHeaders(viewModel.expanded);
+    });
   };
 
   const handleDeleteNode = (listItemId: string) => {
-    new ListItemApi(authState.user.tokenId)
+    new ListItemApi(authState.token)
       .DeleteItem(listItemId)
       .then(() => loadNodeHeaders(viewModel.expanded));
   };
@@ -119,7 +118,7 @@ export const App: React.FC<AppProps> = ({}) => {
       description: current.description,
     };
 
-    new ListItemApi(authState.user.tokenId)
+    new ListItemApi(authState.token)
       .PutItem(current.id, listItemPut)
       .then(() => loadNodeHeaders(viewModel.expanded));
   };

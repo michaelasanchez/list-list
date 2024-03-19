@@ -1,72 +1,90 @@
-﻿using ListList.Api.Contracts;
+﻿using Auth.Services.Interfaces;
+using ListList.Api.Contracts;
 using ListList.Api.Services.Interfaces;
-using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
-using ListList.Data.Repositories.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
+using static Google.Apis.Auth.GoogleJsonWebSignature;
 
-namespace ListList.Api.Services
+namespace ListList.Api.Services;
+
+public class UserService(IHttpContextAccessor httpContextAccessor, IMemoryCache cache, ITokenService tokenService, IUnitOfWork unitOfWork) : IUserService
 {
-    public class UserService : IUserService
-	{
-		private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly MemoryCacheEntryOptions _cacheOptions = new MemoryCacheEntryOptions()
+        .SetSlidingExpiration(TimeSpan.FromMinutes(15))
+        .SetAbsoluteExpiration(TimeSpan.FromMinutes(60));
 
-		private readonly IUnitOfWork _unitOfWork;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly IMemoryCache _cache = cache;
+    private readonly ITokenService _tokenService = tokenService;
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-		private readonly IUserRepository _userRepository;
+    public async Task<Guid> GetUserIdAsync()
+    {
+        if (!_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
+        {
+            throw new Exception("User not authenticated");
+        }
 
-		protected User User;
+        var userClaims = _httpContextAccessor.HttpContext.User.Identities.Single().Claims;
 
-		public UserService(IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork)
-		{
-			_httpContextAccessor = httpContextAccessor;
+        var subject = userClaims.FirstOrDefault(z => z.Type == "sub")?.Value;
 
-			_unitOfWork = unitOfWork;
+        if (subject is null)
+        {
+            throw new Exception("");
+        }
 
-			_userRepository = unitOfWork.UserRepository;
-		}
+        if (_cache.TryGetValue<Guid?>(subject, out var userId))
+        {
+            return userId!.Value;
+        }
 
-		public async Task<Guid> GetUserIdAsync()
-		{
-			if (!_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
-            {
-				throw new Exception("User not authenticated");
-            }
+        userId = await _unitOfWork.UserRepository.GetUserIdAsync(subject);
 
-			var username = string.Empty;
+        if (userId is null)
+        {
+            throw new Exception("User is not registered");
+        }
 
-			var userClaims = _httpContextAccessor.HttpContext.User.Identities.Single().Claims;
+        _cache.Set(subject, userId.Value, _cacheOptions);
 
-			username = userClaims
-				.Where(c => c.Type == "email")
-				.Select(c => c.Value)
-				.SingleOrDefault();
+        return userId!.Value;
+    }
 
-			var userEntity = await _userRepository.GetUserByUsernameAsync(username);
+    public async Task<ApiToken?> LoginAsync(string authorizationCode)
+    {
+        var tokenResponse = await _tokenService.ExchangeTokenAsync(authorizationCode);
 
-			// DEBUG
-			if (userEntity is null)
-			{
-				if (username != null)
-                {
-					userEntity = await AddUserAsync(username);
-				}
-				else
-				{
-					throw new Exception("Authentication failed");
-				}
-			}
+        Payload payload = await ValidateAsync(tokenResponse.IdToken);
 
+        string subject = payload.Subject;
 
-			return userEntity.Id;
-		}
-		private async Task<UserEntity> AddUserAsync(string username)
-		{
-			UserEntity newUser = new() { Username = username };
+        var userExists = await _unitOfWork.UserRepository.UserExistsAsync(subject);
 
-			await _userRepository.AddUserAsync(newUser);
-			await _unitOfWork.SaveChangesAsync();
+        if (!userExists)
+        {
+            await _unitOfWork.UserRepository.CreateUserAsync(subject);
 
-			return newUser;
-		}
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        return new ApiToken
+        {
+            IdToken = tokenResponse.IdToken,
+            Expiry = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds!.Value),
+            RefreshToken = tokenResponse.RefreshToken
+        };
+    }
+
+    public async Task<ApiToken?> RefreshAsync(string refreshToken)
+    {
+        var tokenResponse = await _tokenService.RefreshTokenAsync(refreshToken);
+
+        return new ApiToken
+        {
+            IdToken = tokenResponse.IdToken,
+            Expiry = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds!.Value),
+            RefreshToken = tokenResponse.RefreshToken
+        };
     }
 }

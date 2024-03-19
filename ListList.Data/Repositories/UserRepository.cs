@@ -19,9 +19,29 @@ namespace ListList.Data.Repositories
             await _context.Users.AddAsync(user);
         }
 
+        public async Task CreateUserAsync(string subject)
+        {
+            var user = new UserEntity { Subject = subject };
+
+            await _context.Users.AddAsync(user);
+        }
+
         public async Task<UserEntity?> GetUserByUsernameAsync(string username)
         {
             return await _context.Users.SingleOrDefaultAsync(z => z.Username == username);
+        }
+
+        public async Task<Guid?> GetUserIdAsync(string subject)
+        {
+            return await _context.Users
+                .Where(z => z.Subject == subject)
+                .Select(z => z.Id)
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<bool> UserExistsAsync(string subject)
+        {
+            return await _context.Users.AnyAsync(z => z.Subject == subject);
         }
     }
 }

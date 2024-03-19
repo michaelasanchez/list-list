@@ -1,20 +1,30 @@
 import React = require('react');
-import { Container, Navbar as BSNavbar } from 'react-bootstrap';
-import { MemoizedAuthButton } from '../components/auth';
-import { useAuthState } from '../hooks';
+import {
+  Navbar as BSNavbar,
+  Button,
+  Container,
+  Spinner,
+} from 'react-bootstrap';
+import { AuthState } from '../hooks';
 import { strings } from '../shared';
 
 interface NavbarProps {
-  authState?: useAuthState;
+  authState?: AuthState;
 }
 
 export const Navbar: React.FC<NavbarProps> = (props) => {
   return (
     <BSNavbar bg="dark" variant="dark">
       <Container>
-        <BSNavbar.Brand href="#">{strings.components.navbar.brand}</BSNavbar.Brand>
-        {!!props.authState && (
-          <MemoizedAuthButton authState={props.authState} />
+        <BSNavbar.Brand href="#">
+          {strings.components.navbar.brand}
+        </BSNavbar.Brand>
+        {!props.authState.initialized || props.authState.loading ? (
+          <Spinner animation="border" />
+        ) : props.authState.authenticated ? (
+          <Button onClick={props.authState.logout}>Logout</Button>
+        ) : (
+          <Button onClick={props.authState.login}>Login</Button>
         )}
       </Container>
     </BSNavbar>

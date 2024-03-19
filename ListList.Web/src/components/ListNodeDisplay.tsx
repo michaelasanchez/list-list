@@ -59,7 +59,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           <Form.Check
             className="node-check"
             checked={props.node.complete}
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             onChange={() => props.invoke(props.path, 'complete')}
           />
         </div>
@@ -79,13 +79,13 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
                 setViewModel({ ...viewModel, pendingLabel: update })
               }
             />
-            {hasChildren && (
-              <span className="completed">
-                ({countBy(props.node.children, (n) => n.complete)['true'] ?? 0}/
-                {props.node.children.length})
-              </span>
-            )}
           </span>
+          {hasChildren && (
+            <span className="completed">
+              ({countBy(props.node.children, (n) => n.complete)['true'] ?? 0}/
+              {props.node.children.length})
+            </span>
+          )}
           <div>
             {!hasChildren && (
               <Button
