@@ -13,20 +13,20 @@ export interface LabelEditorProps {
 export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
   const [editing, setEditing] = React.useState<boolean>(false);
 
-  const ref = React.useRef<HTMLInputElement>();
+  const inputRef = React.useRef<HTMLTextAreaElement>();
 
-  useClickOutside(ref, () => setEditing(false));
+  useClickOutside(inputRef, () => setEditing(false));
 
-  const handleOnClick = (e: React.MouseEvent<HTMLInputElement>) => {
+  const handleOnClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
     e.stopPropagation();
     if (!editing) {
       setEditing(true);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key == 'Enter') {
-      ref.current.blur();
+      inputRef.current.blur();
     }
   };
 
@@ -34,7 +34,8 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
     <div className={`label-editor${editing ? ' active' : ''}`}>
       <span>{props.label || props.placeholder || ''}</span>
       <Form.Control
-        ref={ref}
+        as="textarea"
+        ref={inputRef}
         onClick={handleOnClick}
         plaintext={!editing}
         placeholder={props.placeholder}

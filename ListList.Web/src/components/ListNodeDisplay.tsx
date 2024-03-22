@@ -55,7 +55,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
       }`}
     >
       <div className="node-header" onClick={handleToggleNode}>
-        <div className="node-control">
+        <div className="node-left">
           <Form.Check
             className="node-check"
             checked={props.node.complete}
@@ -64,7 +64,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           />
         </div>
         <div className="node-title">
-          <span className="heading">
+          <div className="heading">
             <LabelEditor
               label={
                 isNil(viewModel?.pendingLabel)
@@ -79,12 +79,14 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
                 setViewModel({ ...viewModel, pendingLabel: update })
               }
             />
-          </span>
+          </div>
+        </div>
+        <div className="node-right">
           {hasChildren && (
-            <span className="completed">
+            <div className="completed">
               ({countBy(props.node.children, (n) => n.complete)['true'] ?? 0}/
               {props.node.children.length})
-            </span>
+            </div>
           )}
           <div>
             {!hasChildren && (

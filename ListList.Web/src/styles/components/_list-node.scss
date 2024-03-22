@@ -14,7 +14,7 @@
 
   .node-header {
     display: flex;
-    align-items: center;
+    align-items: start;
 
     overflow: hidden;
 
@@ -23,12 +23,21 @@
       flex: 1 1 auto;
       align-items: center;
 
+      // TODO: is this needed?
       .heading {
         display: flex;
         flex: 1;
         align-items: center;
-        justify-content: space-between;
+
+        padding: 0 0.5em;
       }
+    }
+
+    .node-left,
+    .node-right {
+      height: 2rem;
+      display: flex;
+      align-items: center;
     }
   }
 
@@ -65,13 +74,13 @@
 //   .node-header {
 //     display: contents;
 
-//     .node-control,
+//     .node-left,
 //     .node-title {
 //       display: flex;
 //       align-items: center;
 //     }
 
-//     .node-control {
+//     .node-left {
 //       .btn-none {
 //         padding: 0;
 //       }

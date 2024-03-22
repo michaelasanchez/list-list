@@ -22,9 +22,13 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
         {!props.authState.initialized || props.authState.loading ? (
           <Spinner animation="border" />
         ) : props.authState.authenticated ? (
-          <Button onClick={props.authState.logout}>Logout</Button>
+          <Button variant="dark" onClick={props.authState.logout}>
+            Logout
+          </Button>
         ) : (
-          <Button onClick={props.authState.login}>Login</Button>
+          <Button variant="success" onClick={props.authState.login}>
+            Login
+          </Button>
         )}
       </Container>
     </BSNavbar>

@@ -14,7 +14,7 @@ export const ListNodeCreation: React.FC<ListNodeCreationProps> = (props) => {
   return (
     <div className="list-node pending">
       <div className="node-header">
-        <div className="node-control">
+        <div className="node-left">
           <Button variant="none">
             <Icon type="create" />
           </Button>

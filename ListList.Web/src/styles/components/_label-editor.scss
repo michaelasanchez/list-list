@@ -8,8 +8,16 @@
   color: transparent;
   user-select: none;
 
-  & > span {
-    white-space: nowrap;
+  // & > span {
+  //   white-space: nowrap;
+  // }
+
+  textarea {
+    resize: none;
+    overflow: hidden;
+
+    // TODO: this might be temporary. Just using this to size it to the matching span for now
+    height: 100%;
   }
 
   &.active {
