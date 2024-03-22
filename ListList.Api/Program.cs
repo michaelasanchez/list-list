@@ -8,7 +8,6 @@ using ListList.Api.Services.Interfaces;
 using ListList.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.RegisterDataServices(builder.Configuration.GetConnectionString("ListListContext"));

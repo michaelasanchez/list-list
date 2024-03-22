@@ -122,28 +122,36 @@ export const useAuth = (clientId: string) => {
       const tokenExpiry = new Date(storedToken.expiry);
       const isStale = expiresWithinThreshold(tokenExpiry, refreshThreshold);
 
-      const payload = parseJwt(storedToken.idToken);
-
       if (isStale) {
         setState((s) => ({ ...s, loading: true }));
 
-        userApi.Refresh(storedToken.refreshToken).then((token: ApiToken) => {
-          const refreshedToken = {
-            idToken: token.idToken,
-            expiry: token.expiry,
-            refreshToken: storedToken.refreshToken,
-          };
+        userApi
+          .Refresh(storedToken.refreshToken)
+          .then((token: ApiToken) => {
+            const refreshedToken = {
+              idToken: token.idToken,
+              expiry: token.expiry,
+              refreshToken: storedToken.refreshToken,
+            };
 
-          const tokenString = JSON.stringify(refreshedToken);
-          tokenStorage.commit(tokenString);
+            const tokenString = JSON.stringify(refreshedToken);
+            tokenStorage.commit(tokenString);
 
-          setState((s) => ({
-            ...s,
-            authenticated: true,
-            loading: false,
-            token: token.idToken,
-          }));
-        });
+            setState((s) => ({
+              ...s,
+              authenticated: true,
+              loading: false,
+              token: token.idToken,
+            }));
+          })
+          .catch(() =>
+            setState((s) => ({
+              ...s,
+              authenticated: false,
+              loading: false,
+              token: null,
+            }))
+          );
       } else {
         setState((s) => ({
           ...s,

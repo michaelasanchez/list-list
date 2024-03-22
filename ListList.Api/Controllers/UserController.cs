@@ -3,47 +3,44 @@ using ListList.Api.Contracts.Post;
 using ListList.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ListList.Api.Controllers
+namespace ListList.Api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class UserController(IUserService _userService) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UserController(IUserService userService) : ControllerBase
+    [HttpPost("login")]
+    public async Task<ActionResult<ApiToken?>> Login(AuthorizationCode authorizationCode)
     {
-        private readonly IUserService _userService = userService;
+        ApiToken? token;
 
-        [HttpPost("login")]
-        public async Task<ActionResult<ApiToken?>> Login(AuthorizationCode authorizationCode)
+        try
         {
-            ApiToken? token;
-
-            try
-            {
-                token = await _userService.LoginAsync(authorizationCode.Code);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-            return Ok(token);
+            token = await _userService.LoginAsync(authorizationCode.Code);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
         }
 
-        [HttpPost("refresh")]
-        public async Task<ActionResult<ApiToken?>> Refresh(RefreshToken refreshToken)
+        return Ok(token);
+    }
+
+    [HttpPost("refresh")]
+    public async Task<ActionResult<ApiToken?>> Refresh(RefreshToken refreshToken)
+    {
+        ApiToken? token;
+
+        try
         {
-            ApiToken? token;
-
-            try
-            {
-                token = await _userService.RefreshAsync(refreshToken.Token);
-            }
-            catch (Exception ex)
-            {
-
-                return BadRequest(ex.Message);
-            }
-
-            return Ok(token);
+            token = await _userService.RefreshAsync(refreshToken.Token);
         }
+        catch (Exception ex)
+        {
+
+            return BadRequest(ex.Message);
+        }
+
+        return Ok(token);
     }
 }

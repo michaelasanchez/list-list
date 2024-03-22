@@ -1,5 +1,4 @@
 ﻿using ListList.Data.Models.Entities;
-using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

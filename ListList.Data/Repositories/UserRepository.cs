@@ -3,45 +3,27 @@ using ListList.Data.Models.Interfaces;
 using ListList.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace ListList.Data.Repositories
+namespace ListList.Data.Repositories;
+
+public class UserRepository(IListListContext _context) : IUserRepository
 {
-    public class UserRepository : IUserRepository
+    public async Task CreateUserAsync(string subject)
     {
-        private readonly IListListContext _context;
+        var user = new UserEntity { Subject = subject };
 
-        public UserRepository(IListListContext context)
-        {
-            _context = context;
-        }
+        await _context.Users.AddAsync(user);
+    }
 
-        public async Task AddUserAsync(UserEntity user)
-        {
-            await _context.Users.AddAsync(user);
-        }
+    public async Task<Guid?> GetUserIdAsync(string subject)
+    {
+        return await _context.Users
+            .Where(z => z.Subject == subject)
+            .Select(z => z.Id)
+            .SingleOrDefaultAsync();
+    }
 
-        public async Task CreateUserAsync(string subject)
-        {
-            var user = new UserEntity { Subject = subject };
-
-            await _context.Users.AddAsync(user);
-        }
-
-        public async Task<UserEntity?> GetUserByUsernameAsync(string username)
-        {
-            return await _context.Users.SingleOrDefaultAsync(z => z.Username == username);
-        }
-
-        public async Task<Guid?> GetUserIdAsync(string subject)
-        {
-            return await _context.Users
-                .Where(z => z.Subject == subject)
-                .Select(z => z.Id)
-                .SingleOrDefaultAsync();
-        }
-
-        public async Task<bool> UserExistsAsync(string subject)
-        {
-            return await _context.Users.AnyAsync(z => z.Subject == subject);
-        }
+    public async Task<bool> UserExistsAsync(string subject)
+    {
+        return await _context.Users.AnyAsync(z => z.Subject == subject);
     }
 }

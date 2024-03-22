@@ -3,35 +3,30 @@ using ListList.Api.Contracts;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
+using System.Security.Claims;
 using static Google.Apis.Auth.GoogleJsonWebSignature;
 
 namespace ListList.Api.Services;
 
-public class UserService(IHttpContextAccessor httpContextAccessor, IMemoryCache cache, ITokenService tokenService, IUnitOfWork unitOfWork) : IUserService
+public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache _cache, ITokenService _tokenService, IUnitOfWork _unitOfWork) : IUserService
 {
     private readonly MemoryCacheEntryOptions _cacheOptions = new MemoryCacheEntryOptions()
-        .SetSlidingExpiration(TimeSpan.FromMinutes(15))
-        .SetAbsoluteExpiration(TimeSpan.FromMinutes(60));
-
-    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-    private readonly IMemoryCache _cache = cache;
-    private readonly ITokenService _tokenService = tokenService;
-    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        .SetSlidingExpiration(TimeSpan.FromDays(7));
 
     public async Task<Guid> GetUserIdAsync()
     {
-        if (!_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
+        if (_httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated is false)
         {
-            throw new Exception("User not authenticated");
+            throw new Exception("User not authenticated.");
         }
 
-        var userClaims = _httpContextAccessor.HttpContext.User.Identities.Single().Claims;
+        var userClaims = _httpContextAccessor.HttpContext?.User.Identities.Single().Claims;
 
-        var subject = userClaims.FirstOrDefault(z => z.Type == "sub")?.Value;
+        var subject = userClaims?.FirstOrDefault(z => z.Type == ClaimTypes.NameIdentifier)?.Value;
 
         if (subject is null)
         {
-            throw new Exception("");
+            throw new Exception("User subject is missing.");
         }
 
         if (_cache.TryGetValue<Guid?>(subject, out var userId))
@@ -43,7 +38,7 @@ public class UserService(IHttpContextAccessor httpContextAccessor, IMemoryCache 
 
         if (userId is null)
         {
-            throw new Exception("User is not registered");
+            throw new Exception("User is not registered.");
         }
 
         _cache.Set(subject, userId.Value, _cacheOptions);
