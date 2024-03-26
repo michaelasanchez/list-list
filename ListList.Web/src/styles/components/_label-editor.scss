@@ -1,6 +1,5 @@
 .label-editor {
   position: relative;
-  line-height: 1.5;
 
   font-weight: 500;
   font-size: 1.25rem;
@@ -8,16 +7,13 @@
   color: transparent;
   user-select: none;
 
-  // & > span {
-  //   white-space: nowrap;
-  // }
-
   textarea {
     resize: none;
     overflow: hidden;
 
     // TODO: this might be temporary. Just using this to size it to the matching span for now
     height: 100%;
+    min-height: unset;
   }
 
   &.active {
@@ -35,10 +31,10 @@
     top: 0;
     padding: 0;
 
+    transition: border-color 100ms;
+
     font-weight: 500;
     font-size: 1.25rem;
-
-    transition: width 100ms, border-color 100ms;
 
     border: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0);
@@ -52,11 +48,6 @@
 
     &::placeholder {
       transition: opacity 100ms;
-    }
-
-    &[value='']:not(:placeholder-shown) {
-      top: -1rem;
-      min-width: 100px;
     }
   }
 }

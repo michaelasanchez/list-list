@@ -1,5 +1,4 @@
 import React = require('react');
-import { Button } from 'react-bootstrap';
 import { ListItemCreation } from '../contracts';
 import { Icon } from './Icon';
 import { LabelEditor } from './LabelEditor';
@@ -15,9 +14,7 @@ export const ListNodeCreation: React.FC<ListNodeCreationProps> = (props) => {
     <div className="list-node pending">
       <div className="node-header">
         <div className="node-left">
-          <Button variant="none">
-            <Icon type="create" />
-          </Button>
+          <Icon type="create" />
         </div>
         <div className="node-title">
           <span className="heading">
