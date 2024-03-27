@@ -1,15 +1,21 @@
 .list-node {
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+
   &.root {
     margin: 1em 0;
   }
 
   &.parent {
-    border: 1px solid var(--node-border-color);
+    border-color: var(--node-border-color);
   }
 
   &.pending {
-    .node-left svg {
-      padding: 0 1px;
+    // TODO: keeps width the same as check box and centers "+" svg
+    .node-left {
+      width: 1em;
+      justify-content: center;
     }
   }
 
@@ -51,83 +57,3 @@
     }
   }
 }
-
-// .list-node {
-//   display: grid;
-//   grid-template-columns: minmax(auto, min-content) auto;
-//   grid-template-rows: auto auto;
-
-//   padding: 0.5em;
-
-//   &.root {
-//     min-width: 100%;
-//     width: fit-content;
-//   }
-
-//   &.parent {
-//     border: 1px solid rgba(0, 0, 0, 0.175);
-//     border-radius: 3px;
-//     padding: 0.5em;
-
-//     & > .node-header {
-//       cursor: pointer;
-//     }
-//   }
-
-//   &.pending {
-//     opacity: 0.5;
-//   }
-
-//   .node-header {
-//     display: contents;
-
-//     .node-left,
-//     .node-title {
-//       display: flex;
-//       align-items: center;
-//     }
-
-//     .node-left {
-//       .btn-none {
-//         padding: 0;
-//       }
-//     }
-
-//     .node-title {
-//       justify-content: space-between;
-//       margin: 0 0.5em;
-
-//       .heading {
-//         display: flex;
-//         align-items: baseline;
-//       }
-
-//       .completed {
-//         margin-left: 0.5em;
-
-//         color: var(--bs-gray-500);
-//         font-size: 0.8em;
-//         font-weight: 500;
-//       }
-
-//       // get rid of collapse/expand btn outline
-//       .btn-none:focus {
-//         box-shadow: none;
-//       }
-//     }
-//   }
-
-//   .node-body {
-//     grid-column: 2 / 3;
-
-//     display: flex;
-//     flex-direction: column;
-//     align-items: stretch;
-
-//     padding: 0.5em;
-
-//     .list-node + .list-node {
-//       margin-top: 0.5em;
-//     }
-//   }
-// }

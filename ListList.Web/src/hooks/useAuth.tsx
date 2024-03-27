@@ -26,8 +26,6 @@ const expiresWithinThreshold = (expiry: Date, threshold: number): boolean => {
   const now = new Date();
   const remaining = (expiry.getTime() - now.getTime()) / 1000;
 
-  console.log('REMAINING', remaining);
-
   return remaining < threshold;
 };
 

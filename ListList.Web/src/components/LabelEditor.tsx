@@ -6,6 +6,7 @@ export interface LabelEditorProps {
   label: string;
   placeholder?: string;
   onBlur?: () => void;
+  onCancel?: () => void;
   onChange?: (update: string) => void;
   onFocus?: () => void;
 }
@@ -14,6 +15,7 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
   const [editing, setEditing] = React.useState<boolean>(false);
 
   const inputRef = React.useRef<HTMLTextAreaElement>();
+  const cancelled = React.useRef<boolean>(false);
 
   useClickOutside(inputRef, () => setEditing(false));
 
@@ -28,6 +30,20 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
     if (e.key == 'Enter') {
       inputRef.current.blur();
     }
+
+    if (e.key == 'Escape') {
+      cancelled.current = true;
+      inputRef.current.blur();
+    }
+  };
+
+  const handleBlur = () => {
+    if (!cancelled) {
+      props.onBlur();
+    } else {
+      cancelled.current = false;
+      props.onChange(null);
+    }
   };
 
   return (
@@ -41,7 +57,7 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
         placeholder={props.placeholder}
         value={props.label || ''}
         onChange={(e) => props.onChange(e.target.value)}
-        onBlur={props.onBlur}
+        onBlur={handleBlur}
         onFocus={props.onFocus}
         onKeyDown={handleKeyDown}
       />

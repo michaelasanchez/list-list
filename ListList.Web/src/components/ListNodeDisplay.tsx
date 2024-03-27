@@ -124,6 +124,12 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           ))}
           <ListNodeCreation
             node={viewModel.pendingNode}
+            onCancel={() =>
+              setViewModel((vm) => {
+                const { pendingNode, ...rest } = vm;
+                return rest;
+              })
+            }
             onUpdate={(node) =>
               setViewModel((vm) => ({ ...vm, pendingNode: node }))
             }
