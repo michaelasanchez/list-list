@@ -28,11 +28,9 @@ namespace ListList.Data.Repositories
 
         public async Task CreateListItemAtTopAsync(Guid userId, ListItemEntity creation, Guid? parentId)
         {
-            creation.UserId = userId;
-
             if (parentId is null)
             {
-                creation.GroupId = new Guid();
+                creation.ListHeaderId = new Guid();
                 creation.Left = 1;
                 creation.Right = 2;
             }
@@ -42,7 +40,7 @@ namespace ListList.Data.Repositories
 
                 var listItems = await _context.ListItems
                         .Where(z =>
-                            z.GroupId == parentNode.GroupId &&
+                            z.ListHeaderId == parentNode.ListHeaderId &&
                             z.Right > parentNode.Left)
                         .OrderBy(z => z.Left)
                         .ToListAsync();
@@ -53,7 +51,7 @@ namespace ListList.Data.Repositories
                     item.Right += 2;
                 }
 
-                creation.GroupId = parentNode.GroupId;
+                creation.ListHeaderId = parentNode.ListHeaderId;
                 creation.Left = parentNode.Left + 1;
                 creation.Right = parentNode.Left + 2;
             }
@@ -61,13 +59,21 @@ namespace ListList.Data.Repositories
             await _context.ListItems.AddAsync(creation);
         }
 
-        public async Task CreateListItemAsync(Guid userId, ListItemEntity creation, Guid? parentId)
+        public async Task CreateListHeaderAsync(Guid userId, ListHeaderEntity creation)
         {
             creation.UserId = userId;
 
+            var nextOrder = await _context.ListHeaders.CountAsync() + 1;
+            creation.Order = nextOrder;
+
+            await _context.ListHeaders.AddAsync(creation);
+        }
+
+        public async Task CreateListItemAsync(Guid userId, ListItemEntity creation, Guid? parentId)
+        {
             if (parentId is null)
             {
-                creation.GroupId = new Guid();
+                creation.ListHeaderId = new Guid();
                 creation.Left = 1;
                 creation.Right = 2;
             }
@@ -77,7 +83,7 @@ namespace ListList.Data.Repositories
 
                 var listItems = await _context.ListItems
                         .Where(z =>
-                            z.GroupId == parentNode.GroupId &&
+                            z.ListHeaderId == parentNode.ListHeaderId &&
                             z.Right >= parentNode.Right &&
                             !z.Deleted)
                         .OrderBy(z => z.Left)
@@ -89,7 +95,7 @@ namespace ListList.Data.Repositories
                     item.Right += 2;
                 }
 
-                creation.GroupId = parentNode.GroupId;
+                creation.ListHeaderId = parentNode.ListHeaderId;
                 creation.Left = parentNode.Right - 2;
                 creation.Right = parentNode.Right - 1;
             }
@@ -99,19 +105,30 @@ namespace ListList.Data.Repositories
 
         public async Task DeleteListItemAsync(Guid userId, Guid listItemId)
         {
-            var targetNode = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
+            var targetNode = await _context.ListItems
+                .Include(z => z.ListHeader)
+                .SingleAsync(z => z.Id == listItemId);
             
-            var listItemQuery = await _context.ListItems
+            var subsequentListItems = await _context.ListItems
                 .Where(z =>
-                    z.UserId == userId &&
+                    z.Id != listItemId &&
+                    z.ListHeaderId == targetNode.ListHeaderId &&
                     z.Right >= targetNode.Left &&
                     !z.Deleted)
                 .ToListAsync();
 
-            foreach (var item in listItemQuery)
+            if (subsequentListItems.Any())
             {
-                item.Left = item.Left > targetNode.Left ? item.Left - 2 : item.Left;
-                item.Right -= 2;
+                foreach (var item in subsequentListItems)
+                {
+                    item.Left = item.Left > targetNode.Left ? item.Left - 2 : item.Left;
+                    item.Right -= 2;
+                }
+            }
+            else
+            {
+                targetNode.ListHeader.Deleted = true;
+                targetNode.ListHeader.DeletedOn = DateTime.UtcNow;
             }
 
             targetNode.Left = 0;
@@ -139,7 +156,8 @@ namespace ListList.Data.Repositories
         {
             return await _context.ListHeaders
                 .Include(z => z.ListItems.Where(y => !y.Deleted))
-                .Where(z => z.UserId == userId)
+                .Where(z => z.UserId == userId && !z.Deleted)
+                .OrderBy(z => z.Order)
                 .ToListAsync();
         }
 

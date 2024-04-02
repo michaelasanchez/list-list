@@ -6,6 +6,7 @@ namespace ListList.Api.Services.Interfaces
 {
     public interface IListItemService
     {
+        Task<Guid> CreateListHeaderAsync(ListItemCreation listHeader);
         Task<Guid> CreateListItemAsync(ListItemCreation creation, Guid? parentId);
         Task<IEnumerable<ListHeader>> GetListItemsAsync();
         Task<ListItem> GetListItemByIdAsync(Guid listItemId);

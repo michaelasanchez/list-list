@@ -2,6 +2,7 @@
 using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
+using ListList.Api.Guards.Interfaces;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
@@ -15,19 +16,36 @@ namespace ListList.Api.Services
 
         private readonly IUserService _userService;
 
-        private readonly IListItemRepository _listItemRepository;
+        private readonly IGuard _guard;
 
         private readonly IMapper _autoMapper;
 
-        public ListItemService(IUnitOfWork unitOfWork, IUserService userService, IMapper autoMapper)
+        private readonly IListItemRepository _listItemRepository;
+
+        public ListItemService(IUnitOfWork unitOfWork, IUserService userService, IMapper autoMapper, IGuard guard)
         {
             _unitOfWork = unitOfWork;
 
-            _autoMapper = autoMapper;
-
             _userService = userService;
 
+            _autoMapper = autoMapper;
+
+            _guard = guard;
+
             _listItemRepository = unitOfWork.ListItemRepository;
+        }
+
+        public async Task<Guid> CreateListHeaderAsync(ListItemCreation listHeader)
+        {
+            var userId = await _userService.GetUserIdAsync();
+
+            var creation = _autoMapper.Map<ListHeaderEntity>(listHeader);
+
+            await _listItemRepository.CreateListHeaderAsync(userId, creation);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return creation.Id;
         }
 
         public async Task<Guid> CreateListItemAsync(ListItemCreation listItem, Guid? parentId)
@@ -55,7 +73,14 @@ namespace ListList.Api.Services
         public async Task DeleteListItemAsync(Guid listItemId)
         {
             var userId = await _userService.GetUserIdAsync();
-            
+
+            var result = await _guard.AgainstInvalidListItemDeleteAsync(userId, listItemId);
+
+            if (result.IsInvalid)
+            {
+                throw new Exception(result.Message);
+            }
+
             await _listItemRepository.DeleteListItemAsync(userId, listItemId);
 
             await _unitOfWork.SaveChangesAsync();

@@ -20,29 +20,26 @@ namespace ListList.Data.Models
             {
                 entity.ToTable("ListHeader");
 
-                entity.HasKey(e => e.Id);
-
-                entity.HasMany(e => e.ListItems)
-                    .WithOne()
-                    .HasForeignKey(e => e.GroupId);
+                entity.HasIndex(p => p.Id);
+                
+                entity.HasMany(p => p.ListItems)
+                    .WithOne(d => d.ListHeader)
+                    .HasForeignKey(p => p.ListHeaderId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<ListItemEntity>(entity =>
             {
                 entity.ToTable("ListItem");
 
-                entity.HasKey(e => e.Id);
-
-                entity.HasOne<UserEntity>()
-                    .WithMany()
-                    .HasForeignKey(e => e.UserId);
+                entity.HasIndex(p => p.Id);
             });
 
             modelBuilder.Entity<UserEntity>(entity =>
             {
                 entity.ToTable("User");
 
-                entity.HasIndex(e => e.Id);
+                entity.HasIndex(p => p.Id);
             });
 
         }

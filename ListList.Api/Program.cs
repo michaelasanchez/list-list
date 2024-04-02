@@ -1,5 +1,7 @@
 using Auth;
 using AutoMapper;
+using ListList.Api.Guards;
+using ListList.Api.Guards.Interfaces;
 using ListList.Api.Mappers;
 using ListList.Api.Mappers.Interfaces;
 using ListList.Api.Mappers.Profiles;
@@ -25,6 +27,8 @@ IMapper mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
 builder.Services.AddScoped<IListItemMapper, ListItemMapper>();
+
+builder.Services.AddScoped<IGuard, Guard>();
 
 builder.Services.AddScoped<IListItemService, ListItemService>();
 builder.Services.AddScoped<IUserService, UserService>();

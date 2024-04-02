@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ListList.Data.Models;
 
-namespace ListList.Data.Validators.Interfaces
+namespace ListList.Data.Validators.Interfaces;
+
+public interface IListItemValidator
 {
-    public interface IListItemValidator
-    {
-    }
+    Task<ValidationResult> ListItemIsEmptyAsync(Guid userId, Guid listItemId, ValidationResult result);
+    Task<ValidationResult> UserOwnsListItemAsync(Guid userId, Guid listItemId, ValidationResult result);
 }

@@ -51,8 +51,25 @@ namespace ListList.Api.Controllers
             return Ok(listItem);
         }
 
+        [HttpPost]
+        public async Task<ActionResult<Guid>> CreateListHeaderAsync(ListItemCreation creation)
+        {
+            Guid id;
+
+            try
+            {
+                id = await _service.CreateListHeaderAsync(creation);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok(id);
+        }
+
         [HttpPost("{parentId}")]
-        public async Task<ActionResult<Guid>> Create([FromRoute] Guid? parentId, ListItemCreation creation)
+        public async Task<ActionResult<Guid>> CreateListItemAsync([FromRoute] Guid? parentId, ListItemCreation creation)
         {
             Guid id;
 

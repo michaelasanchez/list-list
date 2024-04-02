@@ -5,6 +5,7 @@ import { LabelEditor } from './LabelEditor';
 
 export interface ListNodeCreationProps {
   node: ListItemCreation;
+  placeholder?: string;
   onCancel: () => void;
   onSave: () => void;
   onUpdate: (update: ListItemCreation) => void;
@@ -21,7 +22,7 @@ export const ListNodeCreation: React.FC<ListNodeCreationProps> = (props) => {
           <span className="heading">
             <LabelEditor
               label={props.node?.label}
-              placeholder="New Item"
+              placeholder={props.placeholder || 'New Item'}
               onCancel={props.onCancel}
               onChange={(updatedLabel) =>
                 props.onUpdate({ ...props.node, label: updatedLabel })

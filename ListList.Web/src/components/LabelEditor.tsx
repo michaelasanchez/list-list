@@ -38,7 +38,7 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
   };
 
   const handleBlur = () => {
-    if (!cancelled) {
+    if (!cancelled.current) {
       props.onBlur();
     } else {
       cancelled.current = false;

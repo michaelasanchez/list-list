@@ -1,5 +1,7 @@
 ﻿using ListList.Data.Models;
 using ListList.Data.Models.Interfaces;
+using ListList.Data.Validators;
+using ListList.Data.Validators.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +15,8 @@ namespace ListList.Data
 
             services.AddScoped<IListListContext, ListListContext>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddScoped<IListItemValidator, ListItemValidator>();
         }
     }
 }

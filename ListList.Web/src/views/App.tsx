@@ -1,7 +1,7 @@
 import { filter, map } from 'lodash';
 import * as React from 'react';
 import { Container } from 'react-bootstrap';
-import { ListNodeDisplay } from '../components';
+import { ListNodeCreation, ListNodeDisplay } from '../components';
 import { ListItemCreation } from '../contracts';
 import { useAuth, useLocalStorage } from '../hooks';
 import { ListItemMapper } from '../mappers';
@@ -23,7 +23,7 @@ export type NodePath = number[];
 interface AppViewModel {
   expanded: string[];
   parentId?: string;
-  creation?: ListItemCreation;
+  listHeaderCreation?: ListItemCreation;
 }
 
 export const App: React.FC<AppProps> = ({}) => {
@@ -99,9 +99,19 @@ export const App: React.FC<AppProps> = ({}) => {
     });
   };
 
+  const handleCreateHeader = (listItem: ListItemCreation) => {
+    new ListItemApi(authState.token).CreateItem(listItem).then(() => {
+      setViewModel((vm) => {
+        const { listHeaderCreation, ...rest } = vm;
+        return rest;
+      });
+      loadNodeHeaders(viewModel.expanded);
+    });
+  };
+
   const handleCreateNode = (listItem: ListItemCreation, parentId: string) => {
     new ListItemApi(authState.token).CreateItem(listItem, parentId).then(() => {
-      setViewModel((vm) => ({ ...vm, showModal: false }));
+      setViewModel((vm) => ({ ...vm }));
       loadNodeHeaders(viewModel.expanded);
     });
   };
@@ -137,6 +147,20 @@ export const App: React.FC<AppProps> = ({}) => {
               invoke={handleNodeAction}
             />
           ))}
+          <ListNodeCreation
+            node={viewModel.listHeaderCreation}
+            placeholder="New List"
+            onCancel={() =>
+              setViewModel((vm) => {
+                const { listHeaderCreation, ...rest } = vm;
+                return rest;
+              })
+            }
+            onSave={() => handleCreateHeader(viewModel.listHeaderCreation)}
+            onUpdate={(creation: ListItemCreation) =>
+              setViewModel((vm) => ({ ...vm, listHeaderCreation: creation }))
+            }
+          />
         </Container>
       </main>
     </>

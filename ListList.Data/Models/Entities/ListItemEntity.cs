@@ -2,8 +2,7 @@
 
 public class ListItemEntity : BaseEntity
 {
-    public Guid UserId { get; set; }
-    public Guid GroupId { get; set; }
+    public Guid ListHeaderId { get; set; }
 
     public string? Label { get; set; }
     public string? Description { get; set; }
@@ -17,4 +16,6 @@ public class ListItemEntity : BaseEntity
 
     public int Left { get; set; }
     public int Right { get; set; }
+
+    public ListHeaderEntity ListHeader { get; set; }
 }

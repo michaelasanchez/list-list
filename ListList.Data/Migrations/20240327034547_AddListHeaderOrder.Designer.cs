@@ -4,6 +4,7 @@ using ListList.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ListList.Data.Migrations
 {
     [DbContext(typeof(ListListContext))]
-    partial class ListListContextModelSnapshot : ModelSnapshot
+    [Migration("20240327034547_AddListHeaderOrder")]
+    partial class AddListHeaderOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -31,12 +33,6 @@ namespace ListList.Data.Migrations
                     b.Property<DateTimeOffset>("Created")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset?>("DeletedOn")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
@@ -51,8 +47,6 @@ namespace ListList.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Id");
 
                     b.ToTable("ListHeader", (string)null);
                 });
@@ -84,14 +78,14 @@ namespace ListList.Data.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Label")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Left")
                         .HasColumnType("int");
-
-                    b.Property<Guid>("ListHeaderId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Right")
                         .HasColumnType("int");
@@ -99,11 +93,14 @@ namespace ListList.Data.Migrations
                     b.Property<DateTimeOffset?>("Updated")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Id");
+                    b.HasIndex("GroupId");
 
-                    b.HasIndex("ListHeaderId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("ListItem", (string)null);
                 });
@@ -133,13 +130,17 @@ namespace ListList.Data.Migrations
 
             modelBuilder.Entity("ListList.Data.Models.Entities.ListItemEntity", b =>
                 {
-                    b.HasOne("ListList.Data.Models.Entities.ListHeaderEntity", "ListHeader")
+                    b.HasOne("ListList.Data.Models.Entities.ListHeaderEntity", null)
                         .WithMany("ListItems")
-                        .HasForeignKey("ListHeaderId")
+                        .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ListHeader");
+                    b.HasOne("ListList.Data.Models.Entities.UserEntity", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ListList.Data.Models.Entities.ListHeaderEntity", b =>

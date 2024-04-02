@@ -12,8 +12,13 @@ export class ListItemApi extends Api {
     return this.executePost(null, null, false);
   };
 
-  public CreateItem = (creation: ListItemCreation, parentId: string): Promise<number> => {
-    this.setActionPath(`${parentId}`);
+  public CreateItem = (
+    creation: ListItemCreation,
+    parentId: string = null
+  ): Promise<number> => {
+    if (parentId) {
+      this.setActionPath(`${parentId}`);
+    }
 
     return this.executePost(creation);
   };
@@ -28,5 +33,5 @@ export class ListItemApi extends Api {
 
   public PutItem = (listItemId: string, put: ApiListItemPut) => {
     return this.executePut(put, listItemId) as Promise<void>;
-  }
+  };
 }
