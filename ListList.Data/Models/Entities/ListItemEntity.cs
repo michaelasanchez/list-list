@@ -7,7 +7,6 @@ public class ListItemEntity : BaseEntity
     public string? Label { get; set; }
     public string? Description { get; set; }
 
-    public bool Accomplishable { get; set; }
     public bool Complete { get; set; }
     public DateTimeOffset? CompletedOn { get; set; }
 

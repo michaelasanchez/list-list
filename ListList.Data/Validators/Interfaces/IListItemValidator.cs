@@ -4,6 +4,6 @@ namespace ListList.Data.Validators.Interfaces;
 
 public interface IListItemValidator
 {
-    Task<ValidationResult> ListItemIsEmptyAsync(Guid userId, Guid listItemId, ValidationResult result);
-    Task<ValidationResult> UserOwnsListItemAsync(Guid userId, Guid listItemId, ValidationResult result);
+    Task ListItemIsEmptyAsync(Guid userId, Guid listItemId, ValidationResult result);
+    Task UserOwnsListItemAsync(Guid userId, Guid listItemId, ValidationResult result);
 }

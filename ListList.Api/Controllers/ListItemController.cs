@@ -8,15 +8,8 @@ namespace ListList.Api.Controllers
 {
     [ApiController]
 	[Route("api/[controller]")]
-    public class ListItemController : Controller
+    public class ListItemController(IListItemService _service) : Controller
     {
-        private readonly IListItemService _service;
-
-        public ListItemController(IListItemService service)
-        {
-            _service = service;
-        }
-
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ListHeader>>> Get()
         {
@@ -69,7 +62,7 @@ namespace ListList.Api.Controllers
         }
 
         [HttpPost("{parentId}")]
-        public async Task<ActionResult<Guid>> CreateListItemAsync([FromRoute] Guid? parentId, ListItemCreation creation)
+        public async Task<ActionResult<Guid>> CreateListItemAsync([FromRoute] Guid parentId, ListItemCreation creation)
         {
             Guid id;
 
