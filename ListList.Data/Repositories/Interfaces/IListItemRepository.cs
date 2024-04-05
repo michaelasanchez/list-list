@@ -6,7 +6,7 @@ public interface IListItemRepository
 {
     Task<ListItemEntity> GetListItemByIdAsync(Guid listItemId);
 
-    Task<List<ListHeaderEntity>> GetListItemsAsync(Guid userId);
+    Task<List<ListHeaderEntity>> GetListHeadersAsync(Guid userId);
 
     Task CreateListHeaderAsync(Guid userId, ListHeaderEntity creation);
 

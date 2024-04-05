@@ -11,7 +11,7 @@ namespace ListList.Api.Services.Interfaces
         Task<Guid> CreateListItemAsync(ListItemCreation creation, Guid parentId);
         Task DeleteListItemAsync(Guid listItemId);
         Task<ListItem> GetListItemByIdAsync(Guid listItemId);
-        Task<IEnumerable<ListHeader>> GetListItemsAsync();
+        Task<IEnumerable<ListHeader>> GetListHeadersAsync();
         Task PutListItemAsync(Guid listItemId, ListItemPut listItemPut);
     }
 }

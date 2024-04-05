@@ -90,6 +90,15 @@ public class ListItemService(
         await _unitOfWork.SaveChangesAsync();
     }
 
+    public async Task<IEnumerable<ListHeader>> GetListHeadersAsync()
+    {
+        var userId = await _userService.GetUserIdAsync();
+
+        var listHeaders = await _listItemRepository.GetListHeadersAsync(userId.Value);
+
+        return _mapper.Map<IEnumerable<ListHeader>>(listHeaders);
+    }
+
     public async Task<ListItem> GetListItemByIdAsync(Guid listItemId)
     {
         var userId = await _userService.GetUserIdAsync();
@@ -104,15 +113,6 @@ public class ListItemService(
         var listItem = await _listItemRepository.GetListItemByIdAsync(listItemId);
 
         return _mapper.Map<ListItem>(listItem);
-    }
-
-    public async Task<IEnumerable<ListHeader>> GetListItemsAsync()
-    {
-        var userId = await _userService.GetUserIdAsync();
-
-        var listHeaders = await _listItemRepository.GetListItemsAsync(userId.Value);
-
-        return _mapper.Map<IEnumerable<ListHeader>>(listHeaders);
     }
 
     public async Task PutListItemAsync(Guid listItemId, ListItemPut listItemPut)

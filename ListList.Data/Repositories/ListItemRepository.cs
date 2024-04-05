@@ -127,6 +127,15 @@ public class ListItemRepository(IListListContext _context) : IListItemRepository
         targetNode.DeletedOn = DateTime.UtcNow;
     }
 
+    public async Task<List<ListHeaderEntity>> GetListHeadersAsync(Guid userId)
+    {
+        return await _context.ListHeaders
+            .Include(z => z.ListItems.Where(y => !y.Deleted))
+            .Where(z => z.UserId == userId && !z.Deleted)
+            .OrderBy(z => z.Order)
+            .ToListAsync();
+    }
+
     public async Task<ListItemEntity> GetListItemByIdAsync(Guid listItemId)
     {
         var parent = await _context.ListItems.Where(z => z.Id == listItemId).SingleAsync();
@@ -139,15 +148,6 @@ public class ListItemRepository(IListListContext _context) : IListItemRepository
             .ToListAsync();
 
         return parent;
-    }
-
-    public async Task<List<ListHeaderEntity>> GetListItemsAsync(Guid userId)
-    {
-        return await _context.ListHeaders
-            .Include(z => z.ListItems.Where(y => !y.Deleted))
-            .Where(z => z.UserId == userId && !z.Deleted)
-            .OrderBy(z => z.Order)
-            .ToListAsync();
     }
 
     public async Task PutListItemAsync(Guid listItemId, ListItemEntity entityPut)
