@@ -51,8 +51,8 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   return (
     <div
       className={`list-node${props.className ? ` ${props.className}` : ''}${
-        hasChildren ? ' parent' : ''
-      }`}
+        props.node.expanded ? ' expanded' : ''
+      }${hasChildren ? ' parent' : ''}`}
     >
       <div className="node-header" onClick={handleToggleNode}>
         <div className="node-left">
@@ -89,19 +89,19 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
             </div>
           )}
           <div>
-            {!hasChildren && (
+            {!hasChildren ? (
               <Button
+                className="delete"
                 size="sm"
-                variant="outline-danger"
-                disabled={props.node.children.length > 0}
+                variant="none"
+                disabled={hasChildren}
                 onClick={handleDeleteNode}
               >
-                <MemoizedIcon type="remove" />
+                <MemoizedIcon type="delete" />
               </Button>
-            )}
-            {hasChildren && (
+            ) : (
               <Button variant="none">
-                {props.node.children.length > 0 && (
+                {hasChildren && (
                   <MemoizedIcon
                     type={props.node.expanded ? 'expanded' : 'collapsed'}
                   />

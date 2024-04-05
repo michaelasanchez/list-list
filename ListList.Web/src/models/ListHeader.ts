@@ -1,6 +1,6 @@
 import { ListNode } from ".";
 
 export interface ListHeader {
-  title: string;
+  order: number;
   root: ListNode;
 }

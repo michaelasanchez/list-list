@@ -1,6 +1,10 @@
-// import { faPlusSquare } from '@fortawesome/free-solid-svg-icons';
-import { faPlusSquare, faTrashCan } from '@fortawesome/free-regular-svg-icons';
-import { faChevronDown, faChevronUp, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
+import {
+  faChevronDown,
+  faChevronUp,
+  faPlus,
+  faTrashCan,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React = require('react');
 
@@ -9,7 +13,7 @@ const iconTypes = {
   create: faPlus,
   createOutline: faPlusSquare,
   expanded: faChevronDown,
-  remove: faTrashCan,
+  delete: faTrashCan,
 };
 
 export interface IconProps {

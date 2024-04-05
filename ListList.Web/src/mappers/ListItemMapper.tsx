@@ -59,7 +59,7 @@ const mapHeaders = (
   expanded?: string[]
 ): ListHeader[] =>
   map(headers, (h) => ({
-    title: h.title,
+    order: h.order,
     root: mapRootNode(h.items, expanded),
   }));
 
