@@ -1,3 +1,3 @@
-export * from './App';
+export * from './app';
 export * from './Navbar';
 export * from './index';

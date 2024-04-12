@@ -4,6 +4,7 @@ import { Button, Form } from 'react-bootstrap';
 import { LabelEditor, ListNodeCreation, MemoizedIcon } from '.';
 import { ListItemCreation } from '../contracts';
 import { ListNode } from '../models';
+import { NodeRequest } from '../shared';
 import { NodePath } from '../views';
 import React = require('react');
 
@@ -11,7 +12,7 @@ interface ListNodeDisplayProps {
   node: ListNode;
   path: NodePath;
   className?: string;
-  invoke?: (path: NodePath, action: string, payload?: any) => void;
+  invokeRequest?: (path: NodePath, request: NodeRequest, payload?: any) => void;
 }
 
 interface ListNodeViewModel {
@@ -26,24 +27,32 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
 
   const handleToggleNode = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    if (e.button === 0) props.invoke(props.path, 'toggle');
+    if (e.button === 0) props.invokeRequest(props.path, NodeRequest.Toggle);
   };
 
   const handleCreateNode = () => {
     if (viewModel.pendingNode?.label?.length > 0) {
-      props.invoke(props.path, 'create-save', viewModel.pendingNode);
+      props.invokeRequest(
+        props.path,
+        NodeRequest.Create,
+        viewModel.pendingNode
+      );
       setViewModel({});
     }
   };
 
   const handleDeleteNode = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    props.invoke(props.path, 'delete');
+    props.invokeRequest(props.path, NodeRequest.Delete);
   };
 
   const handleUpdateNode = () => {
     if (viewModel.pendingLabel != props.node.label) {
-      props.invoke(props.path, 'update-save', viewModel.pendingLabel);
+      props.invokeRequest(
+        props.path,
+        NodeRequest.Update,
+        viewModel.pendingLabel
+      );
       setViewModel({ ...viewModel, pendingLabel: null });
     }
   };
@@ -60,7 +69,9 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
             className="node-check"
             checked={props.node.complete}
             onClick={(e) => e.stopPropagation()}
-            onChange={() => props.invoke(props.path, 'complete')}
+            onChange={() =>
+              props.invokeRequest(props.path, NodeRequest.Complete)
+            }
           />
         </div>
         <div className="node-title">
@@ -119,7 +130,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
               key={i}
               node={item}
               path={[...props.path, i]}
-              invoke={props.invoke}
+              invokeRequest={props.invokeRequest}
             />
           ))}
           <ListNodeCreation

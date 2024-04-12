@@ -117,8 +117,9 @@ export const useAuth = (clientId: string) => {
       const storedTokenString = tokenStorage.fetch();
       const storedToken = JSON.parse(storedTokenString) as ApiToken;
 
-      const tokenExpiry = new Date(storedToken.expiry);
-      const isStale = expiresWithinThreshold(tokenExpiry, refreshThreshold);
+      const isStale =
+        !storedToken.expiry ||
+        expiresWithinThreshold(new Date(storedToken.expiry), refreshThreshold);
 
       if (isStale) {
         setState((s) => ({ ...s, loading: true }));

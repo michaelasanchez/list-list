@@ -10,13 +10,9 @@ using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Api.Services;
 
-public class ListItemService(
-    IUnitOfWork _unitOfWork,
-    IUserService _userService,
-    IMapper _mapper,
-    IGuard _guard) : IListItemService
+public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMapper _mapper, IGuard _guard) : IItemService
 {
-    private readonly IListItemRepository _listItemRepository = _unitOfWork.ListItemRepository;
+    private readonly IItemRepository _listItemRepository = _unitOfWork.ListItemRepository;
 
     public async Task CompleteListItemAsync(Guid listItemId)
     {
@@ -32,26 +28,6 @@ public class ListItemService(
         await _listItemRepository.CompleteListItemAsync(listItemId);
 
         await _unitOfWork.SaveChangesAsync();
-    }
-
-    public async Task<Guid> CreateListHeaderAsync(ListItemCreation listHeader)
-    {
-        var userId = await _userService.GetUserIdAsync();
-
-        var result = _guard.AgainstInvalidListHeaderCreation(userId);
-
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
-
-        var creation = _mapper.Map<ListHeaderEntity>(listHeader);
-
-        await _listItemRepository.CreateListHeaderAsync(userId.Value, creation);
-
-        await _unitOfWork.SaveChangesAsync();
-
-        return creation.Id;
     }
 
     public async Task<Guid> CreateListItemAsync(ListItemCreation listItem, Guid parentId)
@@ -78,7 +54,7 @@ public class ListItemService(
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListItemDeleteAsync(userId.Value, listItemId);
+        var result = await _guard.AgainstInvalidListItemDeleteAsync(userId, listItemId);
 
         if (result.IsInvalid)
         {
@@ -90,20 +66,11 @@ public class ListItemService(
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<ListHeader>> GetListHeadersAsync()
-    {
-        var userId = await _userService.GetUserIdAsync();
-
-        var listHeaders = await _listItemRepository.GetListHeadersAsync(userId.Value);
-
-        return _mapper.Map<IEnumerable<ListHeader>>(listHeaders);
-    }
-
     public async Task<ListItem> GetListItemByIdAsync(Guid listItemId)
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListItemGetAsync(userId.Value, listItemId);
+        var result = await _guard.AgainstInvalidListItemGetAsync(userId, listItemId);
 
         if (result.IsInvalid)
         {
@@ -119,7 +86,7 @@ public class ListItemService(
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListItemPutAsync(userId.Value, listItemId);
+        var result = await _guard.AgainstInvalidListItemPutAsync(userId, listItemId);
 
         if (result.IsInvalid)
         {

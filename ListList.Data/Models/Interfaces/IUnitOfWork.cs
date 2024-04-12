@@ -1,15 +1,15 @@
 ﻿using ListList.Data.Validators.Interfaces;
 using ListList.Data.Repositories.Interfaces;
 
-namespace ListList.Data.Models.Interfaces
+namespace ListList.Data.Models.Interfaces;
+
+public interface IUnitOfWork
 {
-    public interface IUnitOfWork
-    {
-        IListItemRepository ListItemRepository { get; }
-        IUserRepository UserRepository { get; }
+    IHeaderRepository ListHeaderRepository { get; }
+    IItemRepository ListItemRepository { get; }
+    IUserRepository UserRepository { get; }
 
-        IListItemValidator ListItemValidator { get; }
+    IItemValidator ListItemValidator { get; }
 
-        Task SaveChangesAsync();
-    }
+    Task SaveChangesAsync();
 }

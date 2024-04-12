@@ -7,26 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace ListList.Api.Controllers;
 
 [ApiController]
-	[Route("api/[controller]")]
-public class ListItemController(IListItemService _service) : Controller
+[Route("api/[controller]")]
+public class ItemController(IItemService _service) : Controller
 {
-    [HttpPost]
-    public async Task<ActionResult<Guid>> CreateListHeaderAsync(ListItemCreation creation)
-    {
-        Guid id;
-
-        try
-        {
-            id = await _service.CreateListHeaderAsync(creation);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-
-        return Ok(id);
-    }
-
     [HttpPost("{parentId}")]
     public async Task<ActionResult<Guid>> CreateListItemAsync([FromRoute] Guid parentId, ListItemCreation creation)
     {
@@ -72,23 +55,6 @@ public class ListItemController(IListItemService _service) : Controller
         }
 
         return Ok();
-    }
-
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<ListHeader>>> GetListHeadersAsync()
-    {
-        IEnumerable<ListHeader> listHeaders;
-
-        try
-        {
-            listHeaders = await _service.GetListHeadersAsync();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-
-        return Ok(listHeaders);
     }
 
     [HttpGet("{listItemId}")]

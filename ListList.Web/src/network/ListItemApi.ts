@@ -4,7 +4,7 @@ import { ListItemCreation } from '../contracts/put/ListItemCreation';
 
 export class ListItemApi extends Api {
   constructor(token?: string) {
-    super('ListItem', token);
+    super('item', token);
   }
 
   public CompleteItem = (listItemId: string) => {
@@ -12,26 +12,20 @@ export class ListItemApi extends Api {
     return this.executePost(null, null, false);
   };
 
-  public CreateItem = (
+  public Create = (
     creation: ListItemCreation,
-    parentId: string = null
-  ): Promise<number> => {
-    if (parentId) {
+    parentId: string
+  ): Promise<string> => {
       this.setActionPath(`${parentId}`);
-    }
 
     return this.executePost(creation);
   };
 
-  public DeleteItem = (listItemId: string) => {
+  public Delete = (listItemId: string) => {
     return this.executeDelete(listItemId);
   };
 
-  public GetHeaders = (): Promise<ApiListHeader[]> => {
-    return this.executeGet();
-  };
-
-  public PutItem = (listItemId: string, put: ApiListItemPut) => {
+  public Put = (listItemId: string, put: ApiListItemPut) => {
     return this.executePut(put, listItemId) as Promise<void>;
   };
 }

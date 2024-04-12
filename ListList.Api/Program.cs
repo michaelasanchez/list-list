@@ -30,7 +30,8 @@ builder.Services.AddScoped<IListItemMapper, ListItemMapper>();
 
 builder.Services.AddScoped<IGuard, Guard>();
 
-builder.Services.AddScoped<IListItemService, ListItemService>();
+builder.Services.AddScoped<IHeaderService, HeaderService>();
+builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<UserService, UserService>();
 

@@ -16,7 +16,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IListListContext, ListListContext>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-        services.AddScoped<IListItemValidator, ListItemValidator>();
+        services.AddScoped<IHeaderValidator, HeaderValidator>();
+        services.AddScoped<IItemValidator, ItemValidator>();
         services.AddScoped<IUserValidator, UserValidator>();
     }
 }

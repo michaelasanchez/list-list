@@ -5,9 +5,9 @@ using ListList.Data.Models;
 
 namespace ListList.Data.Validators;
 
-public class ListItemValidator(IListListContext _context) : IListItemValidator
+public class ItemValidator(IListListContext _context) : IItemValidator
 {
-    public async Task ListItemIsEmptyAsync(Guid userId, Guid listItemId, ValidationResult result)
+    public async Task ListItemIsEmptyAsync(Guid listItemId, ValidationResult result)
     {
         var targetNode = await _context.ListItems
             .Where(z => z.Id == listItemId)

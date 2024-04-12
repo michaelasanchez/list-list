@@ -5,46 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ListList.Data.Repositories;
 
-public class ListItemRepository(IListListContext _context) : IListItemRepository
+public class ItemRepository(IListListContext _context) : IItemRepository
 {
     public async Task CompleteListItemAsync(Guid listItemId)
     {
         var listItem = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
 
         listItem.Complete = !listItem.Complete;
-    }
-
-    public async Task CreateListItemAtTopAsync(ListItemEntity creation, Guid? parentId)
-    {
-        if (parentId is null)
-        {
-            creation.ListHeaderId = new Guid();
-            creation.Left = 1;
-            creation.Right = 2;
-        }
-        else
-        {
-            var parentNode = await _context.ListItems.SingleAsync(z => z.Id == parentId);
-
-            var listItems = await _context.ListItems
-                    .Where(z =>
-                        z.ListHeaderId == parentNode.ListHeaderId &&
-                        z.Right > parentNode.Left)
-                    .OrderBy(z => z.Left)
-                    .ToListAsync();
-
-            foreach (var item in listItems)
-            {
-                item.Left = item.Left > parentNode.Left ? item.Left + 2 : item.Left;
-                item.Right += 2;
-            }
-
-            creation.ListHeaderId = parentNode.ListHeaderId;
-            creation.Left = parentNode.Left + 1;
-            creation.Right = parentNode.Left + 2;
-        }
-
-        await _context.ListItems.AddAsync(creation);
     }
 
     public async Task CreateListHeaderAsync(Guid userId, ListHeaderEntity creation)
@@ -125,15 +92,6 @@ public class ListItemRepository(IListListContext _context) : IListItemRepository
 
         targetNode.Deleted = true;
         targetNode.DeletedOn = DateTime.UtcNow;
-    }
-
-    public async Task<List<ListHeaderEntity>> GetListHeadersAsync(Guid userId)
-    {
-        return await _context.ListHeaders
-            .Include(z => z.ListItems.Where(y => !y.Deleted))
-            .Where(z => z.UserId == userId && !z.Deleted)
-            .OrderBy(z => z.Order)
-            .ToListAsync();
     }
 
     public async Task<ListItemEntity> GetListItemByIdAsync(Guid listItemId)
