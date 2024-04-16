@@ -15,6 +15,7 @@ export interface AuthState {
   initialized: boolean;
   loading: boolean;
   token?: string;
+  picture?: string;
   login?: () => void;
   logout?: () => void;
   refresh?: () => void;
@@ -75,11 +76,14 @@ export const useAuth = (clientId: string) => {
             const tokenString = JSON.stringify(token);
             tokenStorage.commit(tokenString);
 
+            const parsedToken = parseJwt(token.idToken);
+
             setState((s) => ({
               ...s,
               authenticated: true,
               loading: false,
               token: token.idToken,
+              picture: parsedToken.picture,
             }));
           });
         },
@@ -136,11 +140,14 @@ export const useAuth = (clientId: string) => {
             const tokenString = JSON.stringify(refreshedToken);
             tokenStorage.commit(tokenString);
 
+            const parsedToken = parseJwt(storedToken.idToken);
+
             setState((s) => ({
               ...s,
               authenticated: true,
               loading: false,
               token: token.idToken,
+              picture: parsedToken.picture,
             }));
           })
           .catch(() =>
@@ -152,10 +159,13 @@ export const useAuth = (clientId: string) => {
             }))
           );
       } else {
+        const parsedToken = parseJwt(storedToken.idToken);
+
         setState((s) => ({
           ...s,
           authenticated: true,
           token: storedToken.idToken,
+          picture: parsedToken.picture,
         }));
       }
     }

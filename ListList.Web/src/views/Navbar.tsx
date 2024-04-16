@@ -3,13 +3,18 @@ import {
   Navbar as BSNavbar,
   Button,
   Container,
+  Dropdown,
+  DropdownButton,
   Spinner,
 } from 'react-bootstrap';
+import { Icon } from '../components';
 import { AuthState } from '../hooks';
-import { strings } from '../shared';
+import { AppTheme, strings } from '../shared';
 
 interface NavbarProps {
-  authState?: AuthState;
+  authState: AuthState;
+  theme: AppTheme;
+  onToggleTheme: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = (props) => {
@@ -22,9 +27,20 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
         {!props.authState.initialized || props.authState.loading ? (
           <Spinner animation="border" />
         ) : props.authState.authenticated ? (
-          <Button variant="dark" onClick={props.authState.logout}>
-            Logout
-          </Button>
+          <span className="group">
+            <Button className="settings" variant="dark" onClick={props.onToggleTheme}>
+              <Icon type={props.theme == AppTheme.Light ? 'light' : 'dark'} />
+            </Button>
+            <DropdownButton
+              title={<img src={props.authState.picture} />}
+              variant="dark"
+              align="end"
+            >
+              <Dropdown.Item onClick={props.authState.logout}>
+                Logout
+              </Dropdown.Item>
+            </DropdownButton>
+          </span>
         ) : (
           <Button variant="success" onClick={props.authState.login}>
             Login

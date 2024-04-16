@@ -1,4 +1,9 @@
-:root {
+[data-bs-theme='light'] {
   --node-border-color-expanded: rgba(0, 0, 0, 0.1);
   --node-border-color-parent: rgba(0, 0, 0, 0.175);
+}
+
+[data-bs-theme='dark'] {
+  --node-border-color-expanded: rgba(255, 255, 255, 0.1);
+  --node-border-color-parent: rgba(255, 255, 255, 0.2);
 }

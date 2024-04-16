@@ -1,9 +1,11 @@
-import { ListItemCreation } from "../../contracts";
-import { ListHeader } from "../../models";
+import { ListItemCreation } from '../../contracts';
+import { ListHeader } from '../../models';
+import { AppTheme } from '../../shared';
 
 export interface AppState {
-  headers?: ListHeader[];
   expanded: string[];
+  theme: AppTheme;
+  headers?: ListHeader[];
   parentId?: string;
   listHeaderCreation?: ListItemCreation;
 }

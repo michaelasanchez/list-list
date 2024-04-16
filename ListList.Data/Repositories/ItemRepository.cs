@@ -14,47 +14,27 @@ public class ItemRepository(IListListContext _context) : IItemRepository
         listItem.Complete = !listItem.Complete;
     }
 
-    public async Task CreateListHeaderAsync(Guid userId, ListHeaderEntity creation)
+    public async Task CreateListItemAsync(ListItemEntity creation, Guid parentId)
     {
-        creation.UserId = userId;
+        var parentNode = await _context.ListItems.SingleAsync(z => z.Id == parentId);
 
-        var nextOrder = await _context.ListHeaders.CountAsync() + 1;
+        var listItems = await _context.ListItems
+                .Where(z =>
+                    z.ListHeaderId == parentNode.ListHeaderId &&
+                    z.Right >= parentNode.Right &&
+                    !z.Deleted)
+                .OrderBy(z => z.Left)
+                .ToListAsync();
 
-        creation.Order = nextOrder;
-
-        await _context.ListHeaders.AddAsync(creation);
-    }
-
-    public async Task CreateListItemAsync(ListItemEntity creation, Guid? parentId)
-    {
-        if (parentId is null)
+        foreach (var item in listItems)
         {
-            creation.ListHeaderId = new Guid();
-            creation.Left = 1;
-            creation.Right = 2;
+            item.Left = item.Left > parentNode.Left ? item.Left + 2 : item.Left;
+            item.Right += 2;
         }
-        else
-        {
-            var parentNode = await _context.ListItems.SingleAsync(z => z.Id == parentId);
 
-            var listItems = await _context.ListItems
-                    .Where(z =>
-                        z.ListHeaderId == parentNode.ListHeaderId &&
-                        z.Right >= parentNode.Right &&
-                        !z.Deleted)
-                    .OrderBy(z => z.Left)
-                    .ToListAsync();
-
-            foreach (var item in listItems)
-            {
-                item.Left = item.Left > parentNode.Left ? item.Left + 2 : item.Left;
-                item.Right += 2;
-            }
-
-            creation.ListHeaderId = parentNode.ListHeaderId;
-            creation.Left = parentNode.Right - 2;
-            creation.Right = parentNode.Right - 1;
-        }
+        creation.ListHeaderId = parentNode.ListHeaderId;
+        creation.Left = parentNode.Right - 2;
+        creation.Right = parentNode.Right - 1;
 
         await _context.ListItems.AddAsync(creation);
     }

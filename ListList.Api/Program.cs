@@ -2,8 +2,6 @@ using Auth;
 using AutoMapper;
 using ListList.Api.Guards;
 using ListList.Api.Guards.Interfaces;
-using ListList.Api.Mappers;
-using ListList.Api.Mappers.Interfaces;
 using ListList.Api.Mappers.Profiles;
 using ListList.Api.Services;
 using ListList.Api.Services.Interfaces;
@@ -25,8 +23,6 @@ IMapper mapper = mapperConfig.CreateMapper();
 
 // DI
 builder.Services.AddSingleton(mapper);
-
-builder.Services.AddScoped<IListItemMapper, ListItemMapper>();
 
 builder.Services.AddScoped<IGuard, Guard>();
 

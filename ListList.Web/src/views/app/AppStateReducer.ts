@@ -1,6 +1,7 @@
 import { filter } from 'lodash';
 import { AppState } from '.';
 import { ListNode } from '../../models';
+import { AppTheme } from '../../shared';
 
 enum AppStateActionType {
   CompleteNode,
@@ -9,6 +10,7 @@ enum AppStateActionType {
   FinalizeCreate,
   FinalizeUpdate,
   ToggleNode,
+  ToggleTheme,
 }
 
 export interface AppStateAction {
@@ -52,6 +54,12 @@ export const AppStateReducer = (state: AppState, action: AppStateAction) => {
         ...state,
         headers: [...state.headers],
         expanded,
+      };
+    }
+    case AppStateActionType.ToggleTheme: {
+      return {
+        ...state,
+        theme: state.theme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light,
       };
     }
     default:

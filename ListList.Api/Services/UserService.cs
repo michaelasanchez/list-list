@@ -3,6 +3,7 @@ using ListList.Api.Contracts;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using static Google.Apis.Auth.GoogleJsonWebSignature;
 
@@ -67,7 +68,7 @@ public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache
         {
             IdToken = tokenResponse.IdToken,
             Expiry = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds!.Value),
-            RefreshToken = tokenResponse.RefreshToken
+            RefreshToken = tokenResponse.RefreshToken,
         };
     }
 

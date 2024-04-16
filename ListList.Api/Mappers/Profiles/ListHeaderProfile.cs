@@ -16,7 +16,7 @@ namespace ListList.Api.Mappers.Profiles
                 .ForMember(dest => dest.ListItems, opt => opt.MapFrom(src => src.Items));
 
             CreateMap<ListItemCreation, ListHeaderEntity>()
-                .ForMember(dest => dest.ListItems, opt => opt.MapFrom(src =>new List<ListItemEntity> {
+                .ForMember(dest => dest.ListItems, opt => opt.MapFrom(src => new List<ListItemEntity> {
                     new() {
                         Label = src.Label,
                         Left = 1,

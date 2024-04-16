@@ -1,15 +1,18 @@
 import { filter, map } from 'lodash';
 import * as React from 'react';
+import { useEffect } from 'react';
 import { Container } from 'react-bootstrap';
+import { AppState } from '.';
 import { ListNodeCreation, ListNodeDisplay } from '../../components';
 import { ListItemCreation } from '../../contracts';
 import { useAuth, useLocalStorage } from '../../hooks';
 import { ListItemMapper } from '../../mappers';
 import { ListHeader, ListNode } from '../../models';
 import { ListHeaderApi, ListItemApi } from '../../network';
-import { config, NodeRequest } from '../../shared';
+import { AppTheme, config, NodeRequest } from '../../shared';
 import { Navbar } from '../Navbar';
-import { AppState } from './AppState';
+
+export type NodePath = number[];
 
 const getNode = (node: ListNode, path: NodePath): ListNode => {
   if (!path?.length) return node;
@@ -17,30 +20,49 @@ const getNode = (node: ListNode, path: NodePath): ListNode => {
   return getNode(node.children[first], path);
 };
 
-interface AppProps {}
-
-export type NodePath = number[];
-
-export const App: React.FC<AppProps> = ({}) => {
+export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
 
-  console.log('AUTH', authState);
-
-  const localStorage = useLocalStorage('expanded');
+  const localStorage = useLocalStorage('list-list');
 
   const [listHeaders, setHeaders] = React.useState<ListHeader[]>();
 
-  const [appState, setAppState] = React.useState<AppState>({
-    expanded: localStorage.exists() ? JSON.parse(localStorage.fetch()) : [],
+  const [state, setAppState] = React.useState<AppState>(() => {
+    const defaultState = localStorage.exists()
+      ? JSON.parse(localStorage.fetch())
+      : {};
+
+    return {
+      expanded: defaultState.expanded ?? [],
+      theme: defaultState.theme ?? AppTheme.Light,
+    };
   });
 
-  React.useEffect(() => {
+  // Keep local storage up-to-date
+  useEffect(() => {
+    localStorage.commit(
+      JSON.stringify({ expanded: state.expanded, theme: state.theme })
+    );
+  }, [state.expanded, state.theme]);
+
+  // Load/unload list headers
+  useEffect(() => {
     if (authState.authenticated) {
-      loadNodeHeaders(appState.expanded);
+      loadNodeHeaders(state.expanded);
     } else {
       setHeaders([]);
     }
   }, [authState.authenticated]);
+
+  // Set theme attribute
+  useEffect(() => {
+    const htmlTag = document.getElementsByTagName('html');
+
+    htmlTag[0].setAttribute(
+      'data-bs-theme',
+      state.theme == AppTheme.Light ? 'light' : 'dark'
+    );
+  }, [state.theme]);
 
   const loadNodeHeaders = (expanded?: string[]) => {
     new ListHeaderApi(authState.token)
@@ -70,10 +92,8 @@ export const App: React.FC<AppProps> = ({}) => {
           targetNode.expanded = !targetNode.expanded;
 
           const expanded = targetNode.expanded
-            ? [...appState.expanded, targetNode.id]
-            : filter(appState.expanded, (n) => n != targetNode.id);
-
-          localStorage.commit(JSON.stringify(expanded));
+            ? [...state.expanded, targetNode.id]
+            : filter(state.expanded, (n) => n != targetNode.id);
 
           setAppState((vm) => ({
             ...vm,
@@ -89,12 +109,12 @@ export const App: React.FC<AppProps> = ({}) => {
         }
       }
     },
-    [appState, listHeaders]
+    [state, listHeaders]
   );
 
   const handleCompleteNode = (listItemId: string) => {
     new ListItemApi(authState.token).CompleteItem(listItemId).then(() => {
-      loadNodeHeaders(appState.expanded);
+      loadNodeHeaders(state.expanded);
     });
   };
 
@@ -104,20 +124,20 @@ export const App: React.FC<AppProps> = ({}) => {
         const { listHeaderCreation, ...rest } = vm;
         return rest;
       });
-      loadNodeHeaders(appState.expanded);
+      loadNodeHeaders(state.expanded);
     });
   };
 
   const handleCreateNode = (listItem: ListItemCreation, parentId: string) => {
     new ListItemApi(authState.token).Create(listItem, parentId).then(() => {
-      loadNodeHeaders(appState.expanded);
+      loadNodeHeaders(state.expanded);
     });
   };
 
   const handleDeleteNode = (listItemId: string) => {
     new ListItemApi(authState.token)
       .Delete(listItemId)
-      .then(() => loadNodeHeaders(appState.expanded));
+      .then(() => loadNodeHeaders(state.expanded));
   };
 
   const handlePutNode = (current: ListNode, updatedLabel: string) => {
@@ -128,12 +148,22 @@ export const App: React.FC<AppProps> = ({}) => {
 
     new ListItemApi(authState.token)
       .Put(current.id, listItemPut)
-      .then(() => loadNodeHeaders(appState.expanded));
+      .then(() => loadNodeHeaders(state.expanded));
   };
 
   return (
     <>
-      <Navbar authState={authState} />
+      <Navbar
+        theme={state.theme}
+        authState={authState}
+        onToggleTheme={() =>
+          setAppState({
+            ...state,
+            theme:
+              state.theme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light,
+          })
+        }
+      />
       <main>
         <Container>
           {map(listHeaders, (h, i) => (
@@ -145,20 +175,22 @@ export const App: React.FC<AppProps> = ({}) => {
               invokeRequest={handleNodeRequest}
             />
           ))}
-          <ListNodeCreation
-            node={appState.listHeaderCreation}
-            placeholder="New List"
-            onCancel={() =>
-              setAppState((vm) => {
-                const { listHeaderCreation, ...rest } = vm;
-                return rest;
-              })
-            }
-            onSave={() => handleCreateHeader(appState.listHeaderCreation)}
-            onUpdate={(creation: ListItemCreation) =>
-              setAppState((vm) => ({ ...vm, listHeaderCreation: creation }))
-            }
-          />
+          {authState.authenticated && (
+            <ListNodeCreation
+              node={state.listHeaderCreation}
+              placeholder="New List"
+              onCancel={() =>
+                setAppState((vm) => {
+                  const { listHeaderCreation, ...rest } = vm;
+                  return rest;
+                })
+              }
+              onSave={() => handleCreateHeader(state.listHeaderCreation)}
+              onUpdate={(creation: ListItemCreation) =>
+                setAppState((vm) => ({ ...vm, listHeaderCreation: creation }))
+              }
+            />
+          )}
         </Container>
       </main>
     </>

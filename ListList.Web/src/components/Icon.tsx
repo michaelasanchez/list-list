@@ -1,7 +1,12 @@
-import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
+import {
+  faMoon,
+  faPlusSquare,
+  faSun,
+} from '@fortawesome/free-regular-svg-icons';
 import {
   faChevronDown,
   faChevronUp,
+  faGear,
   faPlus,
   faTrashCan,
 } from '@fortawesome/free-solid-svg-icons';
@@ -14,6 +19,9 @@ const iconTypes = {
   createOutline: faPlusSquare,
   expanded: faChevronDown,
   delete: faTrashCan,
+  dark: faMoon,
+  settings: faGear,
+  light: faSun,
 };
 
 export interface IconProps {
