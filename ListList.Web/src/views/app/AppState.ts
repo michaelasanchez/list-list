@@ -7,5 +7,5 @@ export interface AppState {
   theme: AppTheme;
   headers?: ListHeader[];
   parentId?: string;
-  listHeaderCreation?: ListItemCreation;
+  headerCreation?: ListItemCreation;
 }

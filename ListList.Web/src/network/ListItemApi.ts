@@ -1,5 +1,5 @@
 import { Api } from '.';
-import { ApiListHeader, ApiListItem, ApiListItemPut } from '../contracts';
+import { ApiListItemPut } from '../contracts';
 import { ListItemCreation } from '../contracts/put/ListItemCreation';
 
 export class ListItemApi extends Api {
@@ -16,13 +16,19 @@ export class ListItemApi extends Api {
     creation: ListItemCreation,
     parentId: string
   ): Promise<string> => {
-      this.setActionPath(`${parentId}`);
+    this.setActionPath(`${parentId}`);
 
     return this.executePost(creation);
   };
 
   public Delete = (listItemId: string) => {
     return this.executeDelete(listItemId);
+  };
+
+  public GetById = (listItemId: string) => {
+    this.setActionPath(`${listItemId}`);
+    
+    return this.executeGet();
   };
 
   public Put = (listItemId: string, put: ApiListItemPut) => {

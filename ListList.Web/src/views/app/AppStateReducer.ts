@@ -1,54 +1,77 @@
-import { filter } from 'lodash';
-import { AppState } from '.';
-import { ListNode } from '../../models';
+import { filter, map, orderBy } from 'lodash';
+import { AppState, getNode, NodePath } from '.';
+import { ListItemCreation } from '../../contracts';
+import { ListHeader, ListNode } from '../../models';
 import { AppTheme } from '../../shared';
 
-enum AppStateActionType {
-  CompleteNode,
-  // InitDelete,
-  FinalizeDelete,
+export enum AppStateActionType {
+  AddHeader,
+  CancelDelete,
   FinalizeCreate,
-  FinalizeUpdate,
+  SetHeader,
+  SetHeaders,
+  // SetItem,
   ToggleNode,
   ToggleTheme,
+  UpdateCreation,
 }
 
 export interface AppStateAction {
   type: AppStateActionType;
-  node: ListNode;
+  creation?: ListItemCreation;
+  header?: ListHeader;
+  headers?: ListHeader[];
+  item?: ListNode;
+  path?: NodePath;
 }
 
-export const AppStateReducer = (state: AppState, action: AppStateAction) => {
+export const AppStateReducer = (
+  state: AppState,
+  action: AppStateAction
+): AppState => {
   switch (action.type) {
-    case AppStateActionType.CompleteNode: {
+    case AppStateActionType.AddHeader: {
       return {
         ...state,
+        headers: orderBy([...state.headers, action.header], (h) => h.order),
       };
+    }
+    case AppStateActionType.CancelDelete: {
+      const { headerCreation, ...rest } = state;
+
+      return { ...rest };
     }
     case AppStateActionType.FinalizeCreate: {
       // Remove creation prop from app state
-      const { listHeaderCreation, ...rest } = state;
+      const { headerCreation: listHeaderCreation, ...rest } = state;
 
       return rest;
     }
-    case AppStateActionType.FinalizeDelete: {
+    case AppStateActionType.SetHeader: {
+      const headers = map(state.headers, (h) =>
+        h.id == action.header.id ? action.header : h
+      );
+
       return {
         ...state,
+        headers,
       };
     }
-    case AppStateActionType.FinalizeUpdate: {
+    case AppStateActionType.SetHeaders: {
       return {
         ...state,
+        headers: action.headers,
       };
     }
     case AppStateActionType.ToggleNode: {
-      action.node.expanded = !action.node.expanded;
+      const headerIndex = action.path.shift();
+      const targetNode = getNode(state.headers[headerIndex].root, action.path);
 
-      const expanded = action.node.expanded
-        ? [...state.expanded, action.node.id]
-        : filter(state.expanded, (n) => n != action.node.id);
+      targetNode.expanded = !targetNode.expanded;
 
-      localStorage.commit(JSON.stringify(expanded));
+      const expanded = targetNode.expanded
+        ? [...state.expanded, targetNode.id]
+        : filter(state.expanded, (n) => n != targetNode.id);
 
       return {
         ...state,
@@ -60,6 +83,12 @@ export const AppStateReducer = (state: AppState, action: AppStateAction) => {
       return {
         ...state,
         theme: state.theme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light,
+      };
+    }
+    case AppStateActionType.UpdateCreation: {
+      return {
+        ...state,
+        headerCreation: action.creation,
       };
     }
     default:

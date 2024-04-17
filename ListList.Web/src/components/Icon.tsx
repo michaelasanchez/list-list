@@ -1,13 +1,13 @@
 import {
   faMoon,
   faPlusSquare,
-  faSun,
 } from '@fortawesome/free-regular-svg-icons';
 import {
   faChevronDown,
   faChevronUp,
   faGear,
   faPlus,
+  faSun,
   faTrashCan,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

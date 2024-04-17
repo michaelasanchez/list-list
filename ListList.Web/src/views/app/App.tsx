@@ -1,58 +1,66 @@
-import { filter, map } from 'lodash';
+import { map } from 'lodash';
 import * as React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
-import { AppState } from '.';
+import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
 import { ListNodeCreation, ListNodeDisplay } from '../../components';
 import { ListItemCreation } from '../../contracts';
-import { useAuth, useLocalStorage } from '../../hooks';
+import { LocalStorageState, useAuth, useLocalStorage } from '../../hooks';
 import { ListItemMapper } from '../../mappers';
-import { ListHeader, ListNode } from '../../models';
+import { ListNode } from '../../models';
 import { ListHeaderApi, ListItemApi } from '../../network';
 import { AppTheme, config, NodeRequest } from '../../shared';
 import { Navbar } from '../Navbar';
 
 export type NodePath = number[];
 
-const getNode = (node: ListNode, path: NodePath): ListNode => {
+const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
+  const defaultState = localStorage.exists()
+    ? JSON.parse(localStorage.fetch())
+    : {
+        theme:
+          window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? AppTheme.Dark
+            : AppTheme.Light,
+      };
+
+  return {
+    expanded: defaultState.expanded ?? [],
+    theme: defaultState.theme,
+  };
+};
+
+export const getNode = (node: ListNode, path: NodePath): ListNode => {
   if (!path?.length) return node;
   const first = path.shift();
   return getNode(node.children[first], path);
 };
 
+// TODO: temporary
+export interface RequestPayload {
+  type: NodeRequest;
+  path: NodePath;
+  creation?: ListItemCreation;
+  label?: string;
+}
+
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
 
-  const localStorage = useLocalStorage('list-list');
+  const localStorageState = useLocalStorage('list-list');
 
-  const [listHeaders, setHeaders] = React.useState<ListHeader[]>();
-
-  const [state, setAppState] = React.useState<AppState>(() => {
-    const defaultState = localStorage.exists()
-      ? JSON.parse(localStorage.fetch())
-      : {};
-
-    return {
-      expanded: defaultState.expanded ?? [],
-      theme: defaultState.theme ?? AppTheme.Light,
-    };
-  });
+  const [state, dispatch] = useReducer(
+    AppStateReducer,
+    getDefaultAppState(localStorageState)
+  );
 
   // Keep local storage up-to-date
   useEffect(() => {
-    localStorage.commit(
+    localStorageState.commit(
       JSON.stringify({ expanded: state.expanded, theme: state.theme })
     );
   }, [state.expanded, state.theme]);
-
-  // Load/unload list headers
-  useEffect(() => {
-    if (authState.authenticated) {
-      loadNodeHeaders(state.expanded);
-    } else {
-      setHeaders([]);
-    }
-  }, [authState.authenticated]);
 
   // Set theme attribute
   useEffect(() => {
@@ -64,83 +72,98 @@ export const App: React.FC = () => {
     );
   }, [state.theme]);
 
+  // Load/unload list headers
+  useEffect(() => {
+    if (authState.authenticated) {
+      loadNodeHeaders(state.expanded);
+    } else {
+      dispatch({ type: ActionType.SetHeaders, headers: [] });
+    }
+  }, [authState.authenticated]);
+
   const loadNodeHeaders = (expanded?: string[]) => {
-    new ListHeaderApi(authState.token)
-      .Get()
-      .then((resp) => setHeaders(ListItemMapper.mapHeaders(resp, expanded)));
+    new ListHeaderApi(authState.token).Get().then((resp) =>
+      dispatch({
+        type: ActionType.SetHeaders,
+        headers: ListItemMapper.mapHeaders(resp, expanded),
+      })
+    );
   };
 
-  const handleNodeRequest = React.useCallback(
-    (path: NodePath, request: NodeRequest, payload?: any) => {
-      const headerIndex = path.shift();
-      const targetNode = getNode(listHeaders[headerIndex].root, path);
+  const loadHeader = (headerId: string, expanded: string[]) => {
+    new ListHeaderApi(authState.token).GetById(headerId).then((resp) => {
+      const header = ListItemMapper.mapHeader(resp, expanded);
 
-      switch (request) {
+      dispatch({ type: ActionType.SetHeader, header });
+    });
+  };
+
+  // TODO: gets tricky because we have to map child nodes tooooo
+  // const loadItem = (itemId: string) => {
+  //   new ListItemApi(authState.token).GetById(itemId).then((resp) => {});
+  // };
+
+  const handleNodeRequest = React.useCallback(
+    (headerId: string, payload: RequestPayload) => {
+      const headerIndex = payload.path.shift();
+      const targetNode = getNode(state.headers[headerIndex].root, payload.path);
+
+      switch (payload.type) {
         case NodeRequest.Complete: {
-          handleCompleteNode(targetNode.id);
+          handleCompleteNode(headerId, targetNode.id);
           break;
         }
         case NodeRequest.Create: {
-          handleCreateNode(payload, targetNode.id);
+          handleCreateNode(headerId, payload.creation, targetNode.id);
           break;
         }
         case NodeRequest.Delete: {
-          handleDeleteNode(targetNode.id);
-          break;
-        }
-        case NodeRequest.Toggle: {
-          targetNode.expanded = !targetNode.expanded;
-
-          const expanded = targetNode.expanded
-            ? [...state.expanded, targetNode.id]
-            : filter(state.expanded, (n) => n != targetNode.id);
-
-          setAppState((vm) => ({
-            ...vm,
-            expanded,
-          }));
-
-          setHeaders((headers) => ({ ...headers }));
+          handleDeleteNode(headerId, targetNode.id);
           break;
         }
         case NodeRequest.Update: {
-          handlePutNode(targetNode, payload);
+          handlePutNode(headerId, targetNode, payload.label);
           break;
         }
       }
     },
-    [state, listHeaders]
+    [state]
   );
-
-  const handleCompleteNode = (listItemId: string) => {
-    new ListItemApi(authState.token).CompleteItem(listItemId).then(() => {
-      loadNodeHeaders(state.expanded);
-    });
-  };
 
   const handleCreateHeader = (listItem: ListItemCreation) => {
     new ListHeaderApi(authState.token).Create(listItem).then((id: string) => {
-      setAppState((vm) => {
-        const { listHeaderCreation, ...rest } = vm;
-        return rest;
-      });
+      dispatch({ type: ActionType.FinalizeCreate });
       loadNodeHeaders(state.expanded);
     });
   };
 
-  const handleCreateNode = (listItem: ListItemCreation, parentId: string) => {
-    new ListItemApi(authState.token).Create(listItem, parentId).then(() => {
-      loadNodeHeaders(state.expanded);
-    });
+  const handleCompleteNode = (headerId: string, listItemId: string) => {
+    new ListItemApi(authState.token)
+      .CompleteItem(listItemId)
+      .then(() => loadHeader(headerId, state.expanded));
   };
 
-  const handleDeleteNode = (listItemId: string) => {
+  const handleCreateNode = (
+    headerId: string,
+    listItem: ListItemCreation,
+    parentId: string
+  ) => {
+    new ListItemApi(authState.token)
+      .Create(listItem, parentId)
+      .then(() => loadHeader(headerId, state.expanded));
+  };
+
+  const handleDeleteNode = (headerId: string, listItemId: string) => {
     new ListItemApi(authState.token)
       .Delete(listItemId)
-      .then(() => loadNodeHeaders(state.expanded));
+      .then(() => loadHeader(headerId, state.expanded));
   };
 
-  const handlePutNode = (current: ListNode, updatedLabel: string) => {
+  const handlePutNode = (
+    headerId: string,
+    current: ListNode,
+    updatedLabel: string
+  ) => {
     const listItemPut = {
       label: updatedLabel,
       description: current.description,
@@ -148,7 +171,7 @@ export const App: React.FC = () => {
 
     new ListItemApi(authState.token)
       .Put(current.id, listItemPut)
-      .then(() => loadNodeHeaders(state.expanded));
+      .then(() => loadHeader(headerId, state.expanded));
   };
 
   return (
@@ -156,38 +179,28 @@ export const App: React.FC = () => {
       <Navbar
         theme={state.theme}
         authState={authState}
-        onToggleTheme={() =>
-          setAppState({
-            ...state,
-            theme:
-              state.theme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light,
-          })
-        }
+        onToggleTheme={() => dispatch({ type: ActionType.ToggleTheme })}
       />
       <main>
         <Container>
-          {map(listHeaders, (h, i) => (
+          {map(state.headers, (h, i) => (
             <ListNodeDisplay
               key={i}
               path={[i]}
               node={h.root}
               className="root"
-              invokeRequest={handleNodeRequest}
+              dispatchAction={dispatch}
+              dispatchRequest={(payload) => handleNodeRequest(h.id, payload)}
             />
           ))}
           {authState.authenticated && (
             <ListNodeCreation
-              node={state.listHeaderCreation}
+              node={(state as AppState).headerCreation}
               placeholder="New List"
-              onCancel={() =>
-                setAppState((vm) => {
-                  const { listHeaderCreation, ...rest } = vm;
-                  return rest;
-                })
-              }
-              onSave={() => handleCreateHeader(state.listHeaderCreation)}
+              onCancel={() => dispatch({ type: ActionType.CancelDelete })}
+              onSave={() => handleCreateHeader(state.headerCreation)}
               onUpdate={(creation: ListItemCreation) =>
-                setAppState((vm) => ({ ...vm, listHeaderCreation: creation }))
+                dispatch({ type: ActionType.UpdateCreation, creation })
               }
             />
           )}

@@ -27,7 +27,7 @@ const mapChildNodes = (
     childNodes.push({
       ...currentNode,
       expanded: includes(expanded, currentNode.id),
-      parentId: parentItem.id,
+      // parentId: parentItem.id,
       children: mapChildNodes(currentNode, currentChildren, expanded),
     });
   } while (index < items.length);
@@ -59,10 +59,24 @@ const mapHeaders = (
   expanded?: string[]
 ): ListHeader[] =>
   map(headers, (h) => ({
+    id: h.id,
     order: h.order,
     root: mapRootNode(h.items, expanded),
   }));
 
+const mapHeader = (header: ApiListHeader, expanded: string[]): ListHeader => ({
+  id: header.id,
+  order: header.order,
+  root: mapRootNode(header.items, expanded),
+});
+
+const mapNode = (item: ApiListItem, expanded: string[]): ListNode => ({
+  ...item,
+  expanded: includes(expanded, item.id)
+});
+
 export const ListItemMapper = {
   mapHeaders,
+  mapHeader,
+  mapNode,
 };

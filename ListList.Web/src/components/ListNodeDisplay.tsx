@@ -5,14 +5,16 @@ import { LabelEditor, ListNodeCreation, MemoizedIcon } from '.';
 import { ListItemCreation } from '../contracts';
 import { ListNode } from '../models';
 import { NodeRequest } from '../shared';
-import { NodePath } from '../views';
+import { NodePath, RequestPayload } from '../views';
+import { AppStateAction, AppStateActionType } from '../views/app';
 import React = require('react');
 
 interface ListNodeDisplayProps {
   node: ListNode;
   path: NodePath;
   className?: string;
-  invokeRequest?: (path: NodePath, request: NodeRequest, payload?: any) => void;
+  dispatchAction: (action: AppStateAction) => void;
+  dispatchRequest: (payload: RequestPayload) => void;
 }
 
 interface ListNodeViewModel {
@@ -25,34 +27,46 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
 
   const [viewModel, setViewModel] = useState<ListNodeViewModel>({});
 
-  const handleToggleNode = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    if (e.button === 0) props.invokeRequest(props.path, NodeRequest.Toggle);
+  const handleCompleteNode = () => {
+    props.dispatchRequest({
+      type: NodeRequest.Complete,
+      path: props.path,
+    });
   };
 
   const handleCreateNode = () => {
     if (viewModel.pendingNode?.label?.length > 0) {
-      props.invokeRequest(
-        props.path,
-        NodeRequest.Create,
-        viewModel.pendingNode
-      );
+      props.dispatchRequest({
+        type: NodeRequest.Create,
+        path: props.path,
+        creation: viewModel.pendingNode,
+      });
+
       setViewModel({});
     }
   };
 
   const handleDeleteNode = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    props.invokeRequest(props.path, NodeRequest.Delete);
+    props.dispatchRequest({ type: NodeRequest.Delete, path: props.path });
+  };
+
+  const handleToggleNode = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (e.button === 0)
+      props.dispatchAction({
+        type: AppStateActionType.ToggleNode,
+        path: props.path,
+      });
   };
 
   const handleUpdateNode = () => {
     if (viewModel.pendingLabel != props.node.label) {
-      props.invokeRequest(
-        props.path,
-        NodeRequest.Update,
-        viewModel.pendingLabel
-      );
+      props.dispatchRequest({
+        type: NodeRequest.Update,
+        path: props.path,
+        label: viewModel.pendingLabel,
+      });
       setViewModel({ ...viewModel, pendingLabel: null });
     }
   };
@@ -69,9 +83,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
             className="node-check"
             checked={props.node.complete}
             onClick={(e) => e.stopPropagation()}
-            onChange={() =>
-              props.invokeRequest(props.path, NodeRequest.Complete)
-            }
+            onChange={handleCompleteNode}
           />
         </div>
         <div className="node-title">
@@ -130,7 +142,8 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
               key={i}
               node={item}
               path={[...props.path, i]}
-              invokeRequest={props.invokeRequest}
+              dispatchAction={props.dispatchAction}
+              dispatchRequest={props.dispatchRequest}
             />
           ))}
           <ListNodeCreation
