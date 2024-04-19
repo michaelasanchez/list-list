@@ -96,10 +96,18 @@ export const App: React.FC = () => {
   // };
 
   const handleCreateHeader = (listItem: ListItemCreation) => {
-    new ListHeaderApi(authState.token).Create(listItem).then((id: string) => {
-      dispatch({ type: ActionType.FinalizeCreate });
-      loadNodeHeaders(state.expanded);
-    });
+    if (listItem.label.trim().length > 0) {
+      const headerCreation = { ...listItem, label: listItem.label.trim() };
+
+      new ListHeaderApi(authState.token)
+        .Create(headerCreation)
+        .then((id: string) => {
+          dispatch({ type: ActionType.FinalizeHeaderCreate });
+          loadNodeHeaders(state.expanded);
+        });
+    } else {
+      dispatch({ type: ActionType.CancelHeaderCreate });
+    }
   };
 
   return (
@@ -126,10 +134,10 @@ export const App: React.FC = () => {
             <ListNodeCreation
               node={(state as AppState).headerCreation}
               placeholder="New List"
-              onCancel={() => dispatch({ type: ActionType.CancelDelete })}
+              onCancel={() => dispatch({ type: ActionType.CancelNodeDelete })}
               onSave={() => handleCreateHeader(state.headerCreation)}
               onUpdate={(creation: ListItemCreation) =>
-                dispatch({ type: ActionType.UpdateCreation, creation })
+                dispatch({ type: ActionType.UpdateHeaderCreation, creation })
               }
             />
           )}

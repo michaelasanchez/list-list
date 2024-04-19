@@ -1,20 +1,21 @@
-import { filter, map, orderBy } from 'lodash';
+import { filter, map } from 'lodash';
 import { AppState, getNode, NodePath } from '.';
 import { ListItemCreation } from '../../contracts';
 import { ListHeader, ListNode } from '../../models';
 import { AppTheme } from '../../shared';
 
 export enum AppStateActionType {
-  AddHeader,
-  CancelDelete,
-  FinalizeCreate,
-  FinalizeDelete,
+  // AddHeader,
+  CancelHeaderCreate,
+  CancelNodeDelete,
+  FinalizeHeaderCreate,
+  FinalizeNodeDelete,
   SetHeader,
   SetHeaders,
   // SetItem,
   ToggleNode,
   ToggleTheme,
-  UpdateCreation,
+  UpdateHeaderCreation,
 }
 
 export interface AppStateAction {
@@ -32,24 +33,23 @@ export const AppStateReducer = (
   action: AppStateAction
 ): AppState => {
   switch (action.type) {
-    case AppStateActionType.AddHeader: {
-      return {
-        ...state,
-        headers: orderBy([...state.headers, action.header], (h) => h.order),
-      };
+    case AppStateActionType.CancelHeaderCreate: {
+      const { headerCreation, ...rest } = state;
+
+      return rest;
     }
-    case AppStateActionType.CancelDelete: {
+    case AppStateActionType.CancelNodeDelete: {
       const { headerCreation, ...rest } = state;
 
       return { ...rest };
     }
-    case AppStateActionType.FinalizeCreate: {
+    case AppStateActionType.FinalizeHeaderCreate: {
       // Remove creation prop from app state
       const { headerCreation: listHeaderCreation, ...rest } = state;
 
       return rest;
     }
-    case AppStateActionType.FinalizeDelete: {
+    case AppStateActionType.FinalizeNodeDelete: {
       const updatedHeaders = filter(
         state.headers,
         (h) => h.id !== action.headerId
@@ -98,7 +98,7 @@ export const AppStateReducer = (
         theme: state.theme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light,
       };
     }
-    case AppStateActionType.UpdateCreation: {
+    case AppStateActionType.UpdateHeaderCreation: {
       return {
         ...state,
         headerCreation: action.creation,

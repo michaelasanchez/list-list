@@ -6,7 +6,7 @@ import { ListItemCreation } from '../contracts';
 import { ListNode } from '../models';
 import { ListItemApi } from '../network';
 import { NodePath } from '../views';
-import { AppStateAction, AppStateActionType } from '../views/app';
+import { AppStateActionType as ActionType, AppStateAction } from '../views/app';
 import React = require('react');
 
 interface ListNodeDisplayProps {
@@ -18,7 +18,7 @@ interface ListNodeDisplayProps {
   reloadHeader: () => void;
 }
 
-interface ListNodeViewModel {
+interface ListNodeState {
   pendingLabel?: string;
   pendingNode?: ListItemCreation;
 }
@@ -26,7 +26,7 @@ interface ListNodeViewModel {
 export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   const hasChildren = props.node.children?.length > 0;
 
-  const [viewModel, setViewModel] = useState<ListNodeViewModel>({});
+  const [state, setState] = useState<ListNodeState>({});
 
   const handleCompleteNode = () => {
     new ListItemApi(props.token)
@@ -35,12 +35,21 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   };
 
   const handleCreateNode = () => {
-    if (viewModel.pendingNode?.label?.length > 0) {
-      new ListItemApi(props.token)
-        .Create(viewModel.pendingNode, props.node.id)
-        .then(() => props.reloadHeader());
+    console.log(state.pendingNode?.label?.trim().length);
+    if (state.pendingNode?.label?.trim().length > 0) {
+      const nodeCreation = {
+        ...state.pendingNode,
+        label: state.pendingNode.label.trim(),
+      };
 
-      setViewModel({});
+      new ListItemApi(props.token)
+        .Create(nodeCreation, props.node.id)
+        .then(() => {
+          setState({});
+          props.reloadHeader();
+        });
+    } else {
+      setState({});
     }
   };
 
@@ -50,7 +59,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
     new ListItemApi(props.token).Delete(props.node.id).then(() =>
       props.node.isRoot
         ? props.dispatchAction({
-            type: AppStateActionType.FinalizeDelete,
+            type: ActionType.FinalizeNodeDelete,
             headerId: props.node.headerId,
           })
         : props.reloadHeader()
@@ -62,21 +71,21 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
 
     if (e.button === 0)
       props.dispatchAction({
-        type: AppStateActionType.ToggleNode,
+        type: ActionType.ToggleNode,
         path: props.path,
       });
   };
 
   const handleUpdateNode = () => {
-    if (viewModel.pendingLabel != props.node.label) {
+    if (state.pendingLabel != props.node.label) {
       const listItemPut = {
-        label: viewModel.pendingLabel,
+        label: state.pendingLabel,
         description: props.node.description,
       };
 
       new ListItemApi(props.token).Put(props.node.id, listItemPut).then(() => {
         props.reloadHeader();
-        setViewModel({ ...viewModel, pendingLabel: null });
+        setState({ ...state, pendingLabel: null });
       });
     }
   };
@@ -100,16 +109,16 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           <div className="heading">
             <LabelEditor
               label={
-                isNil(viewModel?.pendingLabel)
+                isNil(state?.pendingLabel)
                   ? props.node.label
-                  : viewModel.pendingLabel
+                  : state.pendingLabel
               }
               onFocus={() =>
-                setViewModel({ ...viewModel, pendingLabel: props.node.label })
+                setState({ ...state, pendingLabel: props.node.label })
               }
               onBlur={handleUpdateNode}
               onChange={(update: string) =>
-                setViewModel({ ...viewModel, pendingLabel: update })
+                setState({ ...state, pendingLabel: update })
               }
             />
           </div>
@@ -158,15 +167,15 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
             />
           ))}
           <ListNodeCreation
-            node={viewModel.pendingNode}
+            node={state.pendingNode}
             onCancel={() =>
-              setViewModel((vm) => {
+              setState((vm) => {
                 const { pendingNode, ...rest } = vm;
                 return rest;
               })
             }
             onUpdate={(node) =>
-              setViewModel((vm) => ({ ...vm, pendingNode: node }))
+              setState((vm) => ({ ...vm, pendingNode: node }))
             }
             onSave={handleCreateNode}
           />

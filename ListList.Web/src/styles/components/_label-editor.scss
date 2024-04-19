@@ -7,6 +7,10 @@
   color: transparent;
   user-select: none;
 
+  span {
+    white-space: pre-wrap;
+  }
+
   textarea {
     resize: none;
     overflow: hidden;
@@ -43,7 +47,7 @@
     outline: none;
 
     &:focus {
-      border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+      border-bottom: 1px solid var(--textarea-focus-underline);
     }
 
     &::placeholder {
