@@ -16,7 +16,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _HeaderValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
+        await _headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
 
         return result;
     }

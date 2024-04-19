@@ -25,7 +25,7 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
           {strings.components.navbar.brand}
         </BSNavbar.Brand>
         {!props.authState.initialized || props.authState.loading ? (
-          <Spinner animation="border" />
+          <Spinner animation="border" size="sm" />
         ) : props.authState.authenticated ? (
           <span className="group">
             <Button className="settings" variant="dark" onClick={props.onToggleTheme}>

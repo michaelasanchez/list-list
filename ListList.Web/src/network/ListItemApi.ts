@@ -7,7 +7,7 @@ export class ListItemApi extends Api {
     super('item', token);
   }
 
-  public CompleteItem = (listItemId: string) => {
+  public Complete = (listItemId: string) => {
     this.setActionPath(`complete/${listItemId}`);
     return this.executePost(null, null, false);
   };

@@ -8,6 +8,7 @@ export enum AppStateActionType {
   AddHeader,
   CancelDelete,
   FinalizeCreate,
+  FinalizeDelete,
   SetHeader,
   SetHeaders,
   // SetItem,
@@ -20,6 +21,7 @@ export interface AppStateAction {
   type: AppStateActionType;
   creation?: ListItemCreation;
   header?: ListHeader;
+  headerId?: string;
   headers?: ListHeader[];
   item?: ListNode;
   path?: NodePath;
@@ -46,6 +48,17 @@ export const AppStateReducer = (
       const { headerCreation: listHeaderCreation, ...rest } = state;
 
       return rest;
+    }
+    case AppStateActionType.FinalizeDelete: {
+      const updatedHeaders = filter(
+        state.headers,
+        (h) => h.id !== action.headerId
+      );
+
+      return {
+        ...state,
+        headers: updatedHeaders,
+      };
     }
     case AppStateActionType.SetHeader: {
       const headers = map(state.headers, (h) =>

@@ -8,8 +8,8 @@ import { ListItemCreation } from '../../contracts';
 import { LocalStorageState, useAuth, useLocalStorage } from '../../hooks';
 import { ListItemMapper } from '../../mappers';
 import { ListNode } from '../../models';
-import { ListHeaderApi, ListItemApi } from '../../network';
-import { AppTheme, config, NodeRequest } from '../../shared';
+import { ListHeaderApi } from '../../network';
+import { AppTheme, config } from '../../shared';
 import { Navbar } from '../Navbar';
 
 export type NodePath = number[];
@@ -36,14 +36,6 @@ export const getNode = (node: ListNode, path: NodePath): ListNode => {
   const first = path.shift();
   return getNode(node.children[first], path);
 };
-
-// TODO: temporary
-export interface RequestPayload {
-  type: NodeRequest;
-  path: NodePath;
-  creation?: ListItemCreation;
-  label?: string;
-}
 
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
@@ -103,75 +95,11 @@ export const App: React.FC = () => {
   //   new ListItemApi(authState.token).GetById(itemId).then((resp) => {});
   // };
 
-  const handleNodeRequest = React.useCallback(
-    (headerId: string, payload: RequestPayload) => {
-      const headerIndex = payload.path.shift();
-      const targetNode = getNode(state.headers[headerIndex].root, payload.path);
-
-      switch (payload.type) {
-        case NodeRequest.Complete: {
-          handleCompleteNode(headerId, targetNode.id);
-          break;
-        }
-        case NodeRequest.Create: {
-          handleCreateNode(headerId, payload.creation, targetNode.id);
-          break;
-        }
-        case NodeRequest.Delete: {
-          handleDeleteNode(headerId, targetNode.id);
-          break;
-        }
-        case NodeRequest.Update: {
-          handlePutNode(headerId, targetNode, payload.label);
-          break;
-        }
-      }
-    },
-    [state]
-  );
-
   const handleCreateHeader = (listItem: ListItemCreation) => {
     new ListHeaderApi(authState.token).Create(listItem).then((id: string) => {
       dispatch({ type: ActionType.FinalizeCreate });
       loadNodeHeaders(state.expanded);
     });
-  };
-
-  const handleCompleteNode = (headerId: string, listItemId: string) => {
-    new ListItemApi(authState.token)
-      .CompleteItem(listItemId)
-      .then(() => loadHeader(headerId, state.expanded));
-  };
-
-  const handleCreateNode = (
-    headerId: string,
-    listItem: ListItemCreation,
-    parentId: string
-  ) => {
-    new ListItemApi(authState.token)
-      .Create(listItem, parentId)
-      .then(() => loadHeader(headerId, state.expanded));
-  };
-
-  const handleDeleteNode = (headerId: string, listItemId: string) => {
-    new ListItemApi(authState.token)
-      .Delete(listItemId)
-      .then(() => loadHeader(headerId, state.expanded));
-  };
-
-  const handlePutNode = (
-    headerId: string,
-    current: ListNode,
-    updatedLabel: string
-  ) => {
-    const listItemPut = {
-      label: updatedLabel,
-      description: current.description,
-    };
-
-    new ListItemApi(authState.token)
-      .Put(current.id, listItemPut)
-      .then(() => loadHeader(headerId, state.expanded));
   };
 
   return (
@@ -186,11 +114,12 @@ export const App: React.FC = () => {
           {map(state.headers, (h, i) => (
             <ListNodeDisplay
               key={i}
+              token={authState.token}
               path={[i]}
               node={h.root}
               className="root"
               dispatchAction={dispatch}
-              dispatchRequest={(payload) => handleNodeRequest(h.id, payload)}
+              reloadHeader={() => loadHeader(h.id, state.expanded)}
             />
           ))}
           {authState.authenticated && (

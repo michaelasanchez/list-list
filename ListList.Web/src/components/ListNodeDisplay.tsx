@@ -4,17 +4,18 @@ import { Button, Form } from 'react-bootstrap';
 import { LabelEditor, ListNodeCreation, MemoizedIcon } from '.';
 import { ListItemCreation } from '../contracts';
 import { ListNode } from '../models';
-import { NodeRequest } from '../shared';
-import { NodePath, RequestPayload } from '../views';
+import { ListItemApi } from '../network';
+import { NodePath } from '../views';
 import { AppStateAction, AppStateActionType } from '../views/app';
 import React = require('react');
 
 interface ListNodeDisplayProps {
+  token: string;
   node: ListNode;
   path: NodePath;
   className?: string;
   dispatchAction: (action: AppStateAction) => void;
-  dispatchRequest: (payload: RequestPayload) => void;
+  reloadHeader: () => void;
 }
 
 interface ListNodeViewModel {
@@ -28,19 +29,16 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   const [viewModel, setViewModel] = useState<ListNodeViewModel>({});
 
   const handleCompleteNode = () => {
-    props.dispatchRequest({
-      type: NodeRequest.Complete,
-      path: props.path,
-    });
+    new ListItemApi(props.token)
+      .Complete(props.node.id)
+      .then(() => props.reloadHeader());
   };
 
   const handleCreateNode = () => {
     if (viewModel.pendingNode?.label?.length > 0) {
-      props.dispatchRequest({
-        type: NodeRequest.Create,
-        path: props.path,
-        creation: viewModel.pendingNode,
-      });
+      new ListItemApi(props.token)
+        .Create(viewModel.pendingNode, props.node.id)
+        .then(() => props.reloadHeader());
 
       setViewModel({});
     }
@@ -48,11 +46,20 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
 
   const handleDeleteNode = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    props.dispatchRequest({ type: NodeRequest.Delete, path: props.path });
+
+    new ListItemApi(props.token).Delete(props.node.id).then(() =>
+      props.node.isRoot
+        ? props.dispatchAction({
+            type: AppStateActionType.FinalizeDelete,
+            headerId: props.node.headerId,
+          })
+        : props.reloadHeader()
+    );
   };
 
   const handleToggleNode = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
+
     if (e.button === 0)
       props.dispatchAction({
         type: AppStateActionType.ToggleNode,
@@ -62,12 +69,15 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
 
   const handleUpdateNode = () => {
     if (viewModel.pendingLabel != props.node.label) {
-      props.dispatchRequest({
-        type: NodeRequest.Update,
-        path: props.path,
+      const listItemPut = {
         label: viewModel.pendingLabel,
+        description: props.node.description,
+      };
+
+      new ListItemApi(props.token).Put(props.node.id, listItemPut).then(() => {
+        props.reloadHeader();
+        setViewModel({ ...viewModel, pendingLabel: null });
       });
-      setViewModel({ ...viewModel, pendingLabel: null });
     }
   };
 
@@ -140,10 +150,11 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           {map(props.node.children, (item, i) => (
             <ListNodeDisplay
               key={i}
+              token={props.token}
               node={item}
               path={[...props.path, i]}
               dispatchAction={props.dispatchAction}
-              dispatchRequest={props.dispatchRequest}
+              reloadHeader={props.reloadHeader}
             />
           ))}
           <ListNodeCreation

@@ -1,9 +1,9 @@
 export interface ApiListItem {
   id: string;
-  groupId: string;
   label: string;
   description: string;
   complete: boolean;
+  completedOn: string;
 
   left: number;
   right: number;

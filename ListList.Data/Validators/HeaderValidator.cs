@@ -10,11 +10,11 @@ public class HeaderValidator(IListListContext _context) : IHeaderValidator
     public async Task UserOwnsListHeaderAsync(Guid userId, Guid listHeaderId, ValidationResult result)
     {
         var userOwnsListHeader = await _context.ListHeaders
-            .AnyAsync(z => z.Id == listHeaderId && z.UserId == userId);
+            .AnyAsync(z => z.Id == listHeaderId && z.UserId == userId && !z.Deleted);
 
         if (!userOwnsListHeader)
         {
-            result.AddError("You do not own this list");
+            result.AddError($"The {nameof(listHeaderId)} '{listHeaderId}' is invalid.");
         }
     }
 }

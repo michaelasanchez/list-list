@@ -4,6 +4,7 @@ import { ListHeader } from '../models';
 import { ListNode } from '../models/ListNode';
 
 const mapChildNodes = (
+  headerId: string,
   parentItem: ApiListItem,
   items: ApiListItem[],
   expanded?: string[]
@@ -27,21 +28,28 @@ const mapChildNodes = (
     childNodes.push({
       ...currentNode,
       expanded: includes(expanded, currentNode.id),
-      // parentId: parentItem.id,
-      children: mapChildNodes(currentNode, currentChildren, expanded),
+      headerId,
+      parentId: parentItem.id,
+      isRoot: false,
+      children: mapChildNodes(headerId, currentNode, currentChildren, expanded),
     });
   } while (index < items.length);
 
   return childNodes;
 };
 
-const mapRootNode = (items: ApiListItem[], expanded?: string[]): ListNode => {
+const mapRootNode = (
+  headerId: string,
+  items: ApiListItem[],
+  expanded?: string[]
+): ListNode => {
   const rootNodeIndex = findIndex(items, (i) => i.left == 1);
 
   const rootNode = items[rootNodeIndex];
   items.splice(rootNodeIndex, 1);
 
   const childNodes = mapChildNodes(
+    headerId,
     rootNode,
     orderBy(items, (i) => i.left),
     expanded
@@ -50,6 +58,8 @@ const mapRootNode = (items: ApiListItem[], expanded?: string[]): ListNode => {
   return {
     ...rootNode,
     expanded: includes(expanded, rootNode.id),
+    headerId,
+    isRoot: true,
     children: childNodes,
   };
 };
@@ -61,22 +71,27 @@ const mapHeaders = (
   map(headers, (h) => ({
     id: h.id,
     order: h.order,
-    root: mapRootNode(h.items, expanded),
+    root: mapRootNode(h.id, h.items, expanded),
   }));
 
 const mapHeader = (header: ApiListHeader, expanded: string[]): ListHeader => ({
   id: header.id,
   order: header.order,
-  root: mapRootNode(header.items, expanded),
+  root: mapRootNode(header.id, header.items, expanded),
 });
 
-const mapNode = (item: ApiListItem, expanded: string[]): ListNode => ({
-  ...item,
-  expanded: includes(expanded, item.id)
-});
+// const mapNode = (
+//   headerId: string,
+//   item: ApiListItem,
+//   expanded: string[]
+// ): ListNode => ({
+//   ...item,
+//   expanded: includes(expanded, item.id),
+//   headerId,
+// });
 
 export const ListItemMapper = {
   mapHeaders,
   mapHeader,
-  mapNode,
+  // mapNode,
 };
