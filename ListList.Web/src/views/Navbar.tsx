@@ -14,7 +14,8 @@ import { AppTheme, strings } from '../shared';
 interface NavbarProps {
   authState: AuthState;
   theme: AppTheme;
-  onToggleTheme: () => void;
+  syncing: boolean;
+  onSetTheme: (theme: AppTheme) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = (props) => {
@@ -28,7 +29,18 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
           <Spinner animation="border" size="sm" />
         ) : props.authState.authenticated ? (
           <span className="group">
-            <Button className="settings" variant="dark" onClick={props.onToggleTheme}>
+            <div className={`syncing${props.syncing ? ' show' : ''}`}>
+              Syncing <Spinner animation="border" size="sm" />
+            </div>
+            <Button
+              className="settings"
+              variant="dark"
+              onClick={() =>
+                props.onSetTheme(
+                  props.theme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light
+                )
+              }
+            >
               <Icon type={props.theme == AppTheme.Light ? 'light' : 'dark'} />
             </Button>
             <DropdownButton

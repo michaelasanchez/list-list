@@ -5,11 +5,15 @@ import { Container } from 'react-bootstrap';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
 import { ListNodeCreation, ListNodeDisplay } from '../../components';
 import { ListItemCreation } from '../../contracts';
-import { LocalStorageState, useAuth, useLocalStorage } from '../../hooks';
+import {
+  LocalStorageState,
+  useAuth,
+  useLocalStorage,
+  useTheme,
+} from '../../hooks';
 import { ListItemMapper } from '../../mappers';
-import { ListNode } from '../../models';
 import { ListHeaderApi } from '../../network';
-import { AppTheme, config } from '../../shared';
+import { config } from '../../shared';
 import { Navbar } from '../Navbar';
 
 export type NodePath = number[];
@@ -17,30 +21,20 @@ export type NodePath = number[];
 const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   const defaultState = localStorage.exists()
     ? JSON.parse(localStorage.fetch())
-    : {
-        theme:
-          window.matchMedia &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches
-            ? AppTheme.Dark
-            : AppTheme.Light,
-      };
+    : {};
 
   return {
+    syncing: true,
     expanded: defaultState.expanded ?? [],
-    theme: defaultState.theme,
+    headers: defaultState.headers,
   };
-};
-
-export const getNode = (node: ListNode, path: NodePath): ListNode => {
-  if (!path?.length) return node;
-  const first = path.shift();
-  return getNode(node.children[first], path);
 };
 
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
+  const themeState = useTheme('ll-theme');
 
-  const localStorageState = useLocalStorage('list-list');
+  const localStorageState = useLocalStorage('ll-data');
 
   const [state, dispatch] = useReducer(
     AppStateReducer,
@@ -50,36 +44,36 @@ export const App: React.FC = () => {
   // Keep local storage up-to-date
   useEffect(() => {
     localStorageState.commit(
-      JSON.stringify({ expanded: state.expanded, theme: state.theme })
+      JSON.stringify({ expanded: state.expanded, headers: state.headers })
     );
-  }, [state.expanded, state.theme]);
-
-  // Set theme attribute
-  useEffect(() => {
-    const htmlTag = document.getElementsByTagName('html');
-
-    htmlTag[0].setAttribute(
-      'data-bs-theme',
-      state.theme == AppTheme.Light ? 'light' : 'dark'
-    );
-  }, [state.theme]);
+  }, [state.expanded, state.headers]);
 
   // Load/unload list headers
   useEffect(() => {
-    if (authState.authenticated) {
-      loadNodeHeaders(state.expanded);
-    } else {
-      dispatch({ type: ActionType.SetHeaders, headers: [] });
+    if (authState.initialized) {
+      if (authState.authenticated) {
+        loadNodeHeaders(state.expanded);
+      } else {
+        dispatch({ type: ActionType.SetHeaders, headers: [] });
+        dispatch({ type: ActionType.SetSyncing, syncing: false });
+      }
     }
-  }, [authState.authenticated]);
+  }, [authState.initialized, authState.authenticated]);
 
   const loadNodeHeaders = (expanded?: string[]) => {
-    new ListHeaderApi(authState.token).Get().then((resp) =>
+    new ListHeaderApi(authState.token).Get().then((resp) => {
       dispatch({
         type: ActionType.SetHeaders,
         headers: ListItemMapper.mapHeaders(resp, expanded),
-      })
-    );
+      });
+
+      if (state.syncing) {
+        dispatch({
+          type: ActionType.SetSyncing,
+          syncing: false,
+        });
+      }
+    });
   };
 
   const loadHeader = (headerId: string, expanded: string[]) => {
@@ -113,9 +107,10 @@ export const App: React.FC = () => {
   return (
     <>
       <Navbar
-        theme={state.theme}
+        theme={themeState.current}
         authState={authState}
-        onToggleTheme={() => dispatch({ type: ActionType.ToggleTheme })}
+        syncing={state.syncing}
+        onSetTheme={themeState.setTheme}
       />
       <main>
         <Container>

@@ -1,8 +1,7 @@
 import { filter, map } from 'lodash';
-import { AppState, getNode, NodePath } from '.';
+import { AppState, NodePath } from '.';
 import { ListItemCreation } from '../../contracts';
 import { ListHeader, ListNode } from '../../models';
-import { AppTheme } from '../../shared';
 
 export enum AppStateActionType {
   // AddHeader,
@@ -12,9 +11,9 @@ export enum AppStateActionType {
   FinalizeNodeDelete,
   SetHeader,
   SetHeaders,
+  SetSyncing,
   // SetItem,
   ToggleNode,
-  ToggleTheme,
   UpdateHeaderCreation,
 }
 
@@ -24,9 +23,16 @@ export interface AppStateAction {
   header?: ListHeader;
   headerId?: string;
   headers?: ListHeader[];
+  syncing?: boolean;
   item?: ListNode;
   path?: NodePath;
 }
+
+export const getNode = (node: ListNode, path: NodePath): ListNode => {
+  if (!path?.length) return node;
+  const first = path.shift();
+  return getNode(node.children[first], path);
+};
 
 export const AppStateReducer = (
   state: AppState,
@@ -44,8 +50,7 @@ export const AppStateReducer = (
       return { ...rest };
     }
     case AppStateActionType.FinalizeHeaderCreate: {
-      // Remove creation prop from app state
-      const { headerCreation: listHeaderCreation, ...rest } = state;
+      const { headerCreation, ...rest } = state;
 
       return rest;
     }
@@ -76,6 +81,12 @@ export const AppStateReducer = (
         headers: action.headers,
       };
     }
+    case AppStateActionType.SetSyncing: {
+      return {
+        ...state,
+        syncing: action.syncing,
+      };
+    }
     case AppStateActionType.ToggleNode: {
       const headerIndex = action.path.shift();
       const targetNode = getNode(state.headers[headerIndex].root, action.path);
@@ -90,12 +101,6 @@ export const AppStateReducer = (
         ...state,
         headers: [...state.headers],
         expanded,
-      };
-    }
-    case AppStateActionType.ToggleTheme: {
-      return {
-        ...state,
-        theme: state.theme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light,
       };
     }
     case AppStateActionType.UpdateHeaderCreation: {

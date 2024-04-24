@@ -5,11 +5,29 @@ nav.navbar {
 
   .group {
     display: flex;
+    align-items: center;
   }
 
   .spinner-border {
     border-color: var(--bs-light);
     border-right-color: transparent;
+  }
+
+  .syncing {
+    display: flex;
+    align-items: center;
+
+    transition: opacity 200ms;
+
+    opacity: 0;
+
+    .spinner-border {
+      margin: 0 1em 0 0.5em;
+    }
+
+    &.show {
+      opacity: 0.5;
+    }
   }
 
   .settings {

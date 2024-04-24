@@ -1,10 +1,9 @@
 import { ListItemCreation } from '../../contracts';
 import { ListHeader } from '../../models';
-import { AppTheme } from '../../shared';
 
 export interface AppState {
+  syncing: boolean;
   expanded: string[];
-  theme: AppTheme;
   headers?: ListHeader[];
   parentId?: string;
   headerCreation?: ListItemCreation;

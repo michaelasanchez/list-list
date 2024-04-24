@@ -1,11 +1,9 @@
-import {
-  faMoon,
-  faPlusSquare,
-} from '@fortawesome/free-regular-svg-icons';
+import { faPlusSquare } from '@fortawesome/free-regular-svg-icons';
 import {
   faChevronDown,
   faChevronUp,
   faGear,
+  faMoon,
   faPlus,
   faSun,
   faTrashCan,

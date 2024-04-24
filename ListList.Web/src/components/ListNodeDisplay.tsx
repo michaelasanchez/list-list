@@ -79,7 +79,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   const handleUpdateNode = () => {
     if (state.pendingLabel != props.node.label) {
       const listItemPut = {
-        label: state.pendingLabel,
+        label: state.pendingLabel.trim(),
         description: props.node.description,
       };
 
@@ -131,7 +131,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
             </div>
           )}
           <div>
-            {!hasChildren ? (
+            {!hasChildren && !props.node.expanded ? (
               <Button
                 className="delete"
                 size="sm"
@@ -143,11 +143,9 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
               </Button>
             ) : (
               <Button variant="none">
-                {hasChildren && (
-                  <MemoizedIcon
-                    type={props.node.expanded ? 'expanded' : 'collapsed'}
-                  />
-                )}
+                <MemoizedIcon
+                  type={props.node.expanded ? 'expanded' : 'collapsed'}
+                />
               </Button>
             )}
           </div>
