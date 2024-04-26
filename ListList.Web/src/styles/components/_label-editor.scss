@@ -20,14 +20,16 @@
     min-height: unset;
   }
 
-  &.active {
-    .form-control,
-    .form-control-plaintext {
-      &::placeholder {
-        opacity: 0.5;
-      }
-    }
-  }
+  // TODO: I can see why this was put here (placeholder becomes less transparent on focus)
+  // but it was causing a weird blinking effect on focus
+  // &.active {
+  //   .form-control,
+  //   .form-control-plaintext {
+  //     &::placeholder {
+  //       // opacity: 0.5;
+  //     }
+  //   }
+  // }
 
   .form-control,
   .form-control-plaintext {

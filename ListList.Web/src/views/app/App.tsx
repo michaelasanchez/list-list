@@ -34,16 +34,16 @@ export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
   const themeState = useTheme('ll-theme');
 
-  const localStorageState = useLocalStorage('ll-data');
+  const localStorage = useLocalStorage('ll-data');
 
   const [state, dispatch] = useReducer(
     AppStateReducer,
-    getDefaultAppState(localStorageState)
+    getDefaultAppState(localStorage)
   );
 
   // Keep local storage up-to-date
   useEffect(() => {
-    localStorageState.commit(
+    localStorage.commit(
       JSON.stringify({ expanded: state.expanded, headers: state.headers })
     );
   }, [state.expanded, state.headers]);

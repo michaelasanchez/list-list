@@ -29,8 +29,6 @@ export const useTheme = (themeKey: string): ThemeState => {
 
     setThemeAttribute(defaultTheme);
 
-    console.log('init');
-
     return defaultTheme;
   });
 
@@ -41,9 +39,6 @@ export const useTheme = (themeKey: string): ThemeState => {
 
   return {
     current: theme,
-    setTheme: (theme: AppTheme) => {
-      console.log('huh', theme);
-      setTheme(theme);
-    },
+    setTheme,
   };
 };

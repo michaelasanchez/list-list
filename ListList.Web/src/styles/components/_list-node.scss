@@ -48,11 +48,26 @@
 
       // TODO: is this needed?
       .heading {
-        display: flex;
-        flex: 1;
-        align-items: center;
+        // display: flex;
+        // flex: 1;
+        // align-items: center;
 
         padding: 0 0.5em;
+
+        .label-editor {
+          display: inline-block;
+        }
+
+        .description {
+          opacity: 0.5;
+          font-size: 1rem;
+          font-weight: 400;
+
+          textarea {
+            font-size: 1rem;
+            font-weight: 400;
+          }
+        }
       }
     }
 

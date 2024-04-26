@@ -1,6 +1,6 @@
 import { countBy, isNil, map } from 'lodash';
 import { useState } from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Button, Collapse, Form } from 'react-bootstrap';
 import { LabelEditor, ListNodeCreation, MemoizedIcon } from '.';
 import { ListItemCreation } from '../contracts';
 import { ListNode } from '../models';
@@ -19,14 +19,21 @@ interface ListNodeDisplayProps {
 }
 
 interface ListNodeState {
+  editingLabel: boolean;
+  editingDescription: boolean;
+  disableToggle?: boolean;
+  itemCreation?: ListItemCreation;
   pendingLabel?: string;
-  pendingNode?: ListItemCreation;
+  pendingDescription?: string;
 }
 
 export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   const hasChildren = props.node.children?.length > 0;
 
-  const [state, setState] = useState<ListNodeState>({});
+  const [state, setState] = useState<ListNodeState>({
+    editingLabel: false,
+    editingDescription: false,
+  });
 
   const handleCompleteNode = () => {
     new ListItemApi(props.token)
@@ -35,21 +42,27 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   };
 
   const handleCreateNode = () => {
-    console.log(state.pendingNode?.label?.trim().length);
-    if (state.pendingNode?.label?.trim().length > 0) {
+    console.log(state.itemCreation?.label?.trim().length);
+    if (state.itemCreation?.label?.trim().length > 0) {
       const nodeCreation = {
-        ...state.pendingNode,
-        label: state.pendingNode.label.trim(),
+        ...state.itemCreation,
+        label: state.itemCreation.label.trim(),
       };
 
       new ListItemApi(props.token)
         .Create(nodeCreation, props.node.id)
         .then(() => {
-          setState({});
+          setState((s) => {
+            const { pendingLabel, itemCreation: pendingNode, ...rest } = s;
+            return rest;
+          });
           props.reloadHeader();
         });
     } else {
-      setState({});
+      setState((s) => {
+        const { pendingLabel, itemCreation: pendingNode, ...rest } = s;
+        return rest;
+      });
     }
   };
 
@@ -69,14 +82,23 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   const handleToggleNode = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
 
-    if (e.button === 0)
+    if (e.button === 0 && !state.disableToggle) {
       props.dispatchAction({
         type: ActionType.ToggleNode,
         path: props.path,
       });
+    }
+
+    setState({ ...state, disableToggle: false });
   };
 
-  const handleUpdateNode = () => {
+  const handleUpdateLabel = () => {
+    setState((s) => ({ ...s, editingLabel: false, disableToggle: true }));
+
+    setTimeout(() => {
+      setState((s) => ({ ...s, disableToggle: false }));
+    }, 100);
+
     if (state.pendingLabel != props.node.label) {
       const listItemPut = {
         label: state.pendingLabel.trim(),
@@ -85,7 +107,31 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
 
       new ListItemApi(props.token).Put(props.node.id, listItemPut).then(() => {
         props.reloadHeader();
-        setState({ ...state, pendingLabel: null });
+        setState((s) => ({ ...s, pendingLabel: null }));
+      });
+    }
+  };
+
+  const handleUpdateDescription = () => {
+    setState((s) => ({
+      ...s,
+      editingDescription: false,
+      disableToggle: true,
+    }));
+
+    setTimeout(() => {
+      setState((s) => ({ ...s, disableToggle: false }));
+    }, 100);
+
+    if (state.pendingDescription != props.node.description) {
+      const listItemPut = {
+        label: props.node.label,
+        description: state.pendingDescription.trim(),
+      };
+
+      new ListItemApi(props.token).Put(props.node.id, listItemPut).then(() => {
+        props.reloadHeader();
+        setState((s) => ({ ...s, pendingDescription: null }));
       });
     }
   };
@@ -114,13 +160,44 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
                   : state.pendingLabel
               }
               onFocus={() =>
-                setState({ ...state, pendingLabel: props.node.label })
+                setState({
+                  ...state,
+                  editingLabel: true,
+                  pendingLabel: props.node.label,
+                })
               }
-              onBlur={handleUpdateNode}
+              onBlur={handleUpdateLabel}
               onChange={(update: string) =>
                 setState({ ...state, pendingLabel: update })
               }
             />
+            <Collapse
+              in={
+                !!props.node.description ||
+                !!state.pendingDescription ||
+                !!state.editingLabel ||
+                !!state.editingDescription
+              }
+            >
+              <div>
+                <LabelEditor
+                  className="description"
+                  label={
+                    isNil(state.pendingDescription)
+                      ? props.node.description
+                      : state.pendingDescription
+                  }
+                  placeholder="Add note"
+                  onFocus={() =>
+                    setState({ ...state, editingDescription: true })
+                  }
+                  onBlur={handleUpdateDescription}
+                  onChange={(update: string) =>
+                    setState({ ...state, pendingDescription: update })
+                  }
+                />
+              </div>
+            </Collapse>
           </div>
         </div>
         <div className="node-right">
@@ -130,30 +207,27 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
               {props.node.children.length})
             </div>
           )}
-          <div>
-            {!hasChildren && !props.node.expanded ? (
-              <Button
-                className="delete"
-                size="sm"
-                variant="none"
-                disabled={hasChildren}
-                onClick={handleDeleteNode}
-              >
-                <MemoizedIcon type="delete" />
-              </Button>
-            ) : (
-              <Button variant="none">
-                <MemoizedIcon
-                  type={props.node.expanded ? 'expanded' : 'collapsed'}
-                />
-              </Button>
-            )}
-          </div>
+          {!hasChildren && !props.node.expanded ? (
+            <Button
+              className="delete"
+              size="sm"
+              variant="none"
+              disabled={hasChildren}
+              onClick={handleDeleteNode}
+            >
+              <MemoizedIcon type="delete" />
+            </Button>
+          ) : (
+            <Button variant="none">
+              <MemoizedIcon
+                type={props.node.expanded ? 'expanded' : 'collapsed'}
+              />
+            </Button>
+          )}
         </div>
       </div>
       {props.node.expanded && (
         <div className="node-body">
-          {props.node.description && <p>{props.node.description}</p>}
           {map(props.node.children, (item, i) => (
             <ListNodeDisplay
               key={i}
@@ -165,15 +239,15 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
             />
           ))}
           <ListNodeCreation
-            node={state.pendingNode}
+            node={state.itemCreation}
             onCancel={() =>
               setState((vm) => {
-                const { pendingNode, ...rest } = vm;
+                const { itemCreation: pendingNode, ...rest } = vm;
                 return rest;
               })
             }
             onUpdate={(node) =>
-              setState((vm) => ({ ...vm, pendingNode: node }))
+              setState((vm) => ({ ...vm, itemCreation: node }))
             }
             onSave={handleCreateNode}
           />

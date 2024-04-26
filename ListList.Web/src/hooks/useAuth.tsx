@@ -147,7 +147,7 @@ export const useAuth = (clientId: string) => {
               authenticated: true,
               loading: false,
               token: token.idToken,
-              picture: parsedToken.picture,
+              picture: parsedToken.picture ?? state.picture,
             }));
           })
           .catch(() =>
