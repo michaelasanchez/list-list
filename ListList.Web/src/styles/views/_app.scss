@@ -10,6 +10,34 @@ body,
 }
 
 main {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+
   flex: 1;
-  overflow-x: auto;
+
+  overflow: hidden;
+}
+
+.header-container,
+.list-container {
+  grid-column: 1;
+  grid-row: 1;
+
+  overflow: hidden;
+
+  transition: transform 300ms;
+
+  &.show {
+    overflow: auto;
+    transform: translateX(0);
+  }
+}
+
+.header-container {
+  transform: translateX(-100vw);
+}
+
+.list-container {
+  transform: translateX(100vw);
 }

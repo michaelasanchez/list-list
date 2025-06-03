@@ -1,5 +1,5 @@
 import { filter, map } from 'lodash';
-import { AppState, NodePath } from '.';
+import { App, AppState, NodePath } from '.';
 import { ListItemCreation } from '../../contracts';
 import { ListHeader, ListNode } from '../../models';
 
@@ -7,8 +7,10 @@ export enum AppStateActionType {
   // AddHeader,
   CancelHeaderCreate,
   CancelNodeDelete,
+  DeselectHeader,
   FinalizeHeaderCreate,
   FinalizeNodeDelete,
+  SelectHeader,
   SetHeader,
   SetHeaders,
   SetSyncing,
@@ -49,6 +51,11 @@ export const AppStateReducer = (
 
       return { ...rest };
     }
+    case AppStateActionType.DeselectHeader: {
+      const { activeHeaderId, ...rest } = state;
+
+      return { ...rest };
+    }
     case AppStateActionType.FinalizeHeaderCreate: {
       const { headerCreation, ...rest } = state;
 
@@ -63,6 +70,12 @@ export const AppStateReducer = (
       return {
         ...state,
         headers: updatedHeaders,
+      };
+    }
+    case AppStateActionType.SelectHeader: {
+      return {
+        ...state,
+        activeHeaderId: action.headerId,
       };
     }
     case AppStateActionType.SetHeader: {
@@ -88,6 +101,7 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.ToggleNode: {
+      console.log(action.path);
       const headerIndex = action.path.shift();
       const targetNode = getNode(state.headers[headerIndex].root, action.path);
 

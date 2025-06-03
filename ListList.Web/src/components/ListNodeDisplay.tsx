@@ -1,7 +1,12 @@
-import { countBy, isNil, map } from 'lodash';
-import { useState } from 'react';
-import { Button, Collapse, Form } from 'react-bootstrap';
-import { LabelEditor, ListNodeCreation, MemoizedIcon } from '.';
+import { countBy, map } from 'lodash';
+import { useEffect, useState } from 'react';
+import { Button, Form } from 'react-bootstrap';
+import {
+  Icon,
+  LabelAndDescriptionEditor,
+  ListNodeCreation,
+  MemoizedIcon,
+} from '.';
 import { ListItemCreation } from '../contracts';
 import { ListNode } from '../models';
 import { ListItemApi } from '../network';
@@ -19,21 +24,31 @@ interface ListNodeDisplayProps {
 }
 
 interface ListNodeState {
-  editingLabel: boolean;
-  editingDescription: boolean;
+  editing: boolean;
   disableToggle?: boolean;
   itemCreation?: ListItemCreation;
-  pendingLabel?: string;
-  pendingDescription?: string;
 }
 
 export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   const hasChildren = props.node.children?.length > 0;
 
-  const [state, setState] = useState<ListNodeState>({
-    editingLabel: false,
-    editingDescription: false,
-  });
+  const [state, setState] = useState<ListNodeState>({ editing: false });
+
+  // Disable toggling for 100ms after editing was true
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout = null;
+
+    if (state.editing) {
+      setState((s) => ({ ...s, disableToggle: true }));
+    } else {
+      timeoutId = setTimeout(
+        () => setState((s) => ({ ...s, disableToggle: false })),
+        100
+      );
+    }
+
+    return () => !!timeoutId && clearTimeout(timeoutId);
+  }, [state.editing]);
 
   const handleCompleteNode = () => {
     new ListItemApi(props.token)
@@ -42,7 +57,6 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   };
 
   const handleCreateNode = () => {
-    console.log(state.itemCreation?.label?.trim().length);
     if (state.itemCreation?.label?.trim().length > 0) {
       const nodeCreation = {
         ...state.itemCreation,
@@ -53,14 +67,14 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
         .Create(nodeCreation, props.node.id)
         .then(() => {
           setState((s) => {
-            const { pendingLabel, itemCreation: pendingNode, ...rest } = s;
+            const { itemCreation: pendingNode, ...rest } = s;
             return rest;
           });
           props.reloadHeader();
         });
     } else {
       setState((s) => {
-        const { pendingLabel, itemCreation: pendingNode, ...rest } = s;
+        const { itemCreation: pendingNode, ...rest } = s;
         return rest;
       });
     }
@@ -92,47 +106,29 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
     setState({ ...state, disableToggle: false });
   };
 
-  const handleUpdateLabel = () => {
-    setState((s) => ({ ...s, editingLabel: false, disableToggle: true }));
-
-    setTimeout(() => {
-      setState((s) => ({ ...s, disableToggle: false }));
-    }, 100);
-
-    if (state.pendingLabel != props.node.label) {
+  const handleUpdateLabel = (pendingLabel: string) => {
+    if (pendingLabel != props.node.label) {
       const listItemPut = {
-        label: state.pendingLabel.trim(),
+        label: pendingLabel,
         description: props.node.description,
       };
 
-      new ListItemApi(props.token).Put(props.node.id, listItemPut).then(() => {
-        props.reloadHeader();
-        setState((s) => ({ ...s, pendingLabel: null }));
-      });
+      new ListItemApi(props.token)
+        .Put(props.node.id, listItemPut)
+        .then(() => props.reloadHeader());
     }
   };
 
-  const handleUpdateDescription = () => {
-    setState((s) => ({
-      ...s,
-      editingDescription: false,
-      disableToggle: true,
-    }));
-
-    setTimeout(() => {
-      setState((s) => ({ ...s, disableToggle: false }));
-    }, 100);
-
-    if (state.pendingDescription != props.node.description) {
+  const handleUpdateDescription = (pendingDescription: string) => {
+    if (pendingDescription != props.node.description) {
       const listItemPut = {
         label: props.node.label,
-        description: state.pendingDescription.trim(),
+        description: pendingDescription,
       };
 
-      new ListItemApi(props.token).Put(props.node.id, listItemPut).then(() => {
-        props.reloadHeader();
-        setState((s) => ({ ...s, pendingDescription: null }));
-      });
+      new ListItemApi(props.token)
+        .Put(props.node.id, listItemPut)
+        .then(() => props.reloadHeader());
     }
   };
 
@@ -144,6 +140,9 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
     >
       <div className="node-header" onClick={handleToggleNode}>
         <div className="node-left">
+          <Button className="grip" variant="none">
+            <Icon type="grip" />
+          </Button>
           <Form.Check
             className="node-check"
             checked={props.node.complete}
@@ -153,51 +152,15 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
         </div>
         <div className="node-title">
           <div className="heading">
-            <LabelEditor
-              label={
-                isNil(state?.pendingLabel)
-                  ? props.node.label
-                  : state.pendingLabel
+            <LabelAndDescriptionEditor
+              label={props.node.label}
+              description={props.node.description}
+              onEditingChange={(editing: boolean) =>
+                setState((s) => ({ ...s, editing }))
               }
-              onFocus={() =>
-                setState({
-                  ...state,
-                  editingLabel: true,
-                  pendingLabel: props.node.label,
-                })
-              }
-              onBlur={handleUpdateLabel}
-              onChange={(update: string) =>
-                setState({ ...state, pendingLabel: update })
-              }
+              onSaveLabel={handleUpdateLabel}
+              onSaveDescription={handleUpdateDescription}
             />
-            <Collapse
-              in={
-                !!props.node.description ||
-                !!state.pendingDescription ||
-                !!state.editingLabel ||
-                !!state.editingDescription
-              }
-            >
-              <div>
-                <LabelEditor
-                  className="description"
-                  label={
-                    isNil(state.pendingDescription)
-                      ? props.node.description
-                      : state.pendingDescription
-                  }
-                  placeholder="Add note"
-                  onFocus={() =>
-                    setState({ ...state, editingDescription: true })
-                  }
-                  onBlur={handleUpdateDescription}
-                  onChange={(update: string) =>
-                    setState({ ...state, pendingDescription: update })
-                  }
-                />
-              </div>
-            </Collapse>
           </div>
         </div>
         <div className="node-right">
@@ -209,7 +172,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           )}
           {!hasChildren && !props.node.expanded ? (
             <Button
-              className="delete"
+              className="delete`"
               size="sm"
               variant="none"
               disabled={hasChildren}

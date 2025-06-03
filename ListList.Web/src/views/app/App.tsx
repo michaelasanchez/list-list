@@ -1,9 +1,13 @@
-import { map } from 'lodash';
+import { findIndex, map } from 'lodash';
 import * as React from 'react';
 import { useEffect, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import { ListNodeCreation, ListNodeDisplay } from '../../components';
+import {
+  ListHeaderDisplay,
+  ListNodeCreation,
+  ListNodeDisplay,
+} from '../../components';
 import { ListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
@@ -104,6 +108,13 @@ export const App: React.FC = () => {
     }
   };
 
+  const activeHeaderIndex = findIndex(
+    state.headers,
+    (h) => h.id == state.activeHeaderId
+  );
+  const activeHeader =
+    activeHeaderIndex >= 0 ? state.headers[activeHeaderIndex] : null;
+
   return (
     <>
       <Navbar
@@ -113,30 +124,60 @@ export const App: React.FC = () => {
         onSetTheme={themeState.setTheme}
       />
       <main>
-        <Container>
-          {map(state.headers, (h, i) => (
-            <ListNodeDisplay
-              key={i}
-              token={authState.token}
-              path={[i]}
-              node={h.root}
-              className="root"
-              dispatchAction={dispatch}
-              reloadHeader={() => loadHeader(h.id, state.expanded)}
-            />
-          ))}
-          {authState.authenticated && (
-            <ListNodeCreation
-              node={(state as AppState).headerCreation}
-              placeholder="New List"
-              onCancel={() => dispatch({ type: ActionType.CancelNodeDelete })}
-              onSave={() => handleCreateHeader(state.headerCreation)}
-              onUpdate={(creation: ListItemCreation) =>
-                dispatch({ type: ActionType.UpdateHeaderCreation, creation })
-              }
-            />
-          )}
-        </Container>
+        <div className={`header-container${!activeHeader ? ' show' : ''}`}>
+          <Container>
+            {map(state.headers, (h, i) => (
+              <ListHeaderDisplay
+                key={i}
+                token={authState.token}
+                header={h}
+                selected={false}
+                onSelect={() =>
+                  dispatch({ type: ActionType.SelectHeader, headerId: h.id })
+                }
+                reloadHeader={() => loadHeader(h.id, state.expanded)}
+              />
+            ))}
+            {authState.authenticated && (
+              <ListNodeCreation
+                node={(state as AppState).headerCreation}
+                placeholder="New List"
+                onCancel={() => dispatch({ type: ActionType.CancelNodeDelete })}
+                onSave={() => handleCreateHeader(state.headerCreation)}
+                onUpdate={(creation: ListItemCreation) =>
+                  dispatch({ type: ActionType.UpdateHeaderCreation, creation })
+                }
+              />
+            )}
+          </Container>
+        </div>
+        <div className={`list-container${!!activeHeader ? ' show' : ''}`}>
+          <Container>
+            {!!activeHeader && (
+              <>
+                <ListHeaderDisplay
+                  token={authState.token}
+                  header={activeHeader}
+                  selected={true}
+                  onSelect={() => dispatch({ type: ActionType.DeselectHeader })}
+                  reloadHeader={function (): void {
+                    throw new Error('Function not implemented.');
+                  }}
+                />
+                {map(activeHeader.root.children, (n, i) => (
+                  <ListNodeDisplay
+                    key={i}
+                    token={authState.token}
+                    node={n}
+                    path={[activeHeaderIndex, i]}
+                    dispatchAction={dispatch}
+                    reloadHeader={() => loadHeader(n.headerId, state.expanded)}
+                  />
+                ))}
+              </>
+            )}
+          </Container>
+        </div>
       </main>
     </>
   );

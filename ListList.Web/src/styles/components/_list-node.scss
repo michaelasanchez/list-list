@@ -6,10 +6,6 @@
 
   transition: border 200ms;
 
-  &.root {
-    margin: 1em 0;
-  }
-
   &.expanded:not(.parent) {
     border-color: var(--node-border-color-expanded);
   }
@@ -40,6 +36,10 @@
     align-items: start;
 
     overflow: hidden;
+
+    .grip {
+      cursor: grab;
+    }
 
     .node-title {
       display: flex;
