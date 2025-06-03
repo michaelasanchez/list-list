@@ -3,7 +3,6 @@ using ListList.Api.Contracts;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using static Google.Apis.Auth.GoogleJsonWebSignature;
 

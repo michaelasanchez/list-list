@@ -1,7 +1,6 @@
-﻿namespace ListList.Api.Contracts.Post
+﻿namespace ListList.Api.Contracts.Post;
+
+public class RefreshToken
 {
-    public class RefreshToken
-    {
-        public string Token { get; set; } = string.Empty;
-    }
+    public string Token { get; set; } = string.Empty;
 }
