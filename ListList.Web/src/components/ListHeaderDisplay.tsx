@@ -64,7 +64,7 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
   };
 
   return (
-    <div className="list-header">
+    <div className="list-header" onClick={props.onSelect}>
       <div className="header-left">
         {!props.selected && (
           <Button className="grip" variant="none">
@@ -86,7 +86,7 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
         </div>
       </div>
       <div className="header-right">
-        <Button className="open" variant="none" onClick={props.onSelect}>
+        <Button className="open" variant="none">
           <Icon type={props.selected ? 'backward' : 'forward'} />
         </Button>
       </div>

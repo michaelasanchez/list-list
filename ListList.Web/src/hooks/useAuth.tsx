@@ -49,7 +49,7 @@ const parseJwt = (token: string): Payload => {
 const userApi = new UserApi();
 
 export const useAuth = (clientId: string) => {
-  const tokenStorage = useLocalStorage('token');
+  const tokenStorage = useLocalStorage('ll-token');
 
   const [state, setState] = useState<AuthState>({
     authenticated: false,

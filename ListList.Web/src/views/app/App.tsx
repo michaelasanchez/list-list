@@ -124,8 +124,8 @@ export const App: React.FC = () => {
         onSetTheme={themeState.setTheme}
       />
       <main>
-        <div className={`header-container${!activeHeader ? ' show' : ''}`}>
-          <Container>
+        <div className={`header-view${!activeHeader ? ' show' : ''}`}>
+          <Container className="list-container">
             {map(state.headers, (h, i) => (
               <ListHeaderDisplay
                 key={i}
@@ -151,8 +151,8 @@ export const App: React.FC = () => {
             )}
           </Container>
         </div>
-        <div className={`list-container${!!activeHeader ? ' show' : ''}`}>
-          <Container>
+        <div className={`list-view${!!activeHeader ? ' show' : ''}`}>
+          <Container className="list-container">
             {!!activeHeader && (
               <>
                 <ListHeaderDisplay
