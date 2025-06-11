@@ -4,6 +4,8 @@ export interface ListNode extends ApiListItem {
   expanded: boolean;
   headerId: string;
   isRoot: boolean;
+  children: ListNode[];
   parentId?: string;
-  children?: ListNode[];
 }
+
+export type ListNodes = ListNode[];

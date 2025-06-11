@@ -3,11 +3,8 @@ import * as React from 'react';
 import { useEffect, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import {
-  ListHeaderDisplay,
-  ListNodeCreation,
-  ListNodeDisplay,
-} from '../../components';
+import { ListHeaderDisplay, ListNodeCreation } from '../../components';
+import { SortableTree } from '../../components/SortableTree';
 import { ListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
@@ -164,7 +161,13 @@ export const App: React.FC = () => {
                     throw new Error('Function not implemented.');
                   }}
                 />
-                {map(activeHeader.root.children, (n, i) => (
+                <SortableTree
+                  collapsible
+                  indicator
+                  removable
+                  defaultItems={activeHeader.root.children}
+                />
+                {/* map(activeHeader.root.children, (n, i) => (
                   <ListNodeDisplay
                     key={i}
                     token={authState.token}
@@ -173,7 +176,7 @@ export const App: React.FC = () => {
                     dispatchAction={dispatch}
                     reloadHeader={() => loadHeader(n.headerId, state.expanded)}
                   />
-                ))}
+                ))} */}
               </>
             )}
           </Container>
