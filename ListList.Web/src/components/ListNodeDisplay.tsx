@@ -140,8 +140,8 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
     >
       <div className="node-header" onClick={handleToggleNode}>
         <div className="node-left">
-          <Button className="grip" variant="none">
-            <Icon type="grip" />
+          <Button className="handle" variant="none">
+            <Icon type="handle" />
           </Button>
           <Form.Check
             className="node-check"

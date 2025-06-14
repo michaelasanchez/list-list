@@ -23,7 +23,7 @@ const iconTypes = {
   delete: faTrashCan,
   dark: faMoon,
   forward: faArrowRight,
-  grip: faGripVertical,
+  handle: faGripVertical,
   settings: faGear,
   light: faSun,
 };

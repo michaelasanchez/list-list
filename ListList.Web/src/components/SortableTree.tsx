@@ -25,9 +25,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { CSS } from '@dnd-kit/utilities';
+import { ListNodes } from '../models';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
 import { SortableTreeItem } from './tree';
-import type { FlattenedItem, SensorContext, TreeItems } from './types.ts';
+import type { FlattenedItem, SensorContext } from './types.ts';
 import {
   buildTree,
   flattenTree,
@@ -68,21 +69,21 @@ const dropAnimationConfig: DropAnimation = {
   },
 };
 
-interface Props {
+interface SortableTreeProps {
   collapsible?: boolean;
-  defaultItems?: TreeItems;
+  defaultItems?: ListNodes;
   indentationWidth?: number;
   indicator?: boolean;
   removable?: boolean;
 }
 
-export function SortableTree({
+export const SortableTree: React.FC<SortableTreeProps> = ({
   collapsible,
   defaultItems,
   indicator = false,
   indentationWidth = 50,
   removable,
-}: Props) {
+}: SortableTreeProps) => {
   const [items, setItems] = useState(() => defaultItems);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -184,11 +185,11 @@ export function SortableTree({
           items={sortedIds}
           strategy={verticalListSortingStrategy}
         >
-          {flattenedItems.map(({ id, children, expanded, depth }) => (
+          {flattenedItems.map(({ id, label, children, expanded, depth }) => (
             <SortableTreeItem
               key={id}
               id={id}
-              value={`${id}`}
+              value={label}
               depth={id === activeId && projected ? projected.depth : depth}
               indentationWidth={indentationWidth}
               indicator={indicator}
@@ -212,7 +213,7 @@ export function SortableTree({
                   depth={activeItem.depth}
                   clone
                   childCount={getChildCount(items, activeId) + 1}
-                  value={activeId.toString()}
+                  value={activeItem.label}
                   indentationWidth={indentationWidth}
                 />
               ) : null}
@@ -352,7 +353,7 @@ export function SortableTree({
 
     return;
   }
-}
+};
 
 const adjustTranslate: Modifier = ({ transform }) => {
   return {

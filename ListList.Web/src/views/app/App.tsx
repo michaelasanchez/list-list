@@ -62,10 +62,10 @@ export const App: React.FC = () => {
   }, [authState.initialized, authState.authenticated]);
 
   const loadNodeHeaders = (expanded?: string[]) => {
-    new ListHeaderApi(authState.token).Get().then((resp) => {
+    new ListHeaderApi(authState.token).Get().then((apiListHeaders) => {
       dispatch({
         type: ActionType.SetHeaders,
-        headers: ListItemMapper.mapHeaders(resp, expanded),
+        headers: ListItemMapper.mapHeaders(apiListHeaders, expanded),
       });
 
       if (state.syncing) {
@@ -78,11 +78,13 @@ export const App: React.FC = () => {
   };
 
   const loadHeader = (headerId: string, expanded: string[]) => {
-    new ListHeaderApi(authState.token).GetById(headerId).then((resp) => {
-      const header = ListItemMapper.mapHeader(resp, expanded);
+    new ListHeaderApi(authState.token)
+      .GetById(headerId)
+      .then((apiListHeader) => {
+        const header = ListItemMapper.mapHeader(apiListHeader, expanded);
 
-      dispatch({ type: ActionType.SetHeader, header });
-    });
+        dispatch({ type: ActionType.SetHeader, header });
+      });
   };
 
   // TODO: gets tricky because we have to map child nodes tooooo

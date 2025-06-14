@@ -1,14 +1,15 @@
 import type { MutableRefObject } from 'react';
+import { ListNode } from '../models';
 
-export interface TreeItem {
-  id: string;
-  children: TreeItem[];
-  expanded?: boolean;
-}
+// export interface TreeItem {
+//   id: string;
+//   children: TreeItem[];
+//   expanded?: boolean;
+// }
 
-export type TreeItems = TreeItem[];
+// export type TreeItems = ListNode[];
 
-export interface FlattenedItem extends TreeItem {
+export interface FlattenedItem extends ListNode {
   parentId: string | null;
   depth: number;
   index: number;

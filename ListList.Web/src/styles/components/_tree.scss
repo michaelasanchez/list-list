@@ -1,5 +1,14 @@
 .sortable-tree {
   li {
     list-style: none;
+
+    border-width: 1px;
+    border-style: solid;
+    border-color: transparent;
+    border-radius: 0.25em;
+
+    &.parent {
+      border-color: var(--node-border-color-parent);
+    }
   }
 }

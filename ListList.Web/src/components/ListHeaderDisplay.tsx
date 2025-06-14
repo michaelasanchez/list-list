@@ -67,8 +67,8 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
     <div className="list-header" onClick={props.onSelect}>
       <div className="header-left">
         {!props.selected && (
-          <Button className="grip" variant="none">
-            <Icon type="grip" />
+          <Button className="handle" variant="none">
+            <Icon type="handle" />
           </Button>
         )}
       </div>
