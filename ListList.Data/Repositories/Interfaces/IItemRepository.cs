@@ -9,4 +9,5 @@ public interface IItemRepository
     Task DeleteListItemAsync(Guid listItemId);
     Task<ListItemEntity> GetListItemByIdAsync(Guid listItemId);
     Task PutListItemAsync(Guid listItemId, ListItemEntity entityPut);
+    Task<List<ListItemEntity>> RelocateListItemAsync(Guid listItemId, Guid destinationParentId, int destinationRelativeIndex);
 }

@@ -26,14 +26,14 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
     {
       childCount,
       clone,
+      collapsed,
       depth,
-      disableSelection,
       disableInteraction,
+      disableSelection,
       ghost,
       handleProps,
       indentationWidth,
       indicator,
-      collapsed,
       onCollapse,
       onRemove,
       style,
@@ -43,10 +43,12 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
     },
     ref
   ) => {
-    console.log(value, childCount);
+    const parent = childCount > 0;
+    // console.log(value, collapsed)
+
     return (
       <li
-        className={classNames({ parent: childCount > 0 })}
+        className={classNames({ parent, clone, ghost, indicator })}
         // className={classNames(
         //   styles.Wrapper,
         //   clone && styles.clone,
@@ -56,19 +58,19 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
         //   disableInteraction && styles.disableInteraction
         // )}
         ref={wrapperRef}
-        style={
-          {
-            paddingLeft: `${indentationWidth * depth}px`,
-          } as React.CSSProperties
-        }
+        style={{
+          paddingLeft: `${indentationWidth * (depth - (ghost ? 1 : 0))}px`,
+        }}
         {...props}
       >
         <div
           // className={styles.TreeItem}
+          className="tree-item"
+          // className={classNames('tree-item', { parent })}
           ref={ref}
           style={style}
         >
-          <Button variant="none" {...handleProps}>
+          <Button className="handle" variant="none" {...handleProps}>
             <Icon type="handle" />
           </Button>
           {onCollapse && (
@@ -87,9 +89,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               <Icon type="delete" />
             </Button>
           )}
-          {clone && childCount && childCount > 1 ? (
-            <Badge>{childCount}</Badge>
-          ) : null}
+          {clone && parent ? <Badge>{childCount}</Badge> : null}
         </div>
       </li>
     );

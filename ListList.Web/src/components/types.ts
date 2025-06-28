@@ -1,5 +1,5 @@
 import type { MutableRefObject } from 'react';
-import { ListNode } from '../models';
+import { ListItem } from '../models';
 
 // export interface TreeItem {
 //   id: string;
@@ -9,13 +9,13 @@ import { ListNode } from '../models';
 
 // export type TreeItems = ListNode[];
 
-export interface FlattenedItem extends ListNode {
-  parentId: string | null;
-  depth: number;
-  index: number;
-}
+// export interface FlattenedItem extends ListNode {
+//   parentId: string | null;
+//   depth: number;
+//   index: number;
+// }
 
 export type SensorContext = MutableRefObject<{
-  items: FlattenedItem[];
+  items: ListItem[];
   offset: number;
 }>;

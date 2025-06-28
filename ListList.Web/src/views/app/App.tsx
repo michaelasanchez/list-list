@@ -12,12 +12,9 @@ import {
   useLocalStorage,
   useTheme,
 } from '../../hooks';
-import { ListItemMapper } from '../../mappers';
 import { ListHeaderApi } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
-
-export type NodePath = number[];
 
 const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   const defaultState = localStorage.exists()
@@ -62,10 +59,10 @@ export const App: React.FC = () => {
   }, [authState.initialized, authState.authenticated]);
 
   const loadNodeHeaders = (expanded?: string[]) => {
-    new ListHeaderApi(authState.token).Get().then((apiListHeaders) => {
+    new ListHeaderApi(authState.token).Get().then((headers) => {
       dispatch({
         type: ActionType.SetHeaders,
-        headers: ListItemMapper.mapHeaders(apiListHeaders, expanded),
+        headers,
       });
 
       if (state.syncing) {
@@ -80,11 +77,7 @@ export const App: React.FC = () => {
   const loadHeader = (headerId: string, expanded: string[]) => {
     new ListHeaderApi(authState.token)
       .GetById(headerId)
-      .then((apiListHeader) => {
-        const header = ListItemMapper.mapHeader(apiListHeader, expanded);
-
-        dispatch({ type: ActionType.SetHeader, header });
-      });
+      .then((header) => dispatch({ type: ActionType.SetHeader, header }));
   };
 
   // TODO: gets tricky because we have to map child nodes tooooo
@@ -159,15 +152,18 @@ export const App: React.FC = () => {
                   header={activeHeader}
                   selected={true}
                   onSelect={() => dispatch({ type: ActionType.DeselectHeader })}
-                  reloadHeader={function (): void {
-                    throw new Error('Function not implemented.');
-                  }}
+                  reloadHeader={() =>
+                    loadHeader(activeHeader.id, state.expanded)
+                  }
                 />
                 <SortableTree
                   collapsible
                   indicator
                   removable
-                  defaultItems={activeHeader.root.children}
+                  token={authState.token}
+                  items={activeHeader?.items ?? []}
+                  dispatchAppAction={dispatch}
+                  reloadHeader={(id) => loadHeader(id, state.expanded)}
                 />
                 {/* map(activeHeader.root.children, (n, i) => (
                   <ListNodeDisplay

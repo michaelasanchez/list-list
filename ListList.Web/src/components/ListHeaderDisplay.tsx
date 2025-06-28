@@ -21,6 +21,8 @@ interface ListHeaderState {
 export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
   const [state, setState] = useState<ListHeaderState>({ editing: false });
 
+  const rootItem = props.header.items?.[0];
+
   // Disable toggling for 100ms after editing was true
   useEffect(() => {
     let timeoutId: NodeJS.Timeout = null;
@@ -38,27 +40,27 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
   }, [state.editing]);
 
   const handleUpdateLabel = (pendingLabel: string) => {
-    if (pendingLabel != props.header.root.label) {
+    if (pendingLabel != rootItem?.label) {
       const listItemPut = {
         label: pendingLabel,
-        description: props.header.root.description,
+        description: rootItem.description,
       };
 
       new ListItemApi(props.token)
-        .Put(props.header.root.id, listItemPut)
+        .Put(rootItem.id, listItemPut)
         .then(() => props.reloadHeader());
     }
   };
 
   const handleUpdateDescription = (pendingDescription: string) => {
-    if (pendingDescription != props.header.root.description) {
+    if (pendingDescription != rootItem?.description) {
       const listItemPut = {
-        label: props.header.root.label,
+        label: rootItem.label,
         description: pendingDescription,
       };
 
       new ListItemApi(props.token)
-        .Put(props.header.root.id, listItemPut)
+        .Put(rootItem.id, listItemPut)
         .then(() => props.reloadHeader());
     }
   };
@@ -75,8 +77,8 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
       <div className="header-title">
         <div className="heading">
           <LabelAndDescriptionEditor
-            label={props.header.root.label}
-            description={props.header.root.description}
+            label={rootItem?.label}
+            description={rootItem?.description}
             onEditingChange={(editing: boolean) =>
               setState((s) => ({ ...s, editing }))
             }

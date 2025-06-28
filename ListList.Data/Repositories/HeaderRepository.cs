@@ -9,11 +9,11 @@ public class HeaderRepository(IListListContext _context) : IHeaderRepository
 {
     public async Task CreateListHeaderAsync(Guid userId, ListHeaderEntity creation)
     {
-        creation.UserId = userId;
-
         var nextOrder = await _context.ListHeaders.CountAsync() + 1;
 
+        creation.UserId = userId;
         creation.Order = nextOrder;
+        creation.ListItems = [CreateRootListItem()];
 
         await _context.ListHeaders.AddAsync(creation);
     }
@@ -34,4 +34,10 @@ public class HeaderRepository(IListListContext _context) : IHeaderRepository
             .OrderBy(z => z.Order)
             .ToListAsync();
     }
+
+    private static ListItemEntity CreateRootListItem() => new()
+    {
+        Left = 1,
+        Right = 2,
+    };
 }

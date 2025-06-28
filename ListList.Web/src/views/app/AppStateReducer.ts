@@ -1,7 +1,8 @@
 import { filter, map } from 'lodash';
-import { App, AppState, NodePath } from '.';
-import { ListItemCreation } from '../../contracts';
-import { ListHeader, ListNode } from '../../models';
+import { AppState } from '.';
+import { ApiListHeader, ListItemCreation } from '../../contracts';
+import { ListItemMapper } from '../../mappers';
+import { ListItem } from '../../models';
 
 export enum AppStateActionType {
   // AddHeader,
@@ -15,26 +16,29 @@ export enum AppStateActionType {
   SetHeaders,
   SetSyncing,
   // SetItem,
-  ToggleNode,
+  ToggleExpanded,
   UpdateHeaderCreation,
 }
+
+export type NodePath = number[];
 
 export interface AppStateAction {
   type: AppStateActionType;
   creation?: ListItemCreation;
-  header?: ListHeader;
+  header?: ApiListHeader;
   headerId?: string;
-  headers?: ListHeader[];
+  headers?: ApiListHeader[];
   syncing?: boolean;
-  item?: ListNode;
+  item?: ListItem;
+  itemId?: string;
   path?: NodePath;
 }
 
-export const getNode = (node: ListNode, path: NodePath): ListNode => {
-  if (!path?.length) return node;
-  const first = path.shift();
-  return getNode(node.children[first], path);
-};
+// export const getNode = (node: ListItem, path: NodePath): ListItem => {
+//   if (!path?.length) return node;
+//   const first = path.shift();
+//   return getNode(node.children[first], path);
+// };
 
 export const AppStateReducer = (
   state: AppState,
@@ -80,7 +84,9 @@ export const AppStateReducer = (
     }
     case AppStateActionType.SetHeader: {
       const headers = map(state.headers, (h) =>
-        h.id == action.header.id ? action.header : h
+        h.id == action.header.id
+          ? ListItemMapper.mapHeader(action.header, state.expanded)
+          : h
       );
 
       return {
@@ -91,7 +97,7 @@ export const AppStateReducer = (
     case AppStateActionType.SetHeaders: {
       return {
         ...state,
-        headers: action.headers,
+        headers: ListItemMapper.mapHeaders(action.headers, state.expanded),
       };
     }
     case AppStateActionType.SetSyncing: {
@@ -100,21 +106,24 @@ export const AppStateReducer = (
         syncing: action.syncing,
       };
     }
-    case AppStateActionType.ToggleNode: {
-      console.log(action.path);
-      const headerIndex = action.path.shift();
-      const targetNode = getNode(state.headers[headerIndex].root, action.path);
-
-      targetNode.expanded = !targetNode.expanded;
-
-      const expanded = targetNode.expanded
-        ? [...state.expanded, targetNode.id]
-        : filter(state.expanded, (n) => n != targetNode.id);
+    case AppStateActionType.ToggleExpanded: {
+      if (!action.headerId || !action.itemId) return state;
 
       return {
         ...state,
-        headers: [...state.headers],
-        expanded,
+        headers: state.headers.map((h) =>
+          h.id == action.headerId
+            ? {
+                ...h,
+                items: h.items.map((i) =>
+                  i.id == action.itemId ? { ...i, expanded: !i.expanded } : i
+                ),
+              }
+            : h
+        ),
+        expanded: state.expanded.includes(action.itemId)
+          ? filter(state.expanded, (i) => i != action.itemId)
+          : [...state.expanded, action.itemId],
       };
     }
     case AppStateActionType.UpdateHeaderCreation: {

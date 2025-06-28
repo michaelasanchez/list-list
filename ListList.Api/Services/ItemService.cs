@@ -2,6 +2,7 @@
 using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
+using ListList.Api.Contracts.Result;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
@@ -18,12 +19,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListItemCompleteAsync(userId, listItemId);
-
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
+        await InvokeGuard(() => _guard.AgainstInvalidListItemCompleteAsync(userId, listItemId));
 
         await _listItemRepository.CompleteListItemAsync(listItemId);
 
@@ -98,5 +94,40 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
         await _listItemRepository.PutListItemAsync(listItemId, entityPut);
 
         await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<OperationResult> RelocateListItemAsync(Guid listItemId, Guid destinationParentId, int destinationRelativeIndex)
+    {
+        var userId = await _userService.GetUserIdAsync();
+
+        await InvokeGuard(() => _guard.AgainstInvalidListItemRelocation(userId, listItemId, destinationParentId));
+
+        var result = await _listItemRepository.RelocateListItemAsync(listItemId, destinationParentId, destinationRelativeIndex);
+
+        //var test = ListItemMapper.MapEntitiesToContracts(result);
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return new()
+        {
+            HeaderId = result.FirstOrDefault()?.ListHeaderId,
+            ItemId = listItemId,
+            Affected = new()
+            {
+                Ids = result.Select(z => z.Id).ToList(),
+                Left = result.Min(z => z.Left),
+                Right = result.Max(z => z.Right)
+            }
+        };
+    }
+
+    public async Task InvokeGuard(Func<Task<Data.Models.ValidationResult>> func)
+    {
+        var result = await func();
+
+        if (result.IsInvalid)
+        {
+            throw new Exception(result.Message);
+        }
     }
 }

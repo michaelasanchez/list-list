@@ -25,18 +25,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { CSS } from '@dnd-kit/utilities';
-import { ListNodes } from '../models';
+import { ListItem, ListItems } from '../models';
+import { ListItemApi } from '../network';
+import { Node } from '../shared';
+import { AppStateAction, AppStateActionType } from '../views';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
 import { SortableTreeItem } from './tree';
-import type { FlattenedItem, SensorContext } from './types.ts';
+import type { SensorContext } from './types.ts';
 import {
-  buildTree,
-  flattenTree,
-  getChildCount,
+  // buildTree,
+  // flattenTree,
+  // getChildCount,
   getProjection,
-  removeChildrenOf,
-  removeItem,
-  setProperty,
 } from './utilities';
 import React = require('react');
 
@@ -70,21 +70,27 @@ const dropAnimationConfig: DropAnimation = {
 };
 
 interface SortableTreeProps {
+  token: string;
+  items: ListItems;
+  reloadHeader: (headerId: string) => void;
+  dispatchAppAction: (action: AppStateAction) => void;
   collapsible?: boolean;
-  defaultItems?: ListNodes;
   indentationWidth?: number;
   indicator?: boolean;
   removable?: boolean;
 }
 
 export const SortableTree: React.FC<SortableTreeProps> = ({
+  token,
+  items,
+  reloadHeader,
+  dispatchAppAction,
   collapsible,
-  defaultItems,
-  indicator = false,
   indentationWidth = 50,
+  indicator = false,
   removable,
 }: SortableTreeProps) => {
-  const [items, setItems] = useState(() => defaultItems);
+  // const [items, setItems] = useState(() => defaultItems);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [offsetLeft, setOffsetLeft] = useState(0);
@@ -93,33 +99,27 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
     overId: string;
   } | null>(null);
 
-  const flattenedItems = useMemo(() => {
-    const flattenedTree = flattenTree(items);
-    const collapsedItems = flattenedTree.reduce<string[]>(
-      (acc, { children, expanded, id }) =>
-        !expanded && children.length ? [...acc, `${id}`] : acc,
-      []
-    );
+  // const items = useMemo(() => {
+  //   const flattenedTree = flattenTree(items);
+  //   const collapsedItems = flattenedTree.reduce<string[]>(
+  //     (acc, { children, expanded, id }) =>
+  //       !expanded && children.length ? [...acc, `${id}`] : acc,
+  //     []
+  //   );
 
-    return removeChildrenOf(
-      flattenedTree,
-      activeId != null ? [activeId, ...collapsedItems] : collapsedItems
-    );
-  }, [activeId, items]);
+  //   return removeChildrenOf(
+  //     flattenedTree,
+  //     activeId != null ? [activeId, ...collapsedItems] : collapsedItems
+  //   );
+  // }, [activeId, items]);
 
   const projected =
     activeId && overId
-      ? getProjection(
-          flattenedItems,
-          activeId,
-          overId,
-          offsetLeft,
-          indentationWidth
-        )
+      ? getProjection(items, activeId, overId, offsetLeft, indentationWidth)
       : null;
 
   const sensorContext: SensorContext = useRef({
-    items: flattenedItems,
+    items: items,
     offset: offsetLeft,
   });
 
@@ -134,21 +134,16 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
     })
   );
 
-  const sortedIds = useMemo(
-    () => flattenedItems.map(({ id }) => id),
-    [flattenedItems]
-  );
+  const sortedIds = useMemo(() => items.map(({ id }) => id), [items]);
 
-  const activeItem = activeId
-    ? flattenedItems.find(({ id }) => id === activeId)
-    : null;
+  const activeItem = activeId ? items.find(({ id }) => id === activeId) : null;
 
   useEffect(() => {
     sensorContext.current = {
-      items: flattenedItems,
+      items: items,
       offset: offsetLeft,
     };
-  }, [flattenedItems, offsetLeft]);
+  }, [items, offsetLeft]);
 
   const announcements: Announcements = {
     onDragStart({ active }) {
@@ -168,6 +163,8 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
     },
   };
 
+  // console.log(items, getVisible(items));
+
   return (
     <div className="sortable-tree">
       <DndContext
@@ -185,25 +182,39 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
           items={sortedIds}
           strategy={verticalListSortingStrategy}
         >
-          {flattenedItems.map(({ id, label, children, expanded, depth }) => (
-            <SortableTreeItem
-              key={id}
-              id={id}
-              value={label}
-              depth={id === activeId && projected ? projected.depth : depth}
-              indentationWidth={indentationWidth}
-              indicator={indicator}
-              collapsed={Boolean(!expanded && children.length)}
-              onCollapse={
-                collapsible && children.length
-                  ? () => handleCollapse(id)
-                  : undefined
-              }
-              onRemove={removable ? () => handleRemove(id) : undefined}
-            />
-          ))}
+          {getVisible(items).map(
+            ({
+              id,
+              headerId,
+              label,
+              childCount,
+              depth,
+              descendantCount,
+              expanded,
+            }) => (
+              <SortableTreeItem
+                key={id}
+                id={id}
+                value={label}
+                childCount={descendantCount}
+                collapsed={Boolean(!expanded && childCount)}
+                depth={id === activeId && projected ? projected.depth : depth}
+                indentationWidth={indentationWidth}
+                indicator={indicator}
+                onCollapse={
+                  collapsible && childCount
+                    ? () => handleCollapse(headerId, id)
+                    : undefined
+                }
+                onRemove={
+                  removable ? () => handleRemove(headerId, id) : undefined
+                }
+              />
+            )
+          )}
           {createPortal(
             <DragOverlay
+              className="sortable-tree-overlay"
               dropAnimation={dropAnimationConfig}
               modifiers={indicator ? [adjustTranslate] : undefined}
             >
@@ -212,7 +223,7 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
                   id={activeId}
                   depth={activeItem.depth}
                   clone
-                  childCount={getChildCount(items, activeId) + 1}
+                  childCount={activeItem.descendantCount}
                   value={activeItem.label}
                   indentationWidth={indentationWidth}
                 />
@@ -229,7 +240,7 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
     setActiveId(activeId);
     setOverId(activeId);
 
-    const activeItem = flattenedItems.find(({ id }) => id === activeId);
+    const activeItem = items.find(({ id }) => id === activeId);
 
     if (activeItem) {
       setCurrentPosition({
@@ -249,24 +260,38 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
     setOverId(over?.id ?? null);
   }
 
-  function handleDragEnd({ active, over }: DragEndEvent) {
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+
     resetState();
 
     if (projected && over) {
       const { depth, parentId } = projected;
-      const clonedItems: FlattenedItem[] = JSON.parse(
-        JSON.stringify(flattenTree(items))
-      );
-      const overIndex = clonedItems.findIndex(({ id }) => id === over.id);
-      const activeIndex = clonedItems.findIndex(({ id }) => id === active.id);
-      const activeTreeItem = clonedItems[activeIndex];
 
-      clonedItems[activeIndex] = { ...activeTreeItem, depth, parentId };
+      const active = items.find((i) => i.id == e.active.id);
+      const parent = items.find((i) => i.id == projected.parentId);
+      const over = items.find((i) => i.id == e.over.id);
 
-      const sortedItems = arrayMove(clonedItems, activeIndex, overIndex);
-      const newItems = buildTree(sortedItems);
+      const children = Node.getDirectChildren(items, parent);
+      const newIndex = Node.isDirectChild(parent, over)
+        ? children.findIndex((i) => i.id == over.id)
+        : children.length;
 
-      setItems(newItems);
+      // console.log(`moving ${active.label}`);
+      // console.log(
+      //   `to be a child of ${parent.label}, between ${
+      //     children[newIndex - 1]?.label ?? 'start'
+      //   } & ${children[newIndex]?.label ?? 'end'}`
+      // );
+      // console.log('------------------------------------');
+
+      new ListItemApi(token)
+        .Relocate(active.id, parent.id, newIndex)
+        .then((result) => {
+          console.log('OPERATION RESULT', result);
+
+          reloadHeader(active.headerId);
+        });
     }
   }
 
@@ -283,16 +308,17 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
     document.body.style.setProperty('cursor', '');
   }
 
-  function handleRemove(id: string) {
-    setItems((items) => removeItem(items, id));
+  function handleRemove(headerId: string, itemId: string) {
+    // TODO: reducer action
+    // setItems((items) => removeItem(items, id));
   }
 
-  function handleCollapse(id: string) {
-    setItems((items) =>
-      setProperty(items, id, 'expanded', (value) => {
-        return !value;
-      })
-    );
+  function handleCollapse(headerId: string, itemId: string) {
+    dispatchAppAction({
+      type: AppStateActionType.ToggleExpanded,
+      headerId,
+      itemId,
+    });
   }
 
   function getMovementAnnouncement(
@@ -316,9 +342,7 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
         }
       }
 
-      const clonedItems: FlattenedItem[] = JSON.parse(
-        JSON.stringify(flattenTree(items))
-      );
+      const clonedItems: ListItem[] = JSON.parse(JSON.stringify(items));
       const overIndex = clonedItems.findIndex(({ id }) => id === overId);
       const activeIndex = clonedItems.findIndex(({ id }) => id === activeId);
       const sortedItems = arrayMove(clonedItems, activeIndex, overIndex);
@@ -336,7 +360,7 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
         if (projected.depth > previousItem.depth) {
           announcement = `${activeId} was ${nestedVerb} under ${previousItem.id}.`;
         } else {
-          let previousSibling: FlattenedItem | undefined = previousItem;
+          let previousSibling: ListItem | undefined = previousItem;
           while (previousSibling && projected.depth < previousSibling.depth) {
             const parentId: string | null = previousSibling.parentId;
             previousSibling = sortedItems.find(({ id }) => id === parentId);
@@ -353,6 +377,81 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
 
     return;
   }
+
+  function getVisible(items: ListItems): ListItems {
+    if (!items?.length) return [];
+
+    const visible: ListItems = [];
+    let skipUntilLeftIsAtLeast: number | null = null;
+
+    for (let i = 1; i < items.length; i++) {
+      const node = items[i];
+
+      if (
+        skipUntilLeftIsAtLeast !== null &&
+        node.left < skipUntilLeftIsAtLeast
+      ) {
+        continue; // inside a collapsed subtree
+      }
+
+      visible.push({ ...node, depth: node.depth - 1 });
+
+      if (node.hasChildren && !node.expanded) {
+        skipUntilLeftIsAtLeast = node.right + 1;
+      } else {
+        skipUntilLeftIsAtLeast = null;
+      }
+    }
+
+    return visible;
+  }
+
+  // function buildTree(data: ListItems) {
+  //   return data.map((node, i) => ({
+  //     ...node,
+  //     id: i, // assuming no ID, we use index
+  //     children: data
+  //       .filter(
+  //         (child) =>
+  //           child.left > node.left &&
+  //           child.right < node.right &&
+  //           data.every(
+  //             (other) =>
+  //               !(
+  //                 other.left > node.left &&
+  //                 other.right < node.right &&
+  //                 child.left > other.left &&
+  //                 child.right < other.right
+  //               )
+  //           )
+  //       )
+  //       .map((child) => data.indexOf(child)),
+  //   }));
+  // }
+
+  // function getVisibleNodes(data: ListItems, expandedNodeIds: string[]) {
+  //   const tree = buildTree(data);
+
+  //   const visible = new Set();
+
+  //   function dfs(nodeIndex: number, parentVisible: boolean) {
+  //     if (!parentVisible) return;
+
+  //     const node = tree[nodeIndex];
+  //     visible.add(nodeIndex);
+
+  //     const isExpanded = expandedNodeIds.includes(nodeIndex);
+  //     if (isExpanded) {
+  //       for (const childIndex of node.children) {
+  //         dfs(childIndex, true);
+  //       }
+  //     }
+  //   }
+
+  //   dfs(0, true); // start with root node visible
+
+  //   return data.filter((_, i) => visible.has(i));
+  // }
 };
 
 const adjustTranslate: Modifier = ({ transform }) => {

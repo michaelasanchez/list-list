@@ -1,4 +1,3 @@
-import { countBy, map } from 'lodash';
 import { useEffect, useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import {
@@ -8,16 +7,15 @@ import {
   MemoizedIcon,
 } from '.';
 import { ListItemCreation } from '../contracts';
-import { ListNode } from '../models';
+import { ListItem } from '../models';
 import { ListItemApi } from '../network';
-import { NodePath } from '../views';
 import { AppStateActionType as ActionType, AppStateAction } from '../views/app';
 import React = require('react');
 
 interface ListNodeDisplayProps {
   token: string;
-  node: ListNode;
-  path: NodePath;
+  node: ListItem;
+  // path: NodePath;
   className?: string;
   dispatchAction: (action: AppStateAction) => void;
   reloadHeader: () => void;
@@ -30,8 +28,6 @@ interface ListNodeState {
 }
 
 export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
-  const hasChildren = props.node.children?.length > 0;
-
   const [state, setState] = useState<ListNodeState>({ editing: false });
 
   // Disable toggling for 100ms after editing was true
@@ -98,8 +94,10 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
 
     if (e.button === 0 && !state.disableToggle) {
       props.dispatchAction({
-        type: ActionType.ToggleNode,
-        path: props.path,
+        type: ActionType.ToggleExpanded,
+        headerId: props.node.headerId,
+        itemId: props.node.id,
+        // path: props.path,
       });
     }
 
@@ -136,7 +134,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
     <div
       className={`list-node${props.className ? ` ${props.className}` : ''}${
         props.node.expanded ? ' expanded' : ''
-      }${hasChildren ? ' parent' : ''}`}
+      }${props.node.hasChildren ? ' parent' : ''}`}
     >
       <div className="node-header" onClick={handleToggleNode}>
         <div className="node-left">
@@ -164,18 +162,18 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           </div>
         </div>
         <div className="node-right">
-          {hasChildren && (
+          {props.node.hasChildren && (
             <div className="completed">
-              ({countBy(props.node.children, (n) => n.complete)['true'] ?? 0}/
-              {props.node.children.length})
+              {/* ({countBy(props.node.children, (n) => n.complete)['true'] ?? 0}/ */}
+              (got me/{props.node.descendantCount})
             </div>
           )}
-          {!hasChildren && !props.node.expanded ? (
+          {!props.node.hasChildren && !props.node.expanded ? (
             <Button
               className="delete`"
               size="sm"
               variant="none"
-              disabled={hasChildren}
+              disabled={props.node.hasChildren}
               onClick={handleDeleteNode}
             >
               <MemoizedIcon type="delete" />
@@ -191,16 +189,16 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
       </div>
       {props.node.expanded && (
         <div className="node-body">
-          {map(props.node.children, (item, i) => (
+          {/* {map(props.node.children, (item, i) => (
             <ListNodeDisplay
               key={i}
               token={props.token}
               node={item}
-              path={[...props.path, i]}
+              // path={[...props.path, i]}
               dispatchAction={props.dispatchAction}
               reloadHeader={props.reloadHeader}
             />
-          ))}
+          ))} */}
           <ListNodeCreation
             node={state.itemCreation}
             onCancel={() =>

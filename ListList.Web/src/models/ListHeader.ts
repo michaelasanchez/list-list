@@ -1,7 +1,7 @@
-import { ListNode } from ".";
+import { ListItem } from '.';
 
 export interface ListHeader {
   id: string;
   order: number;
-  root: ListNode;
+  items: ListItem[];
 }

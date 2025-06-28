@@ -1,68 +1,62 @@
-import { filter, findIndex, includes, map, orderBy } from 'lodash';
+import { map } from 'lodash';
 import { ApiListHeader, ApiListItem } from '../contracts';
 import { ListHeader } from '../models';
-import { ListNode } from '../models/ListNode';
+import { ListItem } from '../models/ListItem';
 
-const mapChildNodes = (
-  headerId: string,
-  parentItem: ApiListItem,
-  items: ApiListItem[],
-  expanded?: string[]
-): ListNode[] => {
-  const childNodes: ListNode[] = [];
+// const mapChildNodes = (
+//   items: ApiListItem[],
+//   expanded?: string[]
+// ): ListItem[] => {
+//   const childNodes: ListItem[] = [];
 
-  if (!items?.length) return childNodes;
+//   if (!items?.length) return childNodes;
 
-  let index = 0;
+//   let index = 0;
 
-  do {
-    const currentNode = items[index];
+//   do {
+//     const currentNode = items[index];
 
-    const currentChildren = filter(
-      items,
-      (i) => i.left > currentNode.left && i.right < currentNode.right
-    );
+//     const currentChildren = filter(
+//       items,
+//       (i) => i.left > currentNode.left && i.right < currentNode.right
+//     );
 
-    index += currentChildren.length + 1;
+//     index += currentChildren.length + 1;
 
-    childNodes.push({
-      ...currentNode,
-      expanded: includes(expanded, currentNode.id),
-      headerId,
-      parentId: parentItem.id,
-      isRoot: false,
-      children: mapChildNodes(headerId, currentNode, currentChildren, expanded),
-    });
-  } while (index < items.length);
+//     childNodes.push({
+//       ...currentNode,
+//       expanded: includes(expanded, currentNode.id),
+//       // children: mapChildNodes(currentChildren, expanded),
+//     });
+//   } while (index < items.length);
 
-  return childNodes;
-};
+//   return childNodes;
+// };
 
-const mapRootNode = (
-  headerId: string,
-  items: ApiListItem[],
-  expanded?: string[]
-): ListNode => {
-  const rootNodeIndex = findIndex(items, (i) => i.left == 1);
+// const mapRootNode = (items: ApiListItem[], expanded?: string[]): ListItem => {
+//   const rootNodeIndex = findIndex(items, (i) => i.left == 1);
 
-  const rootNode = items[rootNodeIndex];
-  items.splice(rootNodeIndex, 1);
+//   const rootNode = items[rootNodeIndex];
+//   items.splice(rootNodeIndex, 1);
 
-  const childNodes = mapChildNodes(
-    headerId,
-    rootNode,
-    orderBy(items, (i) => i.left),
-    expanded
-  );
+//   const childNodes = mapChildNodes(
+//     orderBy(items, (i) => i.left),
+//     expanded
+//   );
 
-  return {
-    ...rootNode,
-    expanded: includes(expanded, rootNode.id),
-    headerId,
-    isRoot: true,
-    children: childNodes,
-  };
-};
+//   return {
+//     ...rootNode,
+//     expanded: includes(expanded, rootNode.id),
+//     // children: childNodes,
+//   };
+// };
+
+const mapItems = (items: ApiListItem[], expanded: string[]): ListItem[] =>
+  items?.map((i) => ({
+    ...i,
+    expanded: expanded.includes(i.id),
+    // children: [],
+  }));
 
 const mapHeaders = (
   headers: ApiListHeader[],
@@ -71,27 +65,16 @@ const mapHeaders = (
   map(headers, (h) => ({
     id: h.id,
     order: h.order,
-    root: mapRootNode(h.id, h.items, expanded),
+    items: mapItems(h.items, expanded),
   }));
 
 const mapHeader = (header: ApiListHeader, expanded: string[]): ListHeader => ({
   id: header.id,
   order: header.order,
-  root: mapRootNode(header.id, header.items, expanded),
+  items: mapItems(header.items, expanded),
 });
-
-// const mapNode = (
-//   headerId: string,
-//   item: ApiListItem,
-//   expanded: string[]
-// ): ListNode => ({
-//   ...item,
-//   expanded: includes(expanded, item.id),
-//   headerId,
-// });
 
 export const ListItemMapper = {
   mapHeaders,
   mapHeader,
-  // mapNode,
 };

@@ -1,9 +1,8 @@
-﻿namespace ListList.Api.Contracts
+﻿namespace ListList.Api.Contracts;
+
+public class ListHeader
 {
-    public class ListHeader
-    {
-        public Guid Id { get; set; }
-        public int Order { get; set; }
-        public List<ListItem> Items { get; set; }
-    }
+    public Guid Id { get; set; }
+    public int Order { get; set; }
+    public List<ListItem> Items { get; set; }
 }

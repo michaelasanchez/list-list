@@ -10,4 +10,14 @@ public class ListItem
 
     public int Left { get; set; }
     public int Right { get; set; }
+
+    public int Depth { get; set; }
+    public bool IsRoot { get; set; }
+
+    public Guid HeaderId { get; set; }
+    public Guid? ParentId { get; set; }
+
+    public bool HasChildren { get; set; }
+    public int ChildCount { get; set; }
+    public int DescendantCount { get; set; }
 }

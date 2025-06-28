@@ -3,27 +3,20 @@ using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
 using ListList.Data.Models.Entities;
 
-namespace ListList.Api.Mappers.Profiles
+namespace ListList.Api.Mappers.Profiles;
+
+public class ListHeaderProfile : Profile
 {
-    public class ListHeaderProfile : Profile
+    public ListHeaderProfile()
     {
-        public ListHeaderProfile()
-        {
-            CreateMap<ListHeaderEntity, ListHeader>()
-                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.ListItems));
+        CreateMap<ListHeaderEntity, ListHeader>()
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src =>
+                ListItemMapper.MapEntitiesToContracts(src.ListItems.ToList())));
 
-            CreateMap<ListHeader, ListHeaderEntity>()
-                .ForMember(dest => dest.ListItems, opt => opt.MapFrom(src => src.Items));
+        CreateMap<ListHeader, ListHeaderEntity>()
+            .ForMember(dest => dest.ListItems, opt => opt.MapFrom(src => src.Items));
 
-            CreateMap<ListItemCreation, ListHeaderEntity>()
-                .ForMember(dest => dest.ListItems, opt => opt.MapFrom(src => new List<ListItemEntity> {
-                    new() {
-                        Label = src.Label,
-                        Left = 1,
-                        Right = 2
-                    }
-                }));
-
-        }
+        CreateMap<ListItemCreation, ListHeaderEntity>()
+            .ForMember(dest => dest.ListItems, opt => opt.Ignore());
     }
 }

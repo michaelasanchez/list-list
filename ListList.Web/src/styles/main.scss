@@ -1,11 +1,11 @@
-@import 'vars';
+@use 'vars';
 
-@import 'components/navbar';
-@import 'components/label-editor';
+@use 'components/navbar';
+@use 'components/label-editor';
 
-@import 'components/list-header';
-@import 'components/list-node';
+@use 'components/list-header';
+@use 'components/list-node';
 
-@import 'components/tree';
+@use 'components/tree';
 
-@import 'views/app';
+@use 'views/app';

@@ -8,7 +8,7 @@ export class ListItemApi extends Api {
   }
 
   public Complete = (listItemId: string) => {
-    this.setActionPath(`complete/${listItemId}`);
+    this.setActionPath(`${listItemId}/complete`);
     return this.executePost(null, null, false);
   };
 
@@ -27,11 +27,21 @@ export class ListItemApi extends Api {
 
   public GetById = (listItemId: string) => {
     this.setActionPath(`${listItemId}`);
-    
+
     return this.executeGet();
   };
 
   public Put = (listItemId: string, put: ApiListItemPut) => {
     return this.executePut(put, listItemId) as Promise<void>;
+  };
+
+  public Relocate = (
+    listItemId: string,
+    parentId: string,
+    relativeIndex: number
+  ) => {
+    this.setActionPath(`${listItemId}/relocate`);
+
+    return this.executePost({ parentId, relativeIndex });
   };
 }

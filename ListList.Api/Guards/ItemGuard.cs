@@ -9,7 +9,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.UserOwnsListItemAsync(userId, listItemId, result);
+        await _itemValidator.ListItemIsOwnedByUserAsync(userId, listItemId, result);
 
         return result;
     }
@@ -18,7 +18,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.UserOwnsListItemAsync(userId, parentId, result);
+        await _itemValidator.ListItemIsOwnedByUserAsync(userId, parentId, result);
 
         return result;
     }
@@ -27,7 +27,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.UserOwnsListItemAsync(userId, listItemId, result);
+        await _itemValidator.ListItemIsOwnedByUserAsync(userId, listItemId, result);
 
         await _itemValidator.ListItemIsEmptyAsync(listItemId, result);
 
@@ -38,7 +38,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.UserOwnsListItemAsync(userId, listItemId, result);
+        await _itemValidator.ListItemIsOwnedByUserAsync(userId, listItemId, result);
 
         return result;
     }
@@ -47,7 +47,18 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.UserOwnsListItemAsync(userId, listItemId, result);
+        await _itemValidator.ListItemIsOwnedByUserAsync(userId, listItemId, result);
+
+        return result;
+    }
+
+    public async Task<ValidationResult> AgainstInvalidListItemRelocation(Guid userId, Guid listItemId, Guid destinationParentId)
+    {
+        var result = new ValidationResult();
+
+        await _itemValidator.ListItemIsOwnedByUserAsync(userId, listItemId, result);
+
+        await _itemValidator.ListItemIsNotDeletedAsync(destinationParentId, result);
 
         return result;
     }

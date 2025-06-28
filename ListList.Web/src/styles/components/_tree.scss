@@ -1,4 +1,5 @@
-.sortable-tree {
+.sortable-tree,
+.sortable-tree-overlay {
   li {
     list-style: none;
 
@@ -7,8 +8,60 @@
     border-color: transparent;
     border-radius: 0.25em;
 
-    &.parent {
-      border-color: var(--node-border-color-parent);
+    .tree-item {
+      position: relative;
+
+      .btn.handle {
+        cursor: grab;
+      }
+
+      .badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+
+        transform: translate(50%, -50%);
+      }
+    }
+
+    &.parent .tree-item {
+      border: 1px solid var(--node-border-color-parent);
+    }
+
+    &.clone .tree-item {
+      border: 2px solid pink;
+    }
+
+    &.ghost {
+      opacity: 1;
+      position: relative;
+      z-index: 1;
+      margin-bottom: -1px;
+
+      .tree-item {
+        padding: 0;
+        height: 8px;
+        border-color: #2389ff;
+        background-color: #56a1f8;
+
+        &:before {
+          position: absolute;
+          left: -8px;
+          top: -4px;
+          display: block;
+          content: '';
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          border: 1px solid #2389ff;
+          background-color: #ffffff;
+        }
+
+        > * {
+          opacity: 0;
+          height: 0;
+        }
+      }
     }
   }
 }

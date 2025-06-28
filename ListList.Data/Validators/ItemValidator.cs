@@ -1,7 +1,7 @@
-﻿using ListList.Data.Validators.Interfaces;
+﻿using ListList.Data.Models;
 using ListList.Data.Models.Interfaces;
+using ListList.Data.Validators.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using ListList.Data.Models;
 
 namespace ListList.Data.Validators;
 
@@ -29,7 +29,18 @@ public class ItemValidator(IListListContext _context) : IItemValidator
         }
     }
 
-    public async Task UserOwnsListItemAsync(Guid userId, Guid listItemId, ValidationResult result)
+    public async Task ListItemIsNotDeletedAsync(Guid listItemId, ValidationResult result)
+    {
+        var listItemIsDeleted = await _context.ListItems
+            .AnyAsync(z => z.Id == listItemId && z.Deleted);
+
+        if (listItemIsDeleted)
+        {
+            result.AddError($"List item [{listItemId}] is deleted.");
+        }
+    }
+
+    public async Task ListItemIsOwnedByUserAsync(Guid userId, Guid listItemId, ValidationResult result)
     {
         var userOwnsListHeader = await _context.ListItems
             .Include(z => z.ListHeader)
@@ -37,7 +48,7 @@ public class ItemValidator(IListListContext _context) : IItemValidator
 
         if (!userOwnsListHeader)
         {
-            result.AddError("You do not own this list.");
+            result.AddError("User does not own this list.");
         }
     }
 }

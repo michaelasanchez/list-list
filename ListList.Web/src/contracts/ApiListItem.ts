@@ -7,4 +7,14 @@ export interface ApiListItem {
 
   left: number;
   right: number;
+
+  depth: number;
+  isRoot: boolean;
+
+  headerId: string;
+  parentId?: string;
+
+  hasChildren: boolean;
+  childCount: number;
+  descendantCount: number;
 }
