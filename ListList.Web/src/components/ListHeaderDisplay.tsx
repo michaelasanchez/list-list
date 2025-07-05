@@ -1,5 +1,4 @@
-import React = require('react');
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { Icon, LabelAndDescriptionEditor } from '.';
 import { ListHeader } from '../models';
@@ -66,7 +65,10 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
   };
 
   return (
-    <div className="list-header" onClick={props.onSelect}>
+    <div
+      className={`list-header${props.selected ? ' selected' : ''}`}
+      onClick={props.onSelect}
+    >
       <div className="header-left">
         {!props.selected && (
           <Button className="handle" variant="none">

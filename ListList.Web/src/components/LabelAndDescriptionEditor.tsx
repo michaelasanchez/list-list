@@ -1,5 +1,5 @@
-import React = require('react');
 import { isNil } from 'lodash';
+import React from 'react';
 import { Collapse } from 'react-bootstrap';
 import { LabelEditor } from '.';
 
@@ -67,6 +67,7 @@ export const LabelAndDescriptionEditor: React.FC<
   return (
     <>
       <LabelEditor
+        className="label"
         label={isNil(state?.pendingLabel) ? props.label : state.pendingLabel}
         onFocus={handleBeginUpdateLabel}
         onBlur={handleEndUpdateLabel}

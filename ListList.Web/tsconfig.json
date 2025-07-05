@@ -1,10 +1,13 @@
 {
   "compilerOptions": {
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "outDir": "./dist/",
     "sourceMap": true,
-    "noImplicitAny": true,
-    "module": "commonjs",
+    "module": "esnext", 
+    "moduleResolution": "node",
     "target": "es6",
     "jsx": "react"
-  }
+  },
+  "include": ["src"]
 }

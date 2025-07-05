@@ -1,6 +1,6 @@
-import React = require('react');
+import React from 'react';
 import { ListItemCreation } from '../contracts';
-import { Icon } from './Icon';
+import { Icon } from './icon/Icon';
 import { LabelEditor } from './LabelEditor';
 
 export interface ListNodeCreationProps {

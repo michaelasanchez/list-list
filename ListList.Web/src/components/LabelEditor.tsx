@@ -1,4 +1,4 @@
-import React = require('react');
+import React from 'react';
 import { Form } from 'react-bootstrap';
 import { useClickOutside } from '../hooks';
 
@@ -15,7 +15,7 @@ export interface LabelEditorProps {
 export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
   const [editing, setEditing] = React.useState<boolean>(false);
 
-  const inputRef = React.useRef<HTMLTextAreaElement>();
+  const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const cancelled = React.useRef<boolean>(false);
 
   useClickOutside(inputRef, () => setEditing(false));

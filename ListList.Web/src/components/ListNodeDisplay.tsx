@@ -10,7 +10,7 @@ import { ListItemCreation } from '../contracts';
 import { ListItem } from '../models';
 import { ListItemApi } from '../network';
 import { AppStateActionType as ActionType, AppStateAction } from '../views/app';
-import React = require('react');
+import React from 'react';
 
 interface ListNodeDisplayProps {
   token: string;

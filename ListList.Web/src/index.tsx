@@ -1,9 +1,11 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import React from 'react';
 
 import { App } from './views/app/App';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import './styles/main.scss';
 
-ReactDOM.render(<App />, document.querySelector('.app'));
+import { createRoot } from 'react-dom/client';
+
+const root = createRoot(document.getElementById('app'));
+root.render(<App />);

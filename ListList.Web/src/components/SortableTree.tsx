@@ -30,7 +30,6 @@ import { ListItemApi } from '../network';
 import { Node } from '../shared';
 import { AppStateAction, AppStateActionType } from '../views';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
-import { SortableTreeItem } from './tree';
 import type { SensorContext } from './types.ts';
 import {
   // buildTree,
@@ -38,7 +37,8 @@ import {
   // getChildCount,
   getProjection,
 } from './utilities';
-import React = require('react');
+import React from 'react';
+import { OldSortableTreeItem } from './old-tree/OldSortableTreeItem';
 
 const measuring = {
   droppable: {
@@ -90,7 +90,6 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
   indicator = false,
   removable,
 }: SortableTreeProps) => {
-  // const [items, setItems] = useState(() => defaultItems);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [offsetLeft, setOffsetLeft] = useState(0);
@@ -98,20 +97,6 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
     parentId: string | null;
     overId: string;
   } | null>(null);
-
-  // const items = useMemo(() => {
-  //   const flattenedTree = flattenTree(items);
-  //   const collapsedItems = flattenedTree.reduce<string[]>(
-  //     (acc, { children, expanded, id }) =>
-  //       !expanded && children.length ? [...acc, `${id}`] : acc,
-  //     []
-  //   );
-
-  //   return removeChildrenOf(
-  //     flattenedTree,
-  //     activeId != null ? [activeId, ...collapsedItems] : collapsedItems
-  //   );
-  // }, [activeId, items]);
 
   const projected =
     activeId && overId
@@ -150,20 +135,18 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
       return `Picked up ${active.id}.`;
     },
     onDragMove({ active, over }) {
-      return getMovementAnnouncement('onDragMove', active.id, over?.id);
+      return getMovementAnnouncement('onDragMove', active.id.toString(), over?.id.toString());
     },
     onDragOver({ active, over }) {
-      return getMovementAnnouncement('onDragOver', active.id, over?.id);
+      return getMovementAnnouncement('onDragOver', active.id.toString(), over?.id.toString());
     },
     onDragEnd({ active, over }) {
-      return getMovementAnnouncement('onDragEnd', active.id, over?.id);
+      return getMovementAnnouncement('onDragEnd', active.id.toString(), over?.id.toString());
     },
     onDragCancel({ active }) {
       return `Moving was cancelled. ${active.id} was dropped in its original position.`;
     },
   };
-
-  // console.log(items, getVisible(items));
 
   return (
     <div className="sortable-tree">
@@ -182,7 +165,7 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
           items={sortedIds}
           strategy={verticalListSortingStrategy}
         >
-          {getVisible(items).map(
+          {getVisible(items, activeId).map(
             ({
               id,
               headerId,
@@ -192,13 +175,16 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
               descendantCount,
               expanded,
             }) => (
-              <SortableTreeItem
+              <OldSortableTreeItem
                 key={id}
                 id={id}
                 value={label}
                 childCount={descendantCount}
                 collapsed={Boolean(!expanded && childCount)}
-                depth={id === activeId && projected ? projected.depth : depth}
+                depth={
+                  // id === activeId && projected ? projected.depth : depth
+                  id === activeId && projected ? projected.depth : depth /*+ 1*/
+                }
                 indentationWidth={indentationWidth}
                 indicator={indicator}
                 onCollapse={
@@ -219,7 +205,7 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
               modifiers={indicator ? [adjustTranslate] : undefined}
             >
               {activeId && activeItem ? (
-                <SortableTreeItem
+                <OldSortableTreeItem
                   id={activeId}
                   depth={activeItem.depth}
                   clone
@@ -237,15 +223,15 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
   );
 
   function handleDragStart({ active: { id: activeId } }: DragStartEvent) {
-    setActiveId(activeId);
-    setOverId(activeId);
+    setActiveId(activeId.toString());
+    setOverId(activeId.toString());
 
     const activeItem = items.find(({ id }) => id === activeId);
 
     if (activeItem) {
       setCurrentPosition({
         parentId: activeItem.parentId,
-        overId: activeId,
+        overId: activeId.toString(),
       });
     }
 
@@ -257,7 +243,7 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
   }
 
   function handleDragOver({ over }: DragOverEvent) {
-    setOverId(over?.id ?? null);
+    setOverId(over?.id.toString() ?? null);
   }
 
   function handleDragEnd(e: DragEndEvent) {
@@ -269,7 +255,7 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
       const { depth, parentId } = projected;
 
       const active = items.find((i) => i.id == e.active.id);
-      const parent = items.find((i) => i.id == projected.parentId);
+      const parent = items.find((i) => i.id == parentId);
       const over = items.find((i) => i.id == e.over.id);
 
       const children = Node.getDirectChildren(items, parent);
@@ -277,21 +263,12 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
         ? children.findIndex((i) => i.id == over.id)
         : children.length;
 
-      // console.log(`moving ${active.label}`);
-      // console.log(
-      //   `to be a child of ${parent.label}, between ${
-      //     children[newIndex - 1]?.label ?? 'start'
-      //   } & ${children[newIndex]?.label ?? 'end'}`
-      // );
-      // console.log('------------------------------------');
+        console.clear();
+        console.log(parent.label, newIndex)
 
       new ListItemApi(token)
         .Relocate(active.id, parent.id, newIndex)
-        .then((result) => {
-          console.log('OPERATION RESULT', result);
-
-          reloadHeader(active.headerId);
-        });
+        .then(() => reloadHeader(active.headerId));
     }
   }
 
@@ -378,13 +355,14 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
     return;
   }
 
-  function getVisible(items: ListItems): ListItems {
+  function getVisible(items: ListItems, activeId?: string): ListItems {
     if (!items?.length) return [];
 
     const visible: ListItems = [];
     let skipUntilLeftIsAtLeast: number | null = null;
 
-    for (let i = 1; i < items.length; i++) {
+    for (let i = 0; i < items.length; i++) {
+      // for (let i = 1; i < items.length; i++) {
       const node = items[i];
 
       if (
@@ -394,9 +372,13 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
         continue; // inside a collapsed subtree
       }
 
-      visible.push({ ...node, depth: node.depth - 1 });
+      // visible.push({ ...node, depth: node.depth });
+      visible.push({ ...node, depth: node.depth /*- 1*/ });
 
-      if (node.hasChildren && !node.expanded) {
+      const isCollapsedParent = node.hasChildren && !node.expanded;
+      const isActiveExpanded = node.id == activeId && node.expanded;
+
+      if (isCollapsedParent || isActiveExpanded) {
         skipUntilLeftIsAtLeast = node.right + 1;
       } else {
         skipUntilLeftIsAtLeast = null;
@@ -405,53 +387,6 @@ export const SortableTree: React.FC<SortableTreeProps> = ({
 
     return visible;
   }
-
-  // function buildTree(data: ListItems) {
-  //   return data.map((node, i) => ({
-  //     ...node,
-  //     id: i, // assuming no ID, we use index
-  //     children: data
-  //       .filter(
-  //         (child) =>
-  //           child.left > node.left &&
-  //           child.right < node.right &&
-  //           data.every(
-  //             (other) =>
-  //               !(
-  //                 other.left > node.left &&
-  //                 other.right < node.right &&
-  //                 child.left > other.left &&
-  //                 child.right < other.right
-  //               )
-  //           )
-  //       )
-  //       .map((child) => data.indexOf(child)),
-  //   }));
-  // }
-
-  // function getVisibleNodes(data: ListItems, expandedNodeIds: string[]) {
-  //   const tree = buildTree(data);
-
-  //   const visible = new Set();
-
-  //   function dfs(nodeIndex: number, parentVisible: boolean) {
-  //     if (!parentVisible) return;
-
-  //     const node = tree[nodeIndex];
-  //     visible.add(nodeIndex);
-
-  //     const isExpanded = expandedNodeIds.includes(nodeIndex);
-  //     if (isExpanded) {
-  //       for (const childIndex of node.children) {
-  //         dfs(childIndex, true);
-  //       }
-  //     }
-  //   }
-
-  //   dfs(0, true); // start with root node visible
-
-  //   return data.filter((_, i) => visible.has(i));
-  // }
 };
 
 const adjustTranslate: Modifier = ({ transform }) => {

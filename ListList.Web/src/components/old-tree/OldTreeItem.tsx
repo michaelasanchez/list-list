@@ -1,8 +1,7 @@
 import classNames from 'classnames';
-import { forwardRef, HTMLAttributes } from 'react';
+import React, { forwardRef, HTMLAttributes } from 'react';
 import { Badge, Button } from 'react-bootstrap';
-import { Icon } from '../Icon';
-import React = require('react');
+import { Icon } from '../icon';
 
 export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   childCount?: number;
@@ -21,7 +20,7 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   wrapperRef?(node: HTMLLIElement): void;
 }
 
-export const TreeItem = forwardRef<HTMLDivElement, Props>(
+export const OldTreeItem = forwardRef<HTMLDivElement, Props>(
   (
     {
       childCount,
@@ -48,7 +47,14 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
 
     return (
       <li
-        className={classNames({ parent, clone, ghost, indicator })}
+        className={classNames({
+          parent,
+          clone,
+          ghost,
+          indicator,
+          disableSelection,
+          disableInteraction,
+        })}
         // className={classNames(
         //   styles.Wrapper,
         //   clone && styles.clone,
@@ -58,15 +64,16 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
         //   disableInteraction && styles.disableInteraction
         // )}
         ref={wrapperRef}
-        style={{
-          paddingLeft: `${indentationWidth * (depth - (ghost ? 1 : 0))}px`,
-        }}
+        style={
+          {
+            '--spacing': `${indentationWidth * depth}px`,
+          } as React.CSSProperties
+        }
         {...props}
       >
         <div
           // className={styles.TreeItem}
           className="tree-item"
-          // className={classNames('tree-item', { parent })}
           ref={ref}
           style={style}
         >

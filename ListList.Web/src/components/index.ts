@@ -1,5 +1,5 @@
 export * from './form';
-export * from './Icon';
+export * from './icon/Icon';
 export * from './LabelAndDescriptionEditor';
 export * from './LabelEditor';
 export * from './ListHeaderDisplay';

@@ -1,138 +1,71 @@
-const webpack = require('webpack');
-const autoprefixer = require('autoprefixer');
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const path = require('path');
 
+const isProd = process.env.NODE_ENV === 'production';
 
-var ENV = process.env.npm_lifecycle_event;
-// var isTest = ENV === 'test' || ENV === 'test-watch';
-var isProd = ENV === 'build';
-
-const pageTitle = 'List-List';
-
-module.exports = function makeWebpackConfig() {
-
-  var config = {
-    mode: isProd ? 'production' : 'development',
-  };
-
-  config.resolve = {
-    // Add '.ts' and '.tsx' as resolvable extensions.
-    extensions: ['.tsx', '.ts', '.js']
-  };
-
-  // Enable sourcemaps for debugging webpack's output.
-  if (!isProd)
-    config.devtool = 'source-map';
-
-  config.output = {
-    //   // Absolute output directory
-    //   path: __dirname + '/dist',
-
-    //   // Output path from the view of the page
-    //   // Uses webpack-dev-server in development
-    //   publicPath: isProd ? '/neck/' : '/',
-
-    //   // Filename for entry points
-    //   // Only adds hash in build mode
-    filename: isProd ? '[name].[hash].js' : '[name].bundle.js',
-
-    //   // Filename for non-entry points
-    //   // Only adds hash in build mode
-    //   chunkFilename: isProd ? '[name].[hash].js' : '[name].bundle.js'
-  };
-
-  config.module = {
+module.exports = {
+  entry: './src/index.tsx',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: isProd ? '[name].[contenthash].js' : 'bundle.js',
+    clean: true,
+  },
+  mode: isProd ? 'production' : 'development',
+  devtool: isProd ? false : 'source-map',
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js'],
+  },
+  module: {
     rules: [
       {
-        test: /\.ts(x?)$/,
+        test: /\.tsx?$/,
+        use: 'ts-loader',
         exclude: /node_modules/,
+      },
+      {
+        test: /\.module\.scss$/,
         use: [
-          {
-            loader: 'ts-loader'
-          }
-        ]
-      }, {
-        test: /\.(scss|css)$/,
-        use: [
-          {
-            loader: 'style-loader',
-          },
+          MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
-          },
-          {
-            loader: 'postcss-loader',
             options: {
-              postcssOptions: {
-                plugins: function () {
-                  return [
-                    require('autoprefixer'),
-                  ]
-                }
-              }
-            }
+              modules: {
+                localIdentName: '[name]__[local]__[hash:base64:5]',
+              },
+              esModule: true,
+            },
           },
-          {
-            loader: 'sass-loader',
-          }
-        ]
+          'sass-loader',
+        ],
       },
       {
-          test: /\.(png|jpe?g|svg)$/,
-          loader: 'file-loader',
-          options: {
-              name: 'assets/[name].[ext]',
-          }
+        test: /\.scss$/,
+        exclude: /\.module\.scss$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       },
-      // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
       {
-        enforce: 'pre',
-        test: /\.js$/,
-        loader: 'source-map-loader'
-      }
-    ]
-  };
-
-  config.plugins = [
+        test: /\.css$/,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        type: 'asset',
+      },
+    ],
+  },
+  plugins: [
     new HtmlWebpackPlugin({
       template: './src/public/index.html',
-      title: pageTitle,
-      inject: 'body'
     }),
-    new MiniCssExtractPlugin(),
-    new webpack.LoaderOptionsPlugin({
-      test: /\.scss$/i,
-      options: {
-        postcss: {
-          plugins: [autoprefixer]
-        }
-      }
+    new MiniCssExtractPlugin({
+      filename: isProd ? '[name].[contenthash].css' : '[name].css',
     }),
-  ]
-
-  config.devServer = {
-    contentBase: path.join(__dirname, './dist/'),
-    // // Serve index.html as the base
-    // contentBase: resolveAppPath('public'),
-    // // Enable compression
-    // compress: true,
-    // // Enable hot reloading
-    // hot: true,
-    // // Public path is root of content base
-    publicPath: '/',
-    port: 9000
-  };
-
-  // When importing a module whose path matches one of the following, just
-  // assume a corresponding global variable exists and use that instead.
-  // This is important because it allows us to avoid bundling all of our
-  // dependencies, which allows browsers to cache those libraries between builds.
-  // config.externals = {
-  //   "react": "React",
-  //   "react-dom": "ReactDOM"
-  // };
-
-  return config;
-}();
+  ],
+  devServer: {
+    static: './dist',
+    hot: true,
+    historyApiFallback: true,
+    port: 9000,
+  },
+};

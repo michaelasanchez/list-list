@@ -51,8 +51,8 @@ export const sortableTreeKeyboardCoordinates: (
       if (horizontal.includes(event.code) && over?.id) {
         const { depth, maxDepth, minDepth } = getProjection(
           items,
-          active.id.toString(),
-          over.id.toString(),
+          active.id,
+          over.id,
           offset,
           indentationWidth
         );
@@ -113,16 +113,15 @@ export const sortableTreeKeyboardCoordinates: (
         droppableRects,
         droppableContainers: containers,
       });
-
-      let closestId = getFirstCollision(collisions, 'id') as string;
+      let closestId = getFirstCollision(collisions, 'id');
 
       if (closestId === over?.id && collisions.length > 1) {
-        closestId = collisions[1].id as string;
+        closestId = collisions[1].id;
       }
 
       if (closestId && over?.id) {
         const activeRect = droppableRects.get(active.id);
-        const newRect = droppableRects.get(closestId);
+        const newRect = droppableRects.get(closestId.toString());
         const newDroppable = droppableContainers.get(closestId);
 
         if (activeRect && newRect && newDroppable) {
@@ -134,7 +133,7 @@ export const sortableTreeKeyboardCoordinates: (
           if (newItem && activeItem) {
             const { depth } = getProjection(
               items,
-              active.id.toString(),
+              active.id,
               closestId,
               (newItem.depth - activeItem.depth) * indentationWidth,
               indentationWidth

@@ -3,8 +3,8 @@ import * as React from 'react';
 import { useEffect, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import { ListHeaderDisplay, ListNodeCreation } from '../../components';
-import { SortableTree } from '../../components/SortableTree';
+import { Icon, ListHeaderDisplay, ListNodeCreation } from '../../components';
+import { OriginalSortableTree } from '../../components/tree/SortableTree';
 import { ListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
@@ -15,6 +15,7 @@ import {
 import { ListHeaderApi } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
+import { buildTree } from './temp';
 
 const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   const defaultState = localStorage.exists()
@@ -104,6 +105,7 @@ export const App: React.FC = () => {
     state.headers,
     (h) => h.id == state.activeHeaderId
   );
+
   const activeHeader =
     activeHeaderIndex >= 0 ? state.headers[activeHeaderIndex] : null;
 
@@ -156,25 +158,20 @@ export const App: React.FC = () => {
                     loadHeader(activeHeader.id, state.expanded)
                   }
                 />
-                <SortableTree
-                  collapsible
-                  indicator
-                  removable
-                  token={authState.token}
-                  items={activeHeader?.items ?? []}
-                  dispatchAppAction={dispatch}
-                  reloadHeader={(id) => loadHeader(id, state.expanded)}
-                />
-                {/* map(activeHeader.root.children, (n, i) => (
-                  <ListNodeDisplay
-                    key={i}
-                    token={authState.token}
-                    node={n}
-                    path={[activeHeaderIndex, i]}
-                    dispatchAction={dispatch}
-                    reloadHeader={() => loadHeader(n.headerId, state.expanded)}
+                {activeHeader && (
+                  <OriginalSortableTree
+                    collapsible
+                    indicator
+                    removable
+                    defaultItems={buildTree(
+                      activeHeader?.items.map((item, index) => ({
+                        ...item,
+                        index,
+                      })),
+                      state.expanded
+                    )}
                   />
-                ))} */}
+                )}
               </>
             )}
           </Container>

@@ -1,4 +1,4 @@
-import React = require('react');
+import React from 'react';
 import { Form } from 'react-bootstrap';
 import { ListItemCreation } from '../../contracts';
 

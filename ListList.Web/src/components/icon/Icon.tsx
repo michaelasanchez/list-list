@@ -10,12 +10,17 @@ import {
   faPlus,
   faSun,
   faTrashCan,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React = require('react');
+import React from 'react';
+
+import { SizeProp } from '@fortawesome/fontawesome-svg-core';
+import * as styles from './Icon.module.scss';
 
 const iconTypes = {
   backward: faArrowLeft,
+  close: faXmark,
   collapsed: faChevronUp,
   create: faPlus,
   createOutline: faPlusSquare,
@@ -30,10 +35,17 @@ const iconTypes = {
 
 export interface IconProps {
   type: keyof typeof iconTypes;
+  size?: SizeProp;
 }
 
 export const Icon: React.FC<IconProps> = (props) => {
-  return <FontAwesomeIcon className="icon" icon={iconTypes[props.type]} />;
+  return (
+    <FontAwesomeIcon
+      className={styles.icon}
+      icon={iconTypes[props.type]}
+      size={props.size}
+    />
+  );
 };
 
 export const MemoizedIcon = React.memo(Icon);
