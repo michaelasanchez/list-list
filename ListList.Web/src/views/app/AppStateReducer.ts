@@ -34,12 +34,6 @@ export interface AppStateAction {
   path?: NodePath;
 }
 
-// export const getNode = (node: ListItem, path: NodePath): ListItem => {
-//   if (!path?.length) return node;
-//   const first = path.shift();
-//   return getNode(node.children[first], path);
-// };
-
 export const AppStateReducer = (
   state: AppState,
   action: AppStateAction
@@ -58,7 +52,7 @@ export const AppStateReducer = (
     case AppStateActionType.DeselectHeader: {
       const { activeHeaderId, ...rest } = state;
 
-      return { ...rest };
+      return { ...rest, previousHeaderId: activeHeaderId };
     }
     case AppStateActionType.FinalizeHeaderCreate: {
       const { headerCreation, ...rest } = state;
@@ -77,10 +71,9 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.SelectHeader: {
-      return {
-        ...state,
-        activeHeaderId: action.headerId,
-      };
+      const { previousHeaderId, ...rest } = state;
+
+      return { ...rest, activeHeaderId: action.headerId };
     }
     case AppStateActionType.SetHeader: {
       const headers = map(state.headers, (h) =>
@@ -109,7 +102,7 @@ export const AppStateReducer = (
     case AppStateActionType.ToggleExpanded: {
       if (!action.headerId || !action.itemId) return state;
 
-      return {
+      const after = {
         ...state,
         headers: state.headers.map((h) =>
           h.id == action.headerId
@@ -125,6 +118,8 @@ export const AppStateReducer = (
           ? filter(state.expanded, (i) => i != action.itemId)
           : [...state.expanded, action.itemId],
       };
+
+      return after;
     }
     case AppStateActionType.UpdateHeaderCreation: {
       return {

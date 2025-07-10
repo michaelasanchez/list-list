@@ -3,6 +3,7 @@ import { Form } from 'react-bootstrap';
 import { useClickOutside } from '../hooks';
 
 export interface LabelEditorProps {
+  name: string;
   label: string;
   className?: string;
   placeholder?: string;
@@ -56,6 +57,7 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
       <span>{props.label || props.placeholder || ''}</span>
       <Form.Control
         as="textarea"
+        name={`${props.name}-label-editor`}
         ref={inputRef}
         onClick={handleOnClick}
         plaintext={!editing}

@@ -5,6 +5,7 @@ export interface AppState {
   syncing: boolean;
   expanded: string[];
   activeHeaderId?: string;
+  previousHeaderId?: string;
   headers?: ListHeader[];
   parentId?: string;
   headerCreation?: ListItemCreation;

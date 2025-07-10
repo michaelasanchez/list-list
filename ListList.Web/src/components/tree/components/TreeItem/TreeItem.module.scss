@@ -22,6 +22,9 @@
 
   &.ghost {
     &.indicator {
+      --indicator-background: #56a1f8;
+      --indicator-border: #2389ff;
+
       opacity: 1;
       position: relative;
       z-index: 1;
@@ -31,8 +34,8 @@
         position: relative;
         padding: 0;
         height: 8px;
-        border-color: #2389ff;
-        background-color: #56a1f8;
+        border-color: var(--indicator-border);
+        background-color: var(--indicator-background);
 
         &:before {
           position: absolute;
@@ -43,7 +46,7 @@
           width: 12px;
           height: 12px;
           border-radius: 50%;
-          border: 1px solid #2389ff;
+          border: 1px solid var(--indicator-border);
           background-color: #ffffff;
         }
 
@@ -64,6 +67,12 @@
       background-color: transparent;
     }
   }
+
+  &.parent {
+    .TreeItem {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  }
 }
 
 .TreeItem {
@@ -76,6 +85,7 @@
   background: rgba(0, 0, 0, 0.05);
   border-radius: 0.5em;
   box-sizing: border-box;
+  cursor: pointer;
 }
 
 .Text {
@@ -126,6 +136,6 @@
   }
 
   &.collapsed svg {
-    transform: rotate(-90deg);
+    transform: rotate(180deg);
   }
 }

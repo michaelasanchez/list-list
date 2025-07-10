@@ -4,6 +4,7 @@ import { Collapse } from 'react-bootstrap';
 import { LabelEditor } from '.';
 
 interface LabelAndDescriptionEditorProps {
+  name: string;
   label: string;
   description: string;
   onEditingChange: (editing: boolean) => void;
@@ -68,6 +69,7 @@ export const LabelAndDescriptionEditor: React.FC<
     <>
       <LabelEditor
         className="label"
+        name={`${props.name}-label`}
         label={isNil(state?.pendingLabel) ? props.label : state.pendingLabel}
         onFocus={handleBeginUpdateLabel}
         onBlur={handleEndUpdateLabel}
@@ -86,6 +88,7 @@ export const LabelAndDescriptionEditor: React.FC<
         <div>
           <LabelEditor
             className="description"
+            name={`${props.name}-description`}
             label={
               isNil(state.pendingDescription)
                 ? props.description

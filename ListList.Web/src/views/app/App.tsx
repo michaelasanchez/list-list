@@ -1,10 +1,13 @@
-import { findIndex, map } from 'lodash';
+import { findIndex } from 'lodash';
 import * as React from 'react';
 import { useEffect, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import { Icon, ListHeaderDisplay, ListNodeCreation } from '../../components';
-import { OriginalSortableTree } from '../../components/tree/SortableTree';
+import { ListHeaderDisplay } from '../../components';
+import {
+  SortableTree,
+  SortableTreeListeners,
+} from '../../components/tree/SortableTree';
 import { ListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
@@ -12,10 +15,10 @@ import {
   useLocalStorage,
   useTheme,
 } from '../../hooks';
-import { ListHeaderApi } from '../../network';
-import { config } from '../../shared';
+import { ListHeaderApi, ListItemApi } from '../../network';
+import { config, Node } from '../../shared';
 import { Navbar } from '../Navbar';
-import { buildTree } from './temp';
+import { Temp } from './temp';
 
 const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   const defaultState = localStorage.exists()
@@ -51,7 +54,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (authState.initialized) {
       if (authState.authenticated) {
-        loadNodeHeaders(state.expanded);
+        loadHeaders(state.expanded);
       } else {
         dispatch({ type: ActionType.SetHeaders, headers: [] });
         dispatch({ type: ActionType.SetSyncing, syncing: false });
@@ -59,7 +62,7 @@ export const App: React.FC = () => {
     }
   }, [authState.initialized, authState.authenticated]);
 
-  const loadNodeHeaders = (expanded?: string[]) => {
+  const loadHeaders = (expanded?: string[]) => {
     new ListHeaderApi(authState.token).Get().then((headers) => {
       dispatch({
         type: ActionType.SetHeaders,
@@ -94,20 +97,71 @@ export const App: React.FC = () => {
         .Create(headerCreation)
         .then((id: string) => {
           dispatch({ type: ActionType.FinalizeHeaderCreate });
-          loadNodeHeaders(state.expanded);
+          loadHeaders(state.expanded);
         });
     } else {
       dispatch({ type: ActionType.CancelHeaderCreate });
     }
   };
 
-  const activeHeaderIndex = findIndex(
-    state.headers,
-    (h) => h.id == state.activeHeaderId
+  const activeHeader = React.useMemo(() => {
+    const index = findIndex(state.headers, (h) => h.id == state.activeHeaderId);
+
+    return index >= 0 ? state.headers[index] : null;
+  }, [state.activeHeaderId, state.headers, state.expanded]);
+
+  const previousHeader = React.useMemo(() => {
+    const index = findIndex(
+      state.headers,
+      (h) => h.id == state.previousHeaderId
+    );
+
+    return index >= 0 ? state.headers[index] : null;
+  }, [state.previousHeaderId]);
+
+  const displayHeader = activeHeader || previousHeader;
+
+  const headerListeners = React.useMemo<SortableTreeListeners>(
+    () => ({
+      onClick: (headerId: string) =>
+        dispatch({ type: ActionType.SelectHeader, headerId }),
+      onDragEnd: (activeId: string, overId: string, parentId: string) => {},
+    }),
+    [authState?.token, state.expanded, activeHeader?.id]
   );
 
-  const activeHeader =
-    activeHeaderIndex >= 0 ? state.headers[activeHeaderIndex] : null;
+  const activeListeners = React.useMemo<SortableTreeListeners>(
+    () =>
+      activeHeader
+        ? {
+            onClick: (headerId: string, itemId: string) => {
+              dispatch({
+                type: ActionType.ToggleExpanded,
+                headerId,
+                itemId,
+              });
+            },
+            onDragEnd: (activeId: string, overId: string, parentId: string) => {
+              const parent = activeHeader.items.find((i) => i.id == parentId);
+              const over = activeHeader.items.find((i) => i.id == overId);
+
+              const children = Node.getDirectChildren(
+                activeHeader.items,
+                parent
+              );
+
+              const newIndex = Node.isDirectChild(parent, over)
+                ? children.findIndex((i) => i.id == over.id)
+                : children.length;
+
+              new ListItemApi(authState.token)
+                .Relocate(activeId, parentId, newIndex)
+                .then(() => loadHeader(activeHeader.id, state.expanded));
+            },
+          }
+        : null,
+    [activeHeader]
+  );
 
   return (
     <>
@@ -120,19 +174,12 @@ export const App: React.FC = () => {
       <main>
         <div className={`header-view${!activeHeader ? ' show' : ''}`}>
           <Container className="list-container">
-            {map(state.headers, (h, i) => (
-              <ListHeaderDisplay
-                key={i}
-                token={authState.token}
-                header={h}
-                selected={false}
-                onSelect={() =>
-                  dispatch({ type: ActionType.SelectHeader, headerId: h.id })
-                }
-                reloadHeader={() => loadHeader(h.id, state.expanded)}
-              />
-            ))}
-            {authState.authenticated && (
+            <SortableTree
+              // indicator
+              listeners={headerListeners}
+              defaultItems={Temp.buildTreeFromHeaders(state.headers)}
+            />
+            {/* {authState.authenticated && (
               <ListNodeCreation
                 node={(state as AppState).headerCreation}
                 placeholder="New List"
@@ -142,36 +189,32 @@ export const App: React.FC = () => {
                   dispatch({ type: ActionType.UpdateHeaderCreation, creation })
                 }
               />
-            )}
+            )} */}
           </Container>
         </div>
         <div className={`list-view${!!activeHeader ? ' show' : ''}`}>
           <Container className="list-container">
-            {!!activeHeader && (
+            {displayHeader && (
               <>
                 <ListHeaderDisplay
                   token={authState.token}
-                  header={activeHeader}
+                  header={displayHeader}
                   selected={true}
                   onSelect={() => dispatch({ type: ActionType.DeselectHeader })}
                   reloadHeader={() =>
                     loadHeader(activeHeader.id, state.expanded)
                   }
                 />
-                {activeHeader && (
-                  <OriginalSortableTree
-                    collapsible
-                    indicator
-                    removable
-                    defaultItems={buildTree(
-                      activeHeader?.items.map((item, index) => ({
-                        ...item,
-                        index,
-                      })),
-                      state.expanded
-                    )}
-                  />
-                )}
+                <SortableTree
+                  collapsible
+                  indicator
+                  removable
+                  defaultItems={Temp.buildTreeFromItems(
+                    displayHeader.items,
+                    state.expanded
+                  )}
+                  listeners={activeListeners}
+                />
               </>
             )}
           </Container>

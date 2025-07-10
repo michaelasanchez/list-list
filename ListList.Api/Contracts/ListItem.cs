@@ -16,7 +16,7 @@ public class ListItem
 
     public Guid HeaderId { get; set; }
     public Guid? ParentId { get; set; }
-    public List<Guid>? ChildrenIds { get; set; }
+    public List<Guid> ChildrenIds { get; set; }
 
     public bool HasChildren { get; set; }
     public int ChildCount { get; set; }

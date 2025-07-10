@@ -14,7 +14,7 @@ public class ListItemMapper
 
         var sortedEntities = entities.OrderBy(e => e.Left).ToList();
 
-        var contracts = new List<ListItem>();
+        List<ListItem> contracts = new List<ListItem>();
         var entityMap = sortedEntities.ToDictionary(e => e.Id, e => e);
         var contractMap = new Dictionary<Guid, ListItem>();
         var parentStack = new Stack<ListItemEntity>();
@@ -50,12 +50,20 @@ public class ListItemMapper
             contractMap.Add(contract.Id.Value, contract);
 
             parentStack.Push(entity);
+
         }
 
         foreach (var currentContract in contracts)
         {
             currentContract.ChildCount = contracts
                 .Count(c => c.ParentId == currentContract.Id);
+
+            currentContract.ChildrenIds = contracts
+                .Where(z =>
+                    z.Id is not null &&
+                    z.ParentId == currentContract.Id!.Value)
+                .Select(z => z.Id!.Value)
+                .ToList();
         }
 
         return contracts;

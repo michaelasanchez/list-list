@@ -1,4 +1,4 @@
-import { ApiListItem } from '../../contracts';
+import { ApiListHeader, ApiListItem } from '../../contracts';
 
 export interface ApiListItemWithChildren extends ApiListItem {
   index: number;
@@ -6,24 +6,37 @@ export interface ApiListItemWithChildren extends ApiListItem {
   children: ApiListItemWithChildren[];
 }
 
-export function buildTree(
+function buildTreeFromHeaders(
+  headers: ApiListHeader[]
+): ApiListItemWithChildren[] {
+  return (
+    headers?.map<ApiListItemWithChildren>((header, index) => ({
+      ...{ ...header.items[0], id: header.id },
+      index,
+      collapsed: true,
+      children: [],
+    })) ?? []
+  );
+}
+
+function buildTreeFromItems(
   items: ApiListItem[],
   expanded: string[]
 ): ApiListItemWithChildren[] {
+  if (!items?.length) return [];
+
   const itemMap = new Map<string, ApiListItemWithChildren>();
   const roots: ApiListItemWithChildren[] = [];
 
-  // First, clone each item and add the extra fields
   items.forEach((item, index) => {
     itemMap.set(item.id, {
       ...item,
       index,
-      collapsed: !expanded.includes(item.id),
+      collapsed: !expanded?.includes(item.id),
       children: [],
     });
   });
 
-  // Then link children to parents
   itemMap.forEach((item) => {
     if (item.parentId) {
       const parent = itemMap.get(item.parentId);
@@ -31,10 +44,14 @@ export function buildTree(
         parent.children.push(item);
       }
     } else {
-      // No parentId means it's a root item
       roots.push(item);
     }
   });
 
   return roots;
 }
+
+export const Temp = {
+  buildTreeFromHeaders,
+  buildTreeFromItems,
+};

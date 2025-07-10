@@ -21,6 +21,7 @@ export const ListNodeCreation: React.FC<ListNodeCreationProps> = (props) => {
         <div className="node-title">
           <span className="heading">
             <LabelEditor
+              name="new-item"
               label={props.node?.label}
               placeholder={props.placeholder || 'New Item'}
               onCancel={props.onCancel}

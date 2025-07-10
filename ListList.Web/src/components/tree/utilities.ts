@@ -9,13 +9,20 @@ function getDragDepth(offset: number, indentationWidth: number) {
   return Math.round(offset / indentationWidth);
 }
 
+interface Projection {
+  depth: number;
+  maxDepth: number;
+  minDepth: number;
+  parentId: UniqueIdentifier;
+}
+
 export function getProjection(
   items: FlattenedItem[],
   activeId: UniqueIdentifier,
   overId: UniqueIdentifier,
   dragOffset: number,
   indentationWidth: number
-) {
+): Projection {
   const overItemIndex = items.findIndex(({ id }) => id === overId);
   const activeItemIndex = items.findIndex(({ id }) => id === activeId);
   const activeItem = items[activeItemIndex];
@@ -38,7 +45,7 @@ export function getProjection(
 
   return { depth, maxDepth, minDepth, parentId: getParentId() };
 
-  function getParentId() {
+  function getParentId(): UniqueIdentifier | null {
     if (depth === 0 || !previousItem) {
       return null;
     }
@@ -81,13 +88,15 @@ function flatten(
   parentId: UniqueIdentifier | null = null,
   depth = 0
 ): FlattenedItem[] {
-  return items.reduce<FlattenedItem[]>((acc, item, index) => {
-    return [
-      ...acc,
-      { ...item, parentId, depth, index },
-      ...flatten(item.children, item.id, depth + 1),
-    ];
-  }, []);
+  return (
+    items?.reduce<FlattenedItem[]>((acc, item, index) => {
+      return [
+        ...acc,
+        { ...item, parentId, depth, index },
+        ...flatten(item.children, item.id, depth + 1),
+      ];
+    }, []) ?? []
+  );
 }
 
 export function flattenTree(items: TreeItems): FlattenedItem[] {

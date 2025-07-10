@@ -20,7 +20,7 @@ interface ListHeaderState {
 export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
   const [state, setState] = useState<ListHeaderState>({ editing: false });
 
-  const rootItem = props.header.items?.[0];
+  const rootItem = props.header?.items?.[0];
 
   // Disable toggling for 100ms after editing was true
   useEffect(() => {
@@ -79,6 +79,7 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
       <div className="header-title">
         <div className="heading">
           <LabelAndDescriptionEditor
+            name={rootItem?.id}
             label={rootItem?.label}
             description={rootItem?.description}
             onEditingChange={(editing: boolean) =>
@@ -89,11 +90,7 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
           />
         </div>
       </div>
-      <div className="header-right">
-        <Button className="open" variant="none">
-          <Icon type={props.selected ? 'backward' : 'forward'} />
-        </Button>
-      </div>
+      <div className="header-right"></div>
     </div>
   );
 };

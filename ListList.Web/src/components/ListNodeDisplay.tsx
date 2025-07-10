@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
 import {
   Icon,
@@ -10,7 +10,6 @@ import { ListItemCreation } from '../contracts';
 import { ListItem } from '../models';
 import { ListItemApi } from '../network';
 import { AppStateActionType as ActionType, AppStateAction } from '../views/app';
-import React from 'react';
 
 interface ListNodeDisplayProps {
   token: string;
@@ -151,6 +150,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
         <div className="node-title">
           <div className="heading">
             <LabelAndDescriptionEditor
+              name={props.node.id}
               label={props.node.label}
               description={props.node.description}
               onEditingChange={(editing: boolean) =>

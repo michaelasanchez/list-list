@@ -5,8 +5,6 @@ import { Action, Handle, Remove } from '../../../Item';
 import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
-import { Button } from 'react-bootstrap';
-import { Icon } from '../../../icon/Icon';
 
 export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   childCount?: number;
@@ -54,6 +52,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
           clone && styles.clone,
           ghost && styles.ghost,
           indicator && styles.indicator,
+          childCount && styles.parent,
           disableSelection && styles.disableSelection,
           disableInteraction && styles.disableInteraction
         )}
@@ -67,6 +66,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
+          <span className={styles.Text}>{value}</span>
           {onCollapse && (
             <Action
               onClick={onCollapse}
@@ -78,8 +78,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               {collapseIcon}
             </Action>
           )}
-          <span className={styles.Text}>{value}</span>
-          {!clone && onRemove && <Remove onClick={onRemove} />}
+          {!clone && !childCount && onRemove && <Remove onClick={onRemove} />}
           {clone && childCount && childCount > 1 ? (
             <span className={styles.Count}>{childCount}</span>
           ) : null}
