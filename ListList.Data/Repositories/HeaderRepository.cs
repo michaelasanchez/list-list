@@ -35,6 +35,26 @@ public class HeaderRepository(IListListContext _context) : IHeaderRepository
             .ToListAsync();
     }
 
+    public async Task RelocateListHeaderAsync(Guid userId, Guid listHeaderId, int destinationIndex)
+    {
+        var listHeaders = await _context.ListHeaders
+            .Where(z => z.UserId == userId && !z.Deleted)
+            .OrderBy(z => z.Order)
+            .ToListAsync();
+
+        var sourceIndex = listHeaders.FindIndex(z => z.Id == listHeaderId);
+        if (sourceIndex == -1)
+            throw new InvalidOperationException($"ListHeader with ID {listHeaderId} not found for user {userId}");
+
+        var source = listHeaders[sourceIndex];
+
+        listHeaders.RemoveAt(sourceIndex);
+        listHeaders.Insert(destinationIndex, source);
+
+        for (int i = 0; i < listHeaders.Count; i++)
+            listHeaders[i].Order = i;
+    }
+
     private static ListItemEntity CreateRootListItem() => new()
     {
         Left = 1,

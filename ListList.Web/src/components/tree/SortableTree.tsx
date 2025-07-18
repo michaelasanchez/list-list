@@ -1,5 +1,4 @@
 import {
-  Active,
   Announcements,
   DndContext,
   DragEndEvent,
@@ -11,7 +10,6 @@ import {
   KeyboardSensor,
   MeasuringStrategy,
   Modifier,
-  Over,
   PointerSensor,
   UniqueIdentifier,
   closestCenter,
@@ -72,7 +70,7 @@ const dropAnimationConfig: DropAnimation = {
   },
 };
 
-export interface SortableTreeListeners {
+export interface Listeners {
   onClick?: (headerId: UniqueIdentifier, itemId: UniqueIdentifier) => void;
   onDragEnd?: (
     itemId: UniqueIdentifier,
@@ -86,8 +84,9 @@ interface Props {
   collapsible?: boolean;
   indentationWidth?: number;
   indicator?: boolean;
+  maxDepth?: number | null;
   removable?: boolean;
-  listeners?: SortableTreeListeners;
+  listeners?: Listeners;
 }
 
 export function SortableTree({
@@ -95,6 +94,7 @@ export function SortableTree({
   defaultItems,
   indicator = false,
   indentationWidth = 50,
+  maxDepth = null,
   removable,
   listeners,
 }: Props) {
@@ -271,29 +271,42 @@ export function SortableTree({
     setOverId(over?.id ?? null);
   }
 
+  function op(items: FlattenedItem[], id: UniqueIdentifier): string {
+    return (items.find((i) => i.id == id) as any as { label: string }).label;
+  }
+
   function handleDragEnd({ active, over }: DragEndEvent) {
     resetState();
 
     if (projected && over) {
       const { depth, parentId } = projected;
 
-      dragEndLocal(active, over, depth, parentId);
+      dragEndLocal(active.id, over.id, depth, parentId);
+
+      const thangs = flattenTree(items);
+
+      console.log('===============================================');
+      console.log('ITEMS', thangs);
+      console.log('-----------------------------------------------');
+      console.log('ACTIVE', op(thangs, active.id));
+      console.log('OVER', op(thangs, over.id));
+      console.log('PARENT', op(thangs, parentId));
 
       listeners?.onDragEnd(active.id, over.id, parentId);
     }
   }
 
   function dragEndLocal(
-    active: Active,
-    over: Over,
+    activeId: UniqueIdentifier,
+    overId: UniqueIdentifier,
     depth: number,
     parentId: UniqueIdentifier
   ) {
     const clonedItems: FlattenedItem[] = JSON.parse(
       JSON.stringify(flattenTree(items))
     );
-    const overIndex = clonedItems.findIndex(({ id }) => id === over.id);
-    const activeIndex = clonedItems.findIndex(({ id }) => id === active.id);
+    const overIndex = clonedItems.findIndex(({ id }) => id === overId);
+    const activeIndex = clonedItems.findIndex(({ id }) => id === activeId);
     const activeTreeItem = clonedItems[activeIndex];
 
     clonedItems[activeIndex] = { ...activeTreeItem, depth, parentId };

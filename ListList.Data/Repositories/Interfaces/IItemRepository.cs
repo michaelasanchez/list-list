@@ -4,10 +4,10 @@ namespace ListList.Data.Repositories.Interfaces;
 
 public interface IItemRepository
 {
-    Task CompleteListItemAsync(Guid listItemId);
-    Task CreateListItemAsync(ListItemEntity creation, Guid parentId);
-    Task DeleteListItemAsync(Guid listItemId);
-    Task<ListItemEntity> GetListItemByIdAsync(Guid listItemId);
-    Task PutListItemAsync(Guid listItemId, ListItemEntity entityPut);
-    Task<List<ListItemEntity>> RelocateListItemAsync(Guid listItemId, Guid destinationParentId, int destinationRelativeIndex);
+    Task CompleteListItem(Guid listItemId);
+    Task CreateListItem(ListItemEntity creation, Guid parentId);
+    Task DeleteListItem(Guid listItemId);
+    Task<ListItemEntity> GetListItemById(Guid listItemId);
+    Task PutListItem(Guid listItemId, ListItemEntity entityPut);
+    Task RelocateListItem(Guid activeId, Guid overId, Guid parentId);
 }

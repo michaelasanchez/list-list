@@ -21,4 +21,14 @@ public partial class Guard : IGuard
         return result;
     }
 
+    public async Task<ValidationResult> AgainstInvalidListHeaderRelocationAsync(Guid userId, Guid listHeaderId, int index)
+    {
+        var result = new ValidationResult();
+
+        await _headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
+
+        await _headerValidator.IsValidHeaderIndexAsync(userId, index, result);
+
+        return result;
+    }
 }

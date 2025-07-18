@@ -1,12 +1,24 @@
-﻿using ListList.Data.Validators.Interfaces;
+﻿using ListList.Data.Models;
 using ListList.Data.Models.Interfaces;
+using ListList.Data.Validators.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using ListList.Data.Models;
 
 namespace ListList.Data.Validators;
 
 public class HeaderValidator(IListListContext _context) : IHeaderValidator
 {
+    public async Task IsValidHeaderIndexAsync(Guid userId, int index, ValidationResult result)
+    {
+        var isValidIndex = index >= 0 &&
+            index < await _context.ListHeaders
+                .CountAsync(z => z.UserId == userId && !z.Deleted);
+
+        if (!isValidIndex)
+        {
+            result.AddError($"The {nameof(index)} '{index}' is invalid.");
+        }
+    }
+
     public async Task UserOwnsListHeaderAsync(Guid userId, Guid listHeaderId, ValidationResult result)
     {
         var userOwnsListHeader = await _context.ListHeaders

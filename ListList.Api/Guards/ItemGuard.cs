@@ -52,13 +52,15 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemRelocation(Guid userId, Guid listItemId, Guid destinationParentId)
+    public async Task<ValidationResult> AgainstInvalidListItemRelocation(Guid userId, Guid listItemId, Guid parentId)
     {
         var result = new ValidationResult();
 
         await _itemValidator.ListItemIsOwnedByUserAsync(userId, listItemId, result);
 
-        await _itemValidator.ListItemIsNotDeletedAsync(destinationParentId, result);
+        await _itemValidator.ListItemIsNotDeletedAsync(parentId, result);
+
+        //await _itemValidator.ListItemRelativeIndexIsValidAsync(destinationParentId, relativeIndex, result);
 
         return result;
     }

@@ -60,4 +60,18 @@ public class HeaderController(IHeaderService _service) : Controller
         return Ok(listHeaders);
     }
 
+    [HttpPost("{listHeaderId}/relocate")]
+    public async Task<ActionResult> RelocateListHeaderAsync(Guid listHeaderId, ListHeaderRelocation listHeaderRelocation)
+    {
+        try
+        {
+            await _service.RelocateListHeaderAsync(listHeaderId, listHeaderRelocation.Index);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
+    }
 }

@@ -2,7 +2,6 @@
 using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
-using ListList.Api.Contracts.Result;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
@@ -11,7 +10,7 @@ using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Api.Services;
 
-public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMapper _mapper, IGuard _guard) : IItemService
+public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMapper _mapper, IGuard _guard) : BaseService, IItemService
 {
     private readonly IItemRepository _listItemRepository = _unitOfWork.ListItemRepository;
 
@@ -21,7 +20,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemCompleteAsync(userId, listItemId));
 
-        await _listItemRepository.CompleteListItemAsync(listItemId);
+        await _listItemRepository.CompleteListItem(listItemId);
 
         await _unitOfWork.SaveChangesAsync();
     }
@@ -39,7 +38,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
         var creation = _mapper.Map<ListItemEntity>(listItem);
 
-        await _listItemRepository.CreateListItemAsync(creation, parentId);
+        await _listItemRepository.CreateListItem(creation, parentId);
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -57,7 +56,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
             throw new Exception(result.Message);
         }
 
-        await _listItemRepository.DeleteListItemAsync(listItemId);
+        await _listItemRepository.DeleteListItem(listItemId);
 
         await _unitOfWork.SaveChangesAsync();
     }
@@ -73,7 +72,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
             throw new Exception(result.Message);
         }
 
-        var listItem = await _listItemRepository.GetListItemByIdAsync(listItemId);
+        var listItem = await _listItemRepository.GetListItemById(listItemId);
 
         return _mapper.Map<ListItem>(listItem);
     }
@@ -91,43 +90,17 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
         var entityPut = _mapper.Map<ListItemEntity>(listItemPut);
 
-        await _listItemRepository.PutListItemAsync(listItemId, entityPut);
+        await _listItemRepository.PutListItem(listItemId, entityPut);
 
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<OperationResult> RelocateListItemAsync(Guid listItemId, Guid destinationParentId, int destinationRelativeIndex)
+    public async Task RelocateListItemAsync(Guid activeId, Guid overId, Guid parentId)
     {
         var userId = await _userService.GetUserIdAsync();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListItemRelocation(userId, listItemId, destinationParentId));
+        await InvokeGuard(() => _guard.AgainstInvalidListItemRelocation(userId, activeId, parentId));
 
-        var result = await _listItemRepository.RelocateListItemAsync(listItemId, destinationParentId, destinationRelativeIndex);
-
-        //var test = ListItemMapper.MapEntitiesToContracts(result);
-
-        await _unitOfWork.SaveChangesAsync();
-
-        return new()
-        {
-            HeaderId = result.FirstOrDefault()?.ListHeaderId,
-            ItemId = listItemId,
-            Affected = new()
-            {
-                Ids = result.Select(z => z.Id).ToList(),
-                Left = result.Min(z => z.Left),
-                Right = result.Max(z => z.Right)
-            }
-        };
-    }
-
-    public async Task InvokeGuard(Func<Task<Data.Models.ValidationResult>> func)
-    {
-        var result = await func();
-
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
+        await _listItemRepository.RelocateListItem(activeId, overId, parentId);
     }
 }

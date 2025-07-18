@@ -4,10 +4,7 @@ import { useEffect, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
 import { ListHeaderDisplay } from '../../components';
-import {
-  SortableTree,
-  SortableTreeListeners,
-} from '../../components/tree/SortableTree';
+import { Listeners, SortableTree } from '../../components/tree/SortableTree';
 import { ListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
@@ -16,7 +13,7 @@ import {
   useTheme,
 } from '../../hooks';
 import { ListHeaderApi, ListItemApi } from '../../network';
-import { config, Node } from '../../shared';
+import { config } from '../../shared';
 import { Navbar } from '../Navbar';
 import { Temp } from './temp';
 
@@ -121,16 +118,24 @@ export const App: React.FC = () => {
 
   const displayHeader = activeHeader || previousHeader;
 
-  const headerListeners = React.useMemo<SortableTreeListeners>(
+  const headerListeners = React.useMemo<Listeners>(
     () => ({
       onClick: (headerId: string) =>
         dispatch({ type: ActionType.SelectHeader, headerId }),
-      onDragEnd: (activeId: string, overId: string, parentId: string) => {},
+      onDragEnd: (headerId: string, destinationId: string) => {
+        const destinationIndex = state.headers.findIndex(
+          (h) => h.id == destinationId
+        );
+
+        new ListHeaderApi(authState.token)
+          .Relocate(headerId, destinationIndex)
+          .then(() => loadHeaders(state.expanded));
+      },
     }),
-    [authState?.token, state.expanded, activeHeader?.id]
+    [authState?.token, state.expanded, state.headers, activeHeader]
   );
 
-  const activeListeners = React.useMemo<SortableTreeListeners>(
+  const activeListeners = React.useMemo<Listeners>(
     () =>
       activeHeader
         ? {
@@ -141,23 +146,14 @@ export const App: React.FC = () => {
                 itemId,
               });
             },
-            onDragEnd: (activeId: string, overId: string, parentId: string) => {
-              const parent = activeHeader.items.find((i) => i.id == parentId);
-              const over = activeHeader.items.find((i) => i.id == overId);
-
-              const children = Node.getDirectChildren(
-                activeHeader.items,
-                parent
-              );
-
-              const newIndex = Node.isDirectChild(parent, over)
-                ? children.findIndex((i) => i.id == over.id)
-                : children.length;
-
+            onDragEnd: (
+              activeId: string,
+              overId: string,
+              parentId: string
+            ) =>
               new ListItemApi(authState.token)
-                .Relocate(activeId, parentId, newIndex)
-                .then(() => loadHeader(activeHeader.id, state.expanded));
-            },
+                .Relocate(activeId, overId, parentId)
+                .then(() => loadHeader(activeHeader.id, state.expanded)),
           }
         : null,
     [activeHeader]

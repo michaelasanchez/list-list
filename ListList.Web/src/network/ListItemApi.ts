@@ -36,12 +36,12 @@ export class ListItemApi extends Api {
   };
 
   public Relocate = (
-    listItemId: string,
-    parentId: string,
-    relativeIndex: number
+    activeId: string,
+    overId: string,
+    parentId: string
   ) => {
-    this.setActionPath(`${listItemId}/relocate`);
+    this.setActionPath(`${activeId}/relocate`);
 
-    return this.executePost({ parentId, relativeIndex });
+    return this.executePost({ overId, parentId }, null, false);
   };
 }

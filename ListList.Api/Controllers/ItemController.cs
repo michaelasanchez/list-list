@@ -1,7 +1,6 @@
 ﻿using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
-using ListList.Api.Contracts.Result;
 using ListList.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -75,21 +74,19 @@ public class ItemController(IItemService _service) : Controller
         return Ok(listItem);
     }
 
-    [HttpPost("{listItemId}/relocate")]
-    public async Task<ActionResult> RelocateListItemAsync(Guid listItemId, ListItemRelocation listItemRelocation)
+    [HttpPost("{activeId}/relocate")]
+    public async Task<IActionResult> RelocateListItemAsync(Guid activeId, ListItemRelocation listItemRelocation)
     {
-        OperationResult result;
-
         try
         {
-            result = await _service.RelocateListItemAsync(listItemId, listItemRelocation.ParentId, listItemRelocation.RelativeIndex);
+            await _service.RelocateListItemAsync(activeId, listItemRelocation.OverId, listItemRelocation.ParentId);
         }
         catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }
 
-        return Ok(result);
+        return Ok();
     }
 
     [HttpPut("{listItemId}")]

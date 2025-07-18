@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
-using ListList.Api.Contracts.Put;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
@@ -10,7 +9,7 @@ using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Api.Services;
 
-public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, IMapper _mapper, IGuard _guard) : IHeaderService
+public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, IMapper _mapper, IGuard _guard) : BaseService, IHeaderService
 {
     private readonly IHeaderRepository _listHeaderRepository = _unitOfWork.ListHeaderRepository;
 
@@ -38,12 +37,7 @@ public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, I
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListHeaderGetAsync(userId, listHeaderId);
-
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
+        await InvokeGuard(() => _guard.AgainstInvalidListHeaderGetAsync(userId, listHeaderId));
 
         var listHeader = await _listHeaderRepository.GetListHeaderByIdAsync(userId, listHeaderId);
 
@@ -57,5 +51,16 @@ public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, I
         var listHeaders = await _listHeaderRepository.GetListHeadersAsync(userId);
 
         return _mapper.Map<IEnumerable<ListHeader>>(listHeaders);
+    }
+
+    public async Task RelocateListHeaderAsync(Guid listHeaderId, int index)
+    {
+        var userId = await _userService.GetUserIdAsync();
+
+        await InvokeGuard(() => _guard.AgainstInvalidListHeaderRelocationAsync(userId, listHeaderId, index));
+
+        await _listHeaderRepository.RelocateListHeaderAsync(userId, listHeaderId, index);
+
+        await _unitOfWork.SaveChangesAsync();
     }
 }

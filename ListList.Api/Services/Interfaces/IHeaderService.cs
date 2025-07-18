@@ -8,5 +8,6 @@ namespace ListList.Api.Services.Interfaces
         Task<Guid> CreateListHeaderAsync(ListItemCreation listHeader);
         Task<IEnumerable<ListHeader>> GetListHeadersAsync();
         Task<ListHeader> GetListHeaderByIdAsync(Guid listHeaderId);
+        Task RelocateListHeaderAsync(Guid listHeaderId, int index);
     }
 }

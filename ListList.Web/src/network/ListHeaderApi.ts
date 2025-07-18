@@ -7,9 +7,7 @@ export class ListHeaderApi extends Api {
     super('header', token);
   }
 
-  public Create = (
-    creation: ListItemCreation
-  ): Promise<string> => {
+  public Create = (creation: ListItemCreation): Promise<string> => {
     return this.executePost(creation);
   };
 
@@ -21,5 +19,11 @@ export class ListHeaderApi extends Api {
     this.setActionPath(id);
 
     return this.executeGet();
-  }
+  };
+
+  public Relocate = (headerId: string, index: number) => {
+    this.setActionPath(`${headerId}/relocate`);
+
+    return this.executePost({ index }, null, false);
+  };
 }

@@ -1,80 +1,109 @@
-﻿using ListList.Data.Models.Entities;
-using ListList.Data.Models.Interfaces;
+﻿using ListList.Data.Models;
+using ListList.Data.Models.Entities;
 using ListList.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ListList.Data.Repositories;
 
-public class ItemRepository(IListListContext _context) : IItemRepository
+public class ItemRepository(ListListContext _context) : IItemRepository
 {
-    public async Task CompleteListItemAsync(Guid listItemId)
+    public async Task CompleteListItem(Guid listItemId)
     {
         var listItem = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
 
         listItem.Complete = !listItem.Complete;
     }
 
-    public async Task CreateListItemAsync(ListItemEntity creation, Guid parentId)
+    public async Task CreateListItem(ListItemEntity creation, Guid parentId)
     {
-        var parentNode = await _context.ListItems.SingleAsync(z => z.Id == parentId);
-
-        var listItems = await _context.ListItems
-                .Where(z =>
-                    z.ListHeaderId == parentNode.ListHeaderId &&
-                    z.Right >= parentNode.Right &&
-                    !z.Deleted)
-                .OrderBy(z => z.Left)
-                .ToListAsync();
-
-        foreach (var item in listItems)
-        {
-            item.Left = item.Left > parentNode.Left ? item.Left + 2 : item.Left;
-            item.Right += 2;
-        }
-
-        creation.ListHeaderId = parentNode.ListHeaderId;
-        creation.Left = parentNode.Right - 2;
-        creation.Right = parentNode.Right - 1;
+        await InsertItem([creation], parentId);
 
         await _context.ListItems.AddAsync(creation);
     }
 
-    public async Task DeleteListItemAsync(Guid listItemId)
+    public async Task InsertItem(List<ListItemEntity> active, Guid parentId, Guid? overId = null)
     {
-        var targetNode = await _context.ListItems
-            .Include(z => z.ListHeader)
-            .SingleAsync(z => z.Id == listItemId);
+        if (active is not { Count: > 0 })
+        {
+            return;
+        }
 
-        var subsequentListItems = await _context.ListItems
+        var listHeaderId = active.First().ListHeaderId;
+
+        //var overLeft = await _context.ListItems
+        //    .AsNoTracking()
+        //    .Where(z => z.Id == overId)
+        //    .Select(z => z.Left)
+        //    .SingleAsync();
+
+        //var parentRight = await _context.ListItems
+        //    .AsNoTracking()
+        //    .Where(z => z.Id == parentId)
+        //    .Select(z => z.Right)
+        //    .SingleAsync();
+
+        //var leftBoundary = Math.Min(overLeft, parentRight);
+
+        var over = await _context.ListItems
+            .AsNoTracking()
+            .Where(z => z.Id == overId)
+            .SingleAsync();
+
+        var parent = await _context.ListItems
+            .AsNoTracking()
+            .Where(z => z.Id == parentId)
+            .SingleAsync();
+
+        var leftBoundary = Math.Min(over.Left, parent.Right);
+
+        var items = await _context.ListItems
             .Where(z =>
-                z.Id != listItemId &&
-                z.ListHeaderId == targetNode.ListHeaderId &&
-                z.Right >= targetNode.Left &&
+                z.ListHeaderId == active[0].ListHeaderId &&
+                z.Right >= leftBoundary &&
                 !z.Deleted)
+            .OrderBy(z => z.Left)
             .ToListAsync();
 
-        if (subsequentListItems.Any())
+        foreach (var item in items)
         {
-            foreach (var item in subsequentListItems)
+            if (item.Left >= leftBoundary)
             {
-                item.Left = item.Left > targetNode.Left ? item.Left - 2 : item.Left;
-                item.Right -= 2;
+                item.Left += active.Count * 2;
             }
+
+            item.Right += active.Count * 2;
         }
-        else
+
+        foreach (var item in active)
         {
-            targetNode.ListHeader.Deleted = true;
-            targetNode.ListHeader.DeletedOn = DateTime.UtcNow;
+            item.Left = leftBoundary;
+            item.Right = leftBoundary + 1;
         }
-
-        targetNode.Left = 0;
-        targetNode.Right = 0;
-
-        targetNode.Deleted = true;
-        targetNode.DeletedOn = DateTime.UtcNow;
     }
 
-    public async Task<ListItemEntity> GetListItemByIdAsync(Guid listItemId)
+    public async Task DeleteListItem(Guid listItemId)
+    {
+        var activeItem = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
+
+        await RemoveItemAsync(activeItem);
+
+        var descendants = await GetDescendants(activeItem);
+
+        activeItem.Left = 0;
+        activeItem.Right = 0;
+        activeItem.Deleted = true;
+        activeItem.DeletedOn = DateTime.UtcNow;
+
+        foreach (var item in descendants)
+        {
+            item.Left = 0;
+            item.Right = 0;
+            item.Deleted = true;
+            item.DeletedOn = DateTime.UtcNow;
+        }
+    }
+
+    public async Task<ListItemEntity> GetListItemById(Guid listItemId)
     {
         var parent = await _context.ListItems.Where(z => z.Id == listItemId).SingleAsync();
 
@@ -88,7 +117,7 @@ public class ItemRepository(IListListContext _context) : IItemRepository
         return parent;
     }
 
-    public async Task PutListItemAsync(Guid listItemId, ListItemEntity entityPut)
+    public async Task PutListItem(Guid listItemId, ListItemEntity entityPut)
     {
         var entity = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
 
@@ -96,98 +125,67 @@ public class ItemRepository(IListListContext _context) : IItemRepository
         entity.Description = entityPut.Description;
     }
 
-    public async Task<List<ListItemEntity>> RelocateListItemAsync(Guid targetId, Guid parentId, int index)
+    public async Task RelocateListItem(Guid activeId, Guid overId, Guid parentId)
     {
-        var listItem = await _context.ListItems.SingleAsync(z => z.Id == targetId);
+        var active = await _context.ListItems
+            .SingleAsync(z => z.Id == activeId);
 
-        var items = await _context.ListItems
+        await RemoveItemAsync(active);
+
+        var descendants = await GetDescendants(active);
+
+        //var activeRight = active.Right;
+
+        //active.Left -= activeRight;
+        //active.Right -= activeRight;
+
+        //foreach (var item in descendants)
+        //{
+        //    item.Left -= activeRight;
+        //    item.Right -= activeRight;
+        //}
+
+        // TODO: hack for now
+        active.Deleted = true;
+
+        await _context.SaveChangesAsync();
+
+        await InsertItem([active, .. descendants], parentId, overId);
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task<List<ListItemEntity>> GetDescendants(ListItemEntity parent)
+    {
+        return await _context.ListItems
             .Where(z =>
-                z.ListHeaderId == listItem.ListHeaderId &&
+                z.ListHeaderId == parent.ListHeaderId &&
+                z.Left > parent.Left &&
+                z.Right < parent.Right &&
+                !z.Deleted)
+            .ToListAsync();
+    }
+
+    private async Task RemoveItemAsync(ListItemEntity active)
+    {
+        var removeCount = (active.Right - active.Left + 1) / 2;
+
+        var subsequent = await _context.ListItems
+            .Where(z =>
+                z.Id != active.Id &&
+                z.ListHeaderId == active.ListHeaderId &&
+                z.Right > active.Right &&
                 !z.Deleted)
             .ToListAsync();
 
-        var removed = RemoveItems(items, targetId);
-
-        InsertItems(items, removed, parentId, index);
-
-        return [.. items, .. removed];
-    }
-
-    public static void InsertItems(List<ListItemEntity> items, List<ListItemEntity> toInsert, Guid parentId, int index)
-    {
-        var parent = items.Single(z => z.Id == parentId);
-
-        var directChildren = items
-            .Where(z =>
-                z.Left > parent.Left &&
-                z.Right < parent.Right &&
-                !items.Any(other =>
-                    other.Left > parent.Left &&
-                    other.Right < parent.Right &&
-                    other.Left < z.Left &&
-                    other.Right > z.Right))
-            .OrderBy(z => z.Left)
-            .ToList();
-
-        int insertAt = index == 0
-            ? parent.Left
-            : directChildren[index - 1].Right;
-
-        int minLeft = toInsert.Min(i => i.Left);
-        int maxRight = toInsert.Max(i => i.Right);
-        int width = maxRight - minLeft + 1;
-
-        foreach (var item in items)
+        foreach (var item in subsequent)
         {
-            if (item.Left > insertAt)
-                item.Left += width;
+            if (item.Left > active.Left)
+            {
+                item.Left -= removeCount * 2;
+            }
 
-            if (item.Right > insertAt)
-                item.Right += width;
+            item.Right -= removeCount * 2;
         }
-
-        int offset = insertAt + 1 - minLeft;
-        foreach (var item in toInsert)
-        {
-            item.Left += offset;
-            item.Right += offset;
-        }
-    }
-
-    private static List<ListItemEntity> RemoveItems(List<ListItemEntity> items, Guid id)
-    {
-        var target = items.FirstOrDefault(z => z.Id == id);
-
-        if (target == null)
-            return [];
-
-        var left = target.Left;
-        var right = target.Right;
-        var width = right - left + 1;
-
-        var toRemove = items
-            .Where(z => z.Left >= left && z.Right <= right)
-            .ToList();
-
-        items.RemoveAll(toRemove.Contains);
-
-        var diff = toRemove.Min(z => z.Left) - 1;
-
-        foreach (var item in toRemove)
-        {
-            item.Left -= diff;
-            item.Right -= diff;
-        }
-
-        foreach (var item in items)
-        {
-            if (item.Left > right)
-                item.Left -= width;
-
-            if (item.Right > right)
-                item.Right -= width;
-        }
-
-        return toRemove;
     }
 }

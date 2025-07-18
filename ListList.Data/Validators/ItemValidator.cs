@@ -51,4 +51,34 @@ public class ItemValidator(IListListContext _context) : IItemValidator
             result.AddError("User does not own this list.");
         }
     }
+
+    public async Task ListItemRelativeIndexIsValidAsync(Guid destinationParentId, int relativeIndex, ValidationResult result)
+    {
+        var parentQuery = from listItem in _context.ListItems
+                          where listItem.Id == destinationParentId
+                          select listItem;
+
+        var parent = await parentQuery.SingleAsync();
+
+        var directChildren =
+            from child in _context.ListItems
+            where child.Left > parent.Left && child.Right < parent.Right
+            let ancestorCount =
+                (from a in _context.ListItems
+                 where a.Left < child.Left && a.Right > child.Right
+                 select a).Count()
+            let parentAncestorCount =
+                (from a in _context.ListItems
+                 where a.Left < parent.Left && a.Right > parent.Right
+                 select a).Count()
+            where ancestorCount == parentAncestorCount + 1
+            select child;
+
+        int directChildrenCount = directChildren.Count();
+
+        if (relativeIndex >= 0 && relativeIndex < directChildrenCount)
+        {
+            result.AddError($"The {nameof(relativeIndex)} '{relativeIndex}' is invalid.");
+        }
+    }
 }
