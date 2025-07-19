@@ -283,15 +283,6 @@ export function SortableTree({
 
       dragEndLocal(active.id, over.id, depth, parentId);
 
-      const thangs = flattenTree(items);
-
-      console.log('===============================================');
-      console.log('ITEMS', thangs);
-      console.log('-----------------------------------------------');
-      console.log('ACTIVE', op(thangs, active.id));
-      console.log('OVER', op(thangs, over.id));
-      console.log('PARENT', op(thangs, parentId));
-
       listeners?.onDragEnd(active.id, over.id, parentId);
     }
   }

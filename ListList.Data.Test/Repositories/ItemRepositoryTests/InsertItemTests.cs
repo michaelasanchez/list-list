@@ -34,8 +34,8 @@ public class InsertItemTests : BaseItemRepositoryTest
 
         var active = _fixture.Build<ListItemEntity>()
             .With(z => z.ListHeaderId, headerId)
-            .With(z => z.Left, 0)
-            .With(z => z.Right, 0)
+            .With(z => z.Left, 1)
+            .With(z => z.Right, 2)
             .Without(x => x.ListHeader)
             .Create();
 
