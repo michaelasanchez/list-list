@@ -1,6 +1,6 @@
 import { Api } from '.';
 import { ApiListItemPut } from '../contracts';
-import { ListItemCreation } from '../contracts/put/ListItemCreation';
+import { ApiListItemCreation } from '../contracts/post/ApiListItemCreation';
 
 export class ListItemApi extends Api {
   constructor(token?: string) {
@@ -13,7 +13,7 @@ export class ListItemApi extends Api {
   };
 
   public Create = (
-    creation: ListItemCreation,
+    creation: ApiListItemCreation,
     parentId: string
   ): Promise<string> => {
     this.setActionPath(`${parentId}`);

@@ -52,7 +52,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemRelocation(Guid userId, Guid listItemId, Guid parentId)
+    public async Task<ValidationResult> AgainstInvalidListItemRelocation(Guid userId, Guid listItemId, Guid? parentId)
     {
         var result = new ValidationResult();
 

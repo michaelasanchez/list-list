@@ -6,6 +6,134 @@ namespace ListList.Data.Test.Repositories.ItemRepositoryTests;
 
 public class RelocateItemTests : BaseItemRepositoryTest
 {
+    [Fact]
+    public async Task ShouldRelocate_SingleItem()
+    {
+        // Arrange
+        var headerId = _fixture.Create<Guid>();
+
+        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
+
+        // Act
+        await _repository.RelocateListItem(item1.Id, item1.Id, null);
+
+        // Assert
+        item1.Left.Should().Be(1);
+        item1.Right.Should().Be(2);
+    }
+
+    [Fact]
+    public async Task ShouldRelocate_RootLevelItem_Downward()
+    {
+        // Arrange
+        var headerId = _fixture.Create<Guid>();
+
+        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
+        var item2 = await SeedItem(headerId, 3, 4, "Item 2");
+        var item3 = await SeedItem(headerId, 5, 6, "Item 3");
+        var item4 = await SeedItem(headerId, 7, 8, "Item 4");
+
+        // Act
+        await _repository.RelocateListItem(item2.Id, item3.Id, null);
+
+        // Assert
+        item1.Left.Should().Be(1);
+        item1.Right.Should().Be(2);
+
+        item3.Left.Should().Be(3);
+        item3.Right.Should().Be(4);
+
+        item2.Left.Should().Be(5);
+        item2.Right.Should().Be(6);
+
+        item4.Left.Should().Be(7);
+        item4.Right.Should().Be(8);
+    }
+
+    [Fact]
+    public async Task ShouldRelocation_RootLevelItem_ToEnd()
+    {
+        // Arrange
+        var headerId = _fixture.Create<Guid>();
+
+        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
+        var item2 = await SeedItem(headerId, 3, 4, "Item 2");
+        var item3 = await SeedItem(headerId, 5, 6, "Item 3");
+        var item4 = await SeedItem(headerId, 7, 8, "Item 4");
+
+        // Act
+        await _repository.RelocateListItem(item2.Id, item4.Id, null);
+
+        // Assert
+        item1.Left.Should().Be(1);
+        item1.Right.Should().Be(2);
+
+        item3.Left.Should().Be(3);
+        item3.Right.Should().Be(4);
+
+        item4.Left.Should().Be(5);
+        item4.Right.Should().Be(6);
+
+        item2.Left.Should().Be(7);
+        item2.Right.Should().Be(8);
+    }
+
+    [Fact]
+    public async Task ShouldRelocate_RootLevelItem_Upward()
+    {
+        // Arrange
+        var headerId = _fixture.Create<Guid>();
+
+        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
+        var item2 = await SeedItem(headerId, 3, 4, "Item 2");
+        var item3 = await SeedItem(headerId, 5, 6, "Item 3");
+        var item4 = await SeedItem(headerId, 7, 8, "Item 4");
+
+        // Act
+        await _repository.RelocateListItem(item3.Id, item2.Id, null);
+
+        // Assert
+        item1.Left.Should().Be(1);
+        item1.Right.Should().Be(2);
+
+        item3.Left.Should().Be(3);
+        item3.Right.Should().Be(4);
+
+        item2.Left.Should().Be(5);
+        item2.Right.Should().Be(6);
+
+        item4.Left.Should().Be(7);
+        item4.Right.Should().Be(8);
+    }
+
+    [Fact]
+    public async Task ShouldRelocation_RootLevelItem_Upward_ToBeginning()
+    {
+        // Arrange
+        var headerId = _fixture.Create<Guid>();
+
+        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
+        var item2 = await SeedItem(headerId, 3, 4, "Item 2");
+        var item3 = await SeedItem(headerId, 5, 6, "Item 3");
+        var item4 = await SeedItem(headerId, 7, 8, "Item 4");
+
+        // Act
+        await _repository.RelocateListItem(item3.Id, item1.Id, null);
+
+        // Assert
+        item3.Left.Should().Be(1);
+        item3.Right.Should().Be(2);
+
+        item1.Left.Should().Be(3);
+        item1.Right.Should().Be(4);
+
+        item2.Left.Should().Be(5);
+        item2.Right.Should().Be(6);
+
+        item4.Left.Should().Be(7);
+        item4.Right.Should().Be(8);
+    }
+
     [Theory]
 
     // Root                             (1, 14)

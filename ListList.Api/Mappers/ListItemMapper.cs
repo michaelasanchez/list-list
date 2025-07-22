@@ -14,8 +14,8 @@ public class ListItemMapper
 
         var sortedEntities = entities.OrderBy(e => e.Left).ToList();
 
-        List<ListItem> contracts = new List<ListItem>();
-        var entityMap = sortedEntities.ToDictionary(e => e.Id, e => e);
+        var contracts = new List<ListItem>();
+        var entityMap = sortedEntities.ToDictionary(e => e.Id);
         var contractMap = new Dictionary<Guid, ListItem>();
         var parentStack = new Stack<ListItemEntity>();
 
@@ -39,7 +39,6 @@ public class ListItemMapper
             }
 
             contract.Depth = parentStack.Count;
-            contract.IsRoot = contract.Left == 1M;
 
             contract.ParentId = parentStack.Count != 0 ? parentStack.Peek().Id : null;
 

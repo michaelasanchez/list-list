@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
+using ListList.Api.Contracts.Put;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
@@ -13,7 +14,7 @@ public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, I
 {
     private readonly IHeaderRepository _listHeaderRepository = _unitOfWork.ListHeaderRepository;
 
-    public async Task<Guid> CreateListHeaderAsync(ListItemCreation listHeader)
+    public async Task<Guid> CreateListHeader(ListHeaderCreation listHeader)
     {
         var userId = await _userService.GetUserIdAsync();
 
@@ -28,12 +29,10 @@ public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, I
 
         await _listHeaderRepository.CreateListHeaderAsync(userId, creation);
 
-        await _unitOfWork.SaveChangesAsync();
-
         return creation.Id;
     }
 
-    public async Task<ListHeader> GetListHeaderByIdAsync(Guid listHeaderId)
+    public async Task<ListHeader> GetListHeaderById(Guid listHeaderId)
     {
         var userId = await _userService.GetUserIdAsync();
 
@@ -44,7 +43,7 @@ public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, I
         return _mapper.Map<ListHeader>(listHeader);
     }
 
-    public async Task<IEnumerable<ListHeader>> GetListHeadersAsync()
+    public async Task<IEnumerable<ListHeader>> GetListHeaders()
     {
         var userId = await _userService.GetUserIdAsync();
 
@@ -53,14 +52,19 @@ public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, I
         return _mapper.Map<IEnumerable<ListHeader>>(listHeaders);
     }
 
-    public async Task RelocateListHeaderAsync(Guid listHeaderId, int index)
+    public async Task PutListHeader(Guid listHeaderId, ListHeaderPut listHeaderPut)
+    {
+        var entityUpdate = _mapper.Map<ListHeaderEntity>(listHeaderPut);
+
+        await _listHeaderRepository.PutListHeader(listHeaderId, entityUpdate);
+    }
+
+    public async Task RelocateListHeader(Guid listHeaderId, int index)
     {
         var userId = await _userService.GetUserIdAsync();
 
         await InvokeGuard(() => _guard.AgainstInvalidListHeaderRelocationAsync(userId, listHeaderId, index));
 
         await _listHeaderRepository.RelocateListHeaderAsync(userId, listHeaderId, index);
-
-        await _unitOfWork.SaveChangesAsync();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
+using ListList.Api.Contracts.Put;
 using ListList.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,13 +11,13 @@ namespace ListList.Api.Controllers;
 public class HeaderController(IHeaderService _service) : Controller
 {
     [HttpPost]
-    public async Task<ActionResult<Guid>> CreateListHeaderAsync(ListItemCreation creation)
+    public async Task<ActionResult<Guid>> CreateListHeaderAsync(ListHeaderCreation creation)
     {
         Guid id;
 
         try
         {
-            id = await _service.CreateListHeaderAsync(creation);
+            id = await _service.CreateListHeader(creation);
         }
         catch (Exception ex)
         {
@@ -33,7 +34,7 @@ public class HeaderController(IHeaderService _service) : Controller
 
         try
         {
-            listHeader = await _service.GetListHeaderByIdAsync(headerId);
+            listHeader = await _service.GetListHeaderById(headerId);
         }
         catch (Exception ex)
         {
@@ -50,7 +51,7 @@ public class HeaderController(IHeaderService _service) : Controller
 
         try
         {
-            listHeaders = await _service.GetListHeadersAsync();
+            listHeaders = await _service.GetListHeaders();
         }
         catch (Exception ex)
         {
@@ -60,12 +61,27 @@ public class HeaderController(IHeaderService _service) : Controller
         return Ok(listHeaders);
     }
 
+    [HttpPut("{listHeaderId}")]
+    public async Task<ActionResult> PutListHeader(Guid listHeaderId, ListHeaderPut listHeaderPut)
+    {
+        try
+        {
+            await _service.PutListHeader(listHeaderId, listHeaderPut);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
+    }
+
     [HttpPost("{listHeaderId}/relocate")]
     public async Task<ActionResult> RelocateListHeaderAsync(Guid listHeaderId, ListHeaderRelocation listHeaderRelocation)
     {
         try
         {
-            await _service.RelocateListHeaderAsync(listHeaderId, listHeaderRelocation.Index);
+            await _service.RelocateListHeader(listHeaderId, listHeaderRelocation.Order);
         }
         catch (Exception ex)
         {

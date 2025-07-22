@@ -9,7 +9,6 @@ export interface ApiListItem {
   right: number;
 
   depth: number;
-  isRoot: boolean;
 
   headerId: string;
   parentId?: string;

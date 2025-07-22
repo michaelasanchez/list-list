@@ -12,7 +12,6 @@ public class ListItem
     public int Right { get; set; }
 
     public int Depth { get; set; }
-    public bool IsRoot { get; set; }
 
     public Guid HeaderId { get; set; }
     public Guid? ParentId { get; set; }

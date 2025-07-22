@@ -2,5 +2,5 @@
 
 public class ListHeaderRelocation
 {
-    public int Index { get; set; }
+    public int Order { get; set; }
 }

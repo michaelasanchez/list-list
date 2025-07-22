@@ -29,7 +29,7 @@ public class ItemValidator(IListListContext _context) : IItemValidator
         }
     }
 
-    public async Task ListItemIsNotDeletedAsync(Guid listItemId, ValidationResult result)
+    public async Task ListItemIsNotDeletedAsync(Guid? listItemId, ValidationResult result)
     {
         var listItemIsDeleted = await _context.ListItems
             .AnyAsync(z => z.Id == listItemId && z.Deleted);

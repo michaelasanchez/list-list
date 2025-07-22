@@ -64,12 +64,16 @@ const mapHeaders = (
 ): ListHeader[] =>
   map(headers, (h) => ({
     id: h.id,
+    label: h.label,
+    description: h.description,
     order: h.order,
     items: mapItems(h.items, expanded),
   }));
 
 const mapHeader = (header: ApiListHeader, expanded: string[]): ListHeader => ({
   id: header.id,
+  label: header.label,
+  description: header.description,
   order: header.order,
   items: mapItems(header.items, expanded),
 });

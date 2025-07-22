@@ -6,7 +6,7 @@ import {
   ListNodeCreation,
   MemoizedIcon,
 } from '.';
-import { ListItemCreation } from '../contracts';
+import { ApiListItemCreation } from '../contracts';
 import { ListItem } from '../models';
 import { ListItemApi } from '../network';
 import { AppStateActionType as ActionType, AppStateAction } from '../views/app';
@@ -23,7 +23,7 @@ interface ListNodeDisplayProps {
 interface ListNodeState {
   editing: boolean;
   disableToggle?: boolean;
-  itemCreation?: ListItemCreation;
+  itemCreation?: ApiListItemCreation;
 }
 
 export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
@@ -78,13 +78,14 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
   const handleDeleteNode = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
 
-    new ListItemApi(props.token).Delete(props.node.id).then(() =>
-      props.node.isRoot
-        ? props.dispatchAction({
-            type: ActionType.FinalizeNodeDelete,
-            headerId: props.node.headerId,
-          })
-        : props.reloadHeader()
+    new ListItemApi(props.token).Delete(props.node.id).then(
+      () => {}
+      // props.node.isRoot
+      //   ? props.dispatchAction({
+      //       type: ActionType.FinalizeNodeDelete,
+      //       headerId: props.node.headerId,
+      //     })
+      //   : props.reloadHeader()
     );
   };
 

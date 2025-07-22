@@ -1,4 +1,4 @@
-import { ListItemCreation } from '../../contracts';
+import { ApiListItemCreation } from '../../contracts';
 import { ListHeader } from '../../models';
 
 export interface AppState {
@@ -8,5 +8,5 @@ export interface AppState {
   previousHeaderId?: string;
   headers?: ListHeader[];
   parentId?: string;
-  headerCreation?: ListItemCreation;
+  headerCreation?: ApiListItemCreation;
 }

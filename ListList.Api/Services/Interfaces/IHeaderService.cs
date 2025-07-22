@@ -1,13 +1,14 @@
 ﻿using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
+using ListList.Api.Contracts.Put;
 
-namespace ListList.Api.Services.Interfaces
+namespace ListList.Api.Services.Interfaces;
+
+public interface IHeaderService
 {
-    public interface IHeaderService
-    {
-        Task<Guid> CreateListHeaderAsync(ListItemCreation listHeader);
-        Task<IEnumerable<ListHeader>> GetListHeadersAsync();
-        Task<ListHeader> GetListHeaderByIdAsync(Guid listHeaderId);
-        Task RelocateListHeaderAsync(Guid listHeaderId, int index);
-    }
+    Task<Guid> CreateListHeader(ListHeaderCreation listHeader);
+    Task<IEnumerable<ListHeader>> GetListHeaders();
+    Task<ListHeader> GetListHeaderById(Guid listHeaderId);
+    Task RelocateListHeader(Guid listHeaderId, int order);
+    Task PutListHeader(Guid listHeaderId, ListHeaderPut listHeaderPut);
 }

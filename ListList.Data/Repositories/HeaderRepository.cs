@@ -1,11 +1,11 @@
-﻿using ListList.Data.Models.Entities;
-using ListList.Data.Models.Interfaces;
+﻿using ListList.Data.Models;
+using ListList.Data.Models.Entities;
 using ListList.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ListList.Data.Repositories;
 
-public class HeaderRepository(IListListContext _context) : IHeaderRepository
+public class HeaderRepository(ListListContext _context) : IHeaderRepository
 {
     public async Task CreateListHeaderAsync(Guid userId, ListHeaderEntity creation)
     {
@@ -13,9 +13,10 @@ public class HeaderRepository(IListListContext _context) : IHeaderRepository
 
         creation.UserId = userId;
         creation.Order = nextOrder;
-        creation.ListItems = [CreateRootListItem()];
+        creation.ListItems = [];
 
         await _context.ListHeaders.AddAsync(creation);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<ListHeaderEntity> GetListHeaderByIdAsync(Guid userId, Guid listHeaderId)
@@ -33,6 +34,20 @@ public class HeaderRepository(IListListContext _context) : IHeaderRepository
             .Where(z => z.UserId == userId && !z.Deleted)
             .OrderBy(z => z.Order)
             .ToListAsync();
+    }
+
+    public async Task PutListHeader(Guid listHeaderId, ListHeaderEntity listHeaderPut)
+    {
+        var existing = await _context.ListHeaders
+            .SingleOrDefaultAsync(z => z.Id == listHeaderId);
+
+        if (existing != null)
+        {
+            existing.Label = listHeaderPut.Label;
+            existing.Description = listHeaderPut.Description;
+        }
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task RelocateListHeaderAsync(Guid userId, Guid listHeaderId, int destinationIndex)
@@ -53,11 +68,7 @@ public class HeaderRepository(IListListContext _context) : IHeaderRepository
 
         for (int i = 0; i < listHeaders.Count; i++)
             listHeaders[i].Order = i;
-    }
 
-    private static ListItemEntity CreateRootListItem() => new()
-    {
-        Left = 1,
-        Right = 2,
-    };
+        await _context.SaveChangesAsync();
+    }
 }

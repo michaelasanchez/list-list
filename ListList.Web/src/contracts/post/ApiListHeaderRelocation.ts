@@ -1,3 +1,3 @@
 export interface ApiListHeaderRelocation {
-  index: number;
+  order: number;
 }

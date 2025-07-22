@@ -11,5 +11,5 @@ public interface IItemService
     Task DeleteListItemAsync(Guid listItemId);
     Task<ListItem> GetListItemByIdAsync(Guid listItemId);
     Task PutListItemAsync(Guid listItemId, ListItemPut listItemPut);
-    Task RelocateListItemAsync(Guid activeId, Guid overId, Guid parentId);
+    Task RelocateListItemAsync(Guid activeId, Guid overId, Guid? parentId);
 }

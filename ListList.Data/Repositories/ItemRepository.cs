@@ -21,7 +21,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         await _context.ListItems.AddAsync(creation);
     }
 
-    public async Task InsertItem(List<ListItemEntity> active, Guid parentId, Guid? overId = null)
+    public async Task InsertItem(List<ListItemEntity> active, Guid? parentId, Guid? overId = null)
     {
         if (active is not { Count: > 0 })
         {
@@ -39,12 +39,66 @@ public class ItemRepository(ListListContext _context) : IItemRepository
                 .Where(z => z.Id == overId)
                 .SingleOrDefaultAsync();
 
-        var parent = await _context.ListItems
-            .AsNoTracking()
-            .Where(z => z.Id == parentId)
-            .SingleAsync();
+        var parent = parentId is null ? null :
+            await _context.ListItems
+                .AsNoTracking()
+                .Where(z => z.Id == parentId)
+                .SingleOrDefaultAsync();
 
-        var leftBoundary = Math.Min(over?.Left ?? parent.Right, parent.Right);
+        var maxRight = await _context.ListItems
+            .AsNoTracking()
+            .Where(z => z.ListHeaderId == listHeaderId && !z.Deleted)
+            .OrderByDescending(z => z.Right)
+            .Select(z => (int?)z.Right)
+            .FirstOrDefaultAsync();
+
+        var thang = maxRight is null ? 0 : maxRight.Value + 1;
+
+        var leftBoundary =
+            over is null && parent is null
+
+            ?
+        thang
+:
+        Math.Min(
+            over?.Left ?? parent?.Right ?? 0,
+            parent?.Right ?? over?.Left ?? 0
+        );
+
+        ;
+
+        // Gemini
+        //var leftBoundary = (over?.Right + 1) ?? parent?.Right ?? 1;
+
+        // Chat GPT
+        //int leftBoundary;
+
+        //if (parent is not null)
+        //{
+        //    leftBoundary = parent.Left + 1;
+        //}
+        //else if (over is not null)
+        //{
+        //    leftBoundary = insertAfter ? over.Right + 1 : over.Left;
+        //}
+        //else
+        //{
+        //    leftBoundary = 0;
+        //}
+
+
+        //int? leftBoundary = null;
+        //if (over != null)
+        //{
+        //    // FIX: Conditionally choose the boundary based on the direction of the move.
+        //    // 'placeAfter' is true for downward moves, false for upward moves.
+        //    leftBoundary = insertAfter ? (over.Right + 1) : over.Left;
+        //}
+        //else
+        //{
+        //    // When appending to a parent or root, it's always an "after" operation.
+        //    leftBoundary = parent?.Right ?? 1;
+        //}
 
         var items = await _context.ListItems
             .Where(z =>
@@ -66,8 +120,10 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
         foreach (var item in active)
         {
-            item.Left += leftBoundary - 1;
-            item.Right += leftBoundary - 1;
+            var shift = Math.Max(leftBoundary - 1, 0);
+
+            item.Left += shift;
+            item.Right += shift;
         }
     }
 
@@ -108,18 +164,23 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         entity.Description = entityPut.Description;
     }
 
-    public async Task RelocateListItem(Guid activeId, Guid overId, Guid parentId)
+    public async Task RelocateListItem(Guid activeId, Guid overId, Guid? parentId)
     {
         var active = await _context.ListItems
             .SingleAsync(z => z.Id == activeId);
 
+        var over = await _context.ListItems
+            .SingleAsync(z => z.Id == overId);
+
+        var useNext = active.Left < over.Left;
+
         var nextId = await _context.ListItems
             .Where(z =>
                 z.ListHeaderId == active.ListHeaderId &&
-                z.Left > active.Right &&
+                z.Left > (useNext ? over.Right : active.Right) &&
                 !z.Deleted)
             .OrderBy(z => z.Left)
-            .Select(z => z.Id)
+            .Select(z => (Guid?)z.Id)
             .FirstOrDefaultAsync();
 
         var relocating = await RemoveItemAsync(active);
@@ -130,7 +191,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
         await _context.SaveChangesAsync();
 
-        await InsertItem(relocating, parentId, activeId == overId ? nextId : overId);
+        await InsertItem(relocating, parentId, activeId == overId || useNext ? nextId : over.Id);
 
         _context.ListItems.AddRange(relocating);
 

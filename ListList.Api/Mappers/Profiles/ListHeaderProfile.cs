@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
 using ListList.Api.Contracts.Post;
+using ListList.Api.Contracts.Put;
 using ListList.Data.Models.Entities;
 
 namespace ListList.Api.Mappers.Profiles;
@@ -16,7 +17,10 @@ public class ListHeaderProfile : Profile
         CreateMap<ListHeader, ListHeaderEntity>()
             .ForMember(dest => dest.ListItems, opt => opt.MapFrom(src => src.Items));
 
-        CreateMap<ListItemCreation, ListHeaderEntity>()
+        CreateMap<ListHeaderCreation, ListHeaderEntity>()
+            .ForMember(dest => dest.ListItems, opt => opt.Ignore());
+
+        CreateMap<ListHeaderPut, ListHeaderEntity>()
             .ForMember(dest => dest.ListItems, opt => opt.Ignore());
     }
 }

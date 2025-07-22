@@ -9,5 +9,5 @@ public interface IItemRepository
     Task DeleteListItem(Guid listItemId);
     Task<ListItemEntity> GetListItemById(Guid listItemId);
     Task PutListItem(Guid listItemId, ListItemEntity entityPut);
-    Task RelocateListItem(Guid activeId, Guid overId, Guid parentId);
+    Task RelocateListItem(Guid activeId, Guid overId, Guid? parentId);
 }

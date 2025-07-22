@@ -5,7 +5,7 @@ import { Container } from 'react-bootstrap';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
 import { ListHeaderDisplay } from '../../components';
 import { Listeners, SortableTree } from '../../components/tree/SortableTree';
-import { ListItemCreation } from '../../contracts';
+import { ApiListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
   useAuth,
@@ -86,7 +86,7 @@ export const App: React.FC = () => {
   //   new ListItemApi(authState.token).GetById(itemId).then((resp) => {});
   // };
 
-  const handleCreateHeader = (listItem: ListItemCreation) => {
+  const handleCreateHeader = (listItem: ApiListItemCreation) => {
     if (listItem.label.trim().length > 0) {
       const headerCreation = { ...listItem, label: listItem.label.trim() };
 
@@ -128,7 +128,7 @@ export const App: React.FC = () => {
         );
 
         new ListHeaderApi(authState.token)
-          .Relocate(headerId, destinationIndex)
+          .Relocate(headerId, { order: destinationIndex })
           .then(() => loadHeaders(state.expanded));
       },
     }),
@@ -146,11 +146,7 @@ export const App: React.FC = () => {
                 itemId,
               });
             },
-            onDragEnd: (
-              activeId: string,
-              overId: string,
-              parentId: string
-            ) =>
+            onDragEnd: (activeId: string, overId: string, parentId: string) =>
               new ListItemApi(authState.token)
                 .Relocate(activeId, overId, parentId)
                 .then(() => loadHeader(activeHeader.id, state.expanded)),

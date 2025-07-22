@@ -1,6 +1,6 @@
 import { filter, map } from 'lodash';
 import { AppState } from '.';
-import { ApiListHeader, ListItemCreation } from '../../contracts';
+import { ApiListHeader, ApiListItemCreation } from '../../contracts';
 import { ListItemMapper } from '../../mappers';
 import { ListItem } from '../../models';
 
@@ -24,7 +24,7 @@ export type NodePath = number[];
 
 export interface AppStateAction {
   type: AppStateActionType;
-  creation?: ListItemCreation;
+  creation?: ApiListItemCreation;
   header?: ApiListHeader;
   headerId?: string;
   headers?: ApiListHeader[];

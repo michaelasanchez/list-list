@@ -283,6 +283,18 @@ export function SortableTree({
 
       dragEndLocal(active.id, over.id, depth, parentId);
 
+      const flattened = flattenTree(items);
+
+      const oho = (l: string, id: UniqueIdentifier) =>
+        console.log(
+          l,
+          (flattened.find((i) => i.id == id) as any as { label: string })?.label
+        );
+
+      oho('ACTIVE', active.id);
+      oho('OVER', over.id);
+      oho('PARENT', parentId);
+
       listeners?.onDragEnd(active.id, over.id, parentId);
     }
   }
@@ -296,6 +308,7 @@ export function SortableTree({
     const clonedItems: FlattenedItem[] = JSON.parse(
       JSON.stringify(flattenTree(items))
     );
+
     const overIndex = clonedItems.findIndex(({ id }) => id === overId);
     const activeIndex = clonedItems.findIndex(({ id }) => id === activeId);
     const activeTreeItem = clonedItems[activeIndex];

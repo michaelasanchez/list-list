@@ -95,7 +95,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task RelocateListItemAsync(Guid activeId, Guid overId, Guid parentId)
+    public async Task RelocateListItemAsync(Guid activeId, Guid overId, Guid? parentId)
     {
         var userId = await _userService.GetUserIdAsync();
 

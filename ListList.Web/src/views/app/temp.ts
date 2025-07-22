@@ -11,8 +11,9 @@ function buildTreeFromHeaders(
 ): ApiListItemWithChildren[] {
   return (
     headers?.map<ApiListItemWithChildren>((header, index) => ({
-      ...{ ...header.items[0], id: header.id },
-      index,
+      ...header.items[0],
+      ...header,
+      index,on: header.description,
       collapsed: true,
       children: [],
     })) ?? []

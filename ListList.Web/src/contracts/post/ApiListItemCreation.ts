@@ -1,4 +1,4 @@
-export interface ListItemCreation {
+export interface ApiListItemCreation {
   label: string;
   description?: string;
   complete?: boolean;

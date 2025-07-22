@@ -18,9 +18,9 @@ interface ListHeaderState {
 }
 
 export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
-  const [state, setState] = useState<ListHeaderState>({ editing: false });
+  const { header } = props;
 
-  const rootItem = props.header?.items?.[0];
+  const [state, setState] = useState<ListHeaderState>({ editing: false });
 
   // Disable toggling for 100ms after editing was true
   useEffect(() => {
@@ -39,27 +39,27 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
   }, [state.editing]);
 
   const handleUpdateLabel = (pendingLabel: string) => {
-    if (pendingLabel != rootItem?.label) {
+    if (pendingLabel != header.label) {
       const listItemPut = {
         label: pendingLabel,
-        description: rootItem.description,
+        description: header.description,
       };
 
       new ListItemApi(props.token)
-        .Put(rootItem.id, listItemPut)
+        .Put(header.id, listItemPut)
         .then(() => props.reloadHeader());
     }
   };
 
   const handleUpdateDescription = (pendingDescription: string) => {
-    if (pendingDescription != rootItem?.description) {
+    if (pendingDescription != header.description) {
       const listItemPut = {
-        label: rootItem.label,
+        label: header.label,
         description: pendingDescription,
       };
 
       new ListItemApi(props.token)
-        .Put(rootItem.id, listItemPut)
+        .Put(header.id, listItemPut)
         .then(() => props.reloadHeader());
     }
   };
@@ -79,9 +79,9 @@ export const ListHeaderDisplay: React.FC<ListHeaderDisplayProps> = (props) => {
       <div className="header-title">
         <div className="heading">
           <LabelAndDescriptionEditor
-            name={rootItem?.id}
-            label={rootItem?.label}
-            description={rootItem?.description}
+            name={header.id}
+            label={header.label}
+            description={header.description}
             onEditingChange={(editing: boolean) =>
               setState((s) => ({ ...s, editing }))
             }
