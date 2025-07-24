@@ -5,6 +5,12 @@ import { Action, Handle, Remove } from '../../../Item';
 import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
+import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
+
+export interface Listeners {
+  onSaveDescription?: (updated: string) => void;
+  onSaveLabel?: (updated: string) => void;
+}
 
 export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   childCount?: number;
@@ -17,9 +23,14 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   handleProps?: any;
   indicator?: boolean;
   indentationWidth: number;
-  value: string;
+  //
+  name: string;
+  label: string;
+  description: string;
+  listeners?: Listeners;
   onCollapse?(): void;
   onRemove?(): void;
+  //
   wrapperRef?(node: HTMLLIElement): void;
 }
 
@@ -39,7 +50,10 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
       onCollapse,
       onRemove,
       style,
-      value,
+      name,
+      label,
+      description,
+      listeners: hooks,
       wrapperRef,
       ...props
     },
@@ -66,7 +80,15 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
-          <span className={styles.Text}>{value}</span>
+          <div className={styles.Text}>
+            <LabelAndDescriptionEditor
+              name={name}
+              label={label}
+              description={description}
+              onSaveDescription={hooks?.onSaveDescription}
+              onSaveLabel={hooks?.onSaveLabel}
+            />
+          </div>
           {onCollapse && (
             <Action
               onClick={onCollapse}

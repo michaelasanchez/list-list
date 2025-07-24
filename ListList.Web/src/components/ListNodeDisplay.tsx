@@ -14,7 +14,6 @@ import { AppStateActionType as ActionType, AppStateAction } from '../views/app';
 interface ListNodeDisplayProps {
   token: string;
   node: ListItem;
-  // path: NodePath;
   className?: string;
   dispatchAction: (action: AppStateAction) => void;
   reloadHeader: () => void;

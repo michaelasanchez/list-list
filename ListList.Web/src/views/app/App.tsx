@@ -1,9 +1,9 @@
 import { findIndex } from 'lodash';
 import * as React from 'react';
 import { useEffect, useReducer } from 'react';
-import { Container } from 'react-bootstrap';
+import { Button, Container } from 'react-bootstrap';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import { ListHeaderDisplay } from '../../components';
+import { Icon, LabelAndDescriptionEditor } from '../../components';
 import { Listeners, SortableTree } from '../../components/tree/SortableTree';
 import { ApiListItemCreation } from '../../contracts';
 import {
@@ -118,37 +118,71 @@ export const App: React.FC = () => {
 
   const displayHeader = activeHeader || previousHeader;
 
-  const headerListeners = React.useMemo<Listeners>(
+  const apis = React.useMemo<{ header: ListHeaderApi; item: ListItemApi }>(
     () => ({
+      header: new ListHeaderApi(authState.token),
+      item: new ListItemApi(authState.token),
+    }),
+    [authState]
+  );
+
+  const headerListeners = React.useMemo<Listeners>(
+    (): Listeners | null => ({
       onClick: (headerId: string) =>
         dispatch({ type: ActionType.SelectHeader, headerId }),
       onDragEnd: (headerId: string, destinationId: string) => {
-        const destinationIndex = state.headers.findIndex(
-          (h) => h.id == destinationId
-        );
+        const order = state.headers.findIndex((h) => h.id == destinationId);
 
         new ListHeaderApi(authState.token)
-          .Relocate(headerId, { order: destinationIndex })
+          .Relocate(headerId, { order })
           .then(() => loadHeaders(state.expanded));
       },
+      onSaveDescription: (id: string, description: string) =>
+        apis.header
+          .Put(id, {
+            ...state.headers.find((h) => h.id == id),
+            description,
+          })
+          .then(() => loadHeader(id, state.expanded)),
+      onSaveLabel: (id: string, label: string) =>
+        apis.header
+          .Put(id, {
+            ...state.headers.find((h) => h.id == id),
+            label,
+          })
+          .then(() => loadHeader(id, state.expanded)),
     }),
     [authState?.token, state.expanded, state.headers, activeHeader]
   );
 
   const activeListeners = React.useMemo<Listeners>(
-    () =>
+    (): Listeners | null =>
       activeHeader
         ? {
-            onClick: (headerId: string, itemId: string) => {
+            onClick: (itemId: string) => {
               dispatch({
                 type: ActionType.ToggleExpanded,
-                headerId,
+                headerId: activeHeader.id,
                 itemId,
               });
             },
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
-              new ListItemApi(authState.token)
+              apis.item
                 .Relocate(activeId, overId, parentId)
+                .then(() => loadHeader(activeHeader.id, state.expanded)),
+            onSaveDescription: (id: string, description: string) =>
+              apis.item
+                .Put(id, {
+                  ...activeHeader.items.find((i) => i.id == id),
+                  description,
+                })
+                .then(() => loadHeader(activeHeader.id, state.expanded)),
+            onSaveLabel: (id: string, label: string) =>
+              apis.item
+                .Put(id, {
+                  ...activeHeader.items.find((i) => i.id == id),
+                  label,
+                })
                 .then(() => loadHeader(activeHeader.id, state.expanded)),
           }
         : null,
@@ -188,15 +222,34 @@ export const App: React.FC = () => {
           <Container className="list-container">
             {displayHeader && (
               <>
-                <ListHeaderDisplay
-                  token={authState.token}
-                  header={displayHeader}
-                  selected={true}
-                  onSelect={() => dispatch({ type: ActionType.DeselectHeader })}
-                  reloadHeader={() =>
-                    loadHeader(activeHeader.id, state.expanded)
-                  }
-                />
+                <div className="selected-header">
+                  <div className="content">
+                    <LabelAndDescriptionEditor
+                      name={displayHeader?.id ?? 'none'}
+                      label={displayHeader?.label ?? ''}
+                      description={displayHeader?.description ?? ''}
+                      onSaveLabel={(label) =>
+                        headerListeners?.onSaveLabel(activeHeader.id, label)
+                      }
+                      onSaveDescription={(description) =>
+                        headerListeners?.onSaveDescription(
+                          activeHeader.id,
+                          description
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="actions">
+                    <Button
+                      variant="outline-secondary"
+                      onClick={() =>
+                        dispatch({ type: ActionType.DeselectHeader })
+                      }
+                    >
+                      <Icon type="backward" />
+                    </Button>
+                  </div>
+                </div>
                 <SortableTree
                   collapsible
                   indicator

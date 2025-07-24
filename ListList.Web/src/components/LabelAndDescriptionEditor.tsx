@@ -7,9 +7,9 @@ interface LabelAndDescriptionEditorProps {
   name: string;
   label: string;
   description: string;
-  onEditingChange: (editing: boolean) => void;
-  onSaveDescription: (description: string) => void;
-  onSaveLabel: (label: string) => void;
+  onEditingChange?: (editing: boolean) => void;
+  onSaveDescription?: (description: string) => void;
+  onSaveLabel?: (label: string) => void;
 }
 
 interface LabelAndDescriptionEditorState {
@@ -28,7 +28,7 @@ export const LabelAndDescriptionEditor: React.FC<
   });
 
   const handleBeginDescriptionUpdate = () => {
-    props.onEditingChange(true);
+    props.onEditingChange?.(true);
 
     setState({
       ...state,
@@ -38,8 +38,13 @@ export const LabelAndDescriptionEditor: React.FC<
   };
 
   const handleEndDescriptionUpdate = () => {
-    props.onSaveDescription(state.pendingDescription.trim());
-    props.onEditingChange(false);
+    const trimmedPendingDescription = state.pendingDescription.trim();
+
+    if (trimmedPendingDescription != props.description) {
+      props.onSaveDescription?.(trimmedPendingDescription);
+    }
+
+    props.onEditingChange?.(false);
 
     setState((s) => ({
       ...s,
@@ -49,7 +54,7 @@ export const LabelAndDescriptionEditor: React.FC<
   };
 
   const handleBeginUpdateLabel = () => {
-    props.onEditingChange(true);
+    props.onEditingChange?.(true);
 
     setState({
       ...state,
@@ -59,8 +64,13 @@ export const LabelAndDescriptionEditor: React.FC<
   };
 
   const handleEndUpdateLabel = () => {
-    props.onSaveLabel(state.pendingLabel.trim());
-    props.onEditingChange(false);
+    const trimmedPendingLabel = state.pendingLabel.trim();
+
+    if (trimmedPendingLabel != props.label) {
+      props.onSaveLabel?.(trimmedPendingLabel);
+    }
+
+    props.onEditingChange?.(false);
 
     setState((s) => ({ ...s, editingLabel: false, pendingLabel: null }));
   };

@@ -25,15 +25,19 @@ export class ListHeaderApi extends Api {
     return this.executeGet();
   };
 
+  public Put = (id: string, put: ApiListHeaderPut): Promise<void> => {
+    return this.executePut(put, id);
+  };
+
+  public Relocate = (headerId: string, relocation: ApiListHeaderRelocation) => {
+    this.setActionPath(`${headerId}/relocate`);
+
+    return this.executePost(relocation, null, false);
+  };
+
   public Update = (id: string, put: ApiListHeaderPut): Promise<void> => {
     this.setActionPath(id);
 
     return this.executePost(put, null, false);
-  };
-
-  public Relocate = (headerId: string, { order }: ApiListHeaderRelocation) => {
-    this.setActionPath(`${headerId}/relocate`);
-
-    return this.executePost({ order }, null, false);
   };
 }

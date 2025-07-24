@@ -1,11 +1,14 @@
 @use 'vars';
 
 @use 'components/navbar';
+@use 'components/label-and-description-editor';
 @use 'components/label-editor';
 
-@use 'components/list-header';
-@use 'components/list-node';
+// @use 'components/list-header';
+// @use 'components/list-node';
 
 @use 'components/tree';
 
 @use 'views/app';
+@use 'views/header';
+@use 'views/list';

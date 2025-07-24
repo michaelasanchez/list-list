@@ -1,5 +1,4 @@
 using Auth;
-using AutoMapper;
 using ListList.Api.Guards;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Mappers.Profiles;
@@ -12,17 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.RegisterDataServices(builder.Configuration.GetConnectionString("ListListContext"));
 
-// Auto Mapper Configurations
-var mapperConfig = new MapperConfiguration(mc =>
-{
-    mc.AddProfile(new ListHeaderProfile());
-    mc.AddProfile(new ListItemProfile());
-});
-
-IMapper mapper = mapperConfig.CreateMapper();
-
 // DI
-builder.Services.AddSingleton(mapper);
+builder.Services.AddAutoMapper(cfg => { }, typeof(ListHeaderProfile).Assembly);
 
 builder.Services.AddScoped<IGuard, Guard>();
 

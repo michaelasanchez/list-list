@@ -1,11 +1,18 @@
 .label-editor {
   position: relative;
+  display: inline-block;
 
-  font-weight: 500;
   font-size: 1.25rem;
+  font-weight: 500;
 
   color: transparent;
   user-select: none;
+
+  span,
+  textarea {
+    font-weight: inherit;
+    font-size: inherit;
+  }
 
   span {
     white-space: pre-wrap;
@@ -15,7 +22,6 @@
     resize: none;
     overflow: hidden;
 
-    // TODO: this might be temporary. Just using this to size it to the matching span for now
     height: 100%;
     min-height: unset;
   }
@@ -27,9 +33,6 @@
     padding: 0;
 
     transition: border-color 100ms;
-
-    font-weight: 500;
-    font-size: 1.25rem;
 
     border: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0);

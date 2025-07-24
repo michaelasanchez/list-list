@@ -70,13 +70,16 @@ const dropAnimationConfig: DropAnimation = {
   },
 };
 
+// TODO: get headerId outta here !!
 export interface Listeners {
-  onClick?: (headerId: UniqueIdentifier, itemId: UniqueIdentifier) => void;
+  onClick?: (id: UniqueIdentifier) => void;
   onDragEnd?: (
-    itemId: UniqueIdentifier,
+    id: UniqueIdentifier,
     overId: UniqueIdentifier,
     parentId: UniqueIdentifier
   ) => void;
+  onSaveDescription?: (id: UniqueIdentifier, description: string) => void;
+  onSaveLabel?: (id: UniqueIdentifier, label: string) => void;
 }
 
 interface Props {
@@ -153,10 +156,6 @@ export function SortableTree({
     [flattenedItems]
   );
 
-  const activeItem = activeId
-    ? flattenedItems.find(({ id }) => id === activeId)
-    : null;
-
   useEffect(() => setItems(defaultItems), [defaultItems]);
 
   useEffect(() => {
@@ -184,6 +183,13 @@ export function SortableTree({
     },
   };
 
+  // dnd-kit
+  const activeItem = activeId
+    ? flattenedItems.find(({ id }) => id === activeId)
+    : null;
+
+  const activeListItem = activeItem as any as ApiListItem;
+
   return (
     <DndContext
       accessibility={{ announcements }}
@@ -205,7 +211,9 @@ export function SortableTree({
             <SortableTreeItem
               key={id}
               id={id}
-              value={listItem.label}
+              name={listItem.id}
+              label={listItem.label}
+              description={listItem.description}
               depth={id === activeId && projected ? projected.depth : depth}
               indentationWidth={indentationWidth}
               indicator={indicator}
@@ -213,7 +221,7 @@ export function SortableTree({
               childCount={children.length}
               onClick={() =>
                 listeners?.onClick
-                  ? listeners.onClick(listItem.headerId, id)
+                  ? listeners.onClick(id)
                   : collapsible && handleCollapse(id)
               }
               onCollapse={
@@ -222,6 +230,11 @@ export function SortableTree({
                   : undefined
               }
               onRemove={removable ? () => handleRemove(id) : undefined}
+              listeners={{
+                onSaveDescription: (description) =>
+                  listeners?.onSaveDescription(id, description),
+                onSaveLabel: (label) => listeners?.onSaveLabel(id, label),
+              }}
             />
           );
         })}
@@ -236,7 +249,9 @@ export function SortableTree({
                 depth={activeItem.depth}
                 clone
                 childCount={getChildCount(items, activeId) + 1}
-                value={(activeItem as any as ApiListItem).label}
+                name={`active-${activeListItem.id}`}
+                label={activeListItem.label}
+                description={activeListItem.description}
                 indentationWidth={indentationWidth}
               />
             ) : null}

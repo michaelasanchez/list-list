@@ -29,101 +29,18 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         }
 
         var listHeaderId = active.First().ListHeaderId;
+        var spaceNeeded = active.Count * 2;
 
-        var over = overId is null ? null :
-            active
-                .Where(z => z.Id == overId)
-                .SingleOrDefault()
-            ?? await _context.ListItems
-                .AsNoTracking()
-                .Where(z => z.Id == overId)
-                .SingleOrDefaultAsync();
+        var insertionPoint = await GetInsertionPoint(listHeaderId, parentId, overId);
 
-        var parent = parentId is null ? null :
-            await _context.ListItems
-                .AsNoTracking()
-                .Where(z => z.Id == parentId)
-                .SingleOrDefaultAsync();
+        await ShiftExistingNodes(listHeaderId, insertionPoint, spaceNeeded);
 
-        var maxRight = await _context.ListItems
-            .AsNoTracking()
-            .Where(z => z.ListHeaderId == listHeaderId && !z.Deleted)
-            .OrderByDescending(z => z.Right)
-            .Select(z => (int?)z.Right)
-            .FirstOrDefaultAsync();
-
-        var thang = maxRight is null ? 0 : maxRight.Value + 1;
-
-        var leftBoundary =
-            over is null && parent is null
-
-            ?
-        thang
-:
-        Math.Min(
-            over?.Left ?? parent?.Right ?? 0,
-            parent?.Right ?? over?.Left ?? 0
-        );
-
-        ;
-
-        // Gemini
-        //var leftBoundary = (over?.Right + 1) ?? parent?.Right ?? 1;
-
-        // Chat GPT
-        //int leftBoundary;
-
-        //if (parent is not null)
-        //{
-        //    leftBoundary = parent.Left + 1;
-        //}
-        //else if (over is not null)
-        //{
-        //    leftBoundary = insertAfter ? over.Right + 1 : over.Left;
-        //}
-        //else
-        //{
-        //    leftBoundary = 0;
-        //}
-
-
-        //int? leftBoundary = null;
-        //if (over != null)
-        //{
-        //    // FIX: Conditionally choose the boundary based on the direction of the move.
-        //    // 'placeAfter' is true for downward moves, false for upward moves.
-        //    leftBoundary = insertAfter ? (over.Right + 1) : over.Left;
-        //}
-        //else
-        //{
-        //    // When appending to a parent or root, it's always an "after" operation.
-        //    leftBoundary = parent?.Right ?? 1;
-        //}
-
-        var items = await _context.ListItems
-            .Where(z =>
-                z.ListHeaderId == active[0].ListHeaderId &&
-                z.Right >= leftBoundary &&
-                !z.Deleted)
-            .OrderBy(z => z.Left)
-            .ToListAsync();
-
-        foreach (var item in items)
-        {
-            if (item.Left >= leftBoundary)
-            {
-                item.Left += active.Count * 2;
-            }
-
-            item.Right += active.Count * 2;
-        }
+        var positioningOffset = Math.Max(insertionPoint - 1, 0);
 
         foreach (var item in active)
         {
-            var shift = Math.Max(leftBoundary - 1, 0);
-
-            item.Left += shift;
-            item.Right += shift;
+            item.Left += positioningOffset;
+            item.Right += positioningOffset;
         }
     }
 
@@ -131,7 +48,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
     {
         var activeItem = await _context.ListItems.SingleAsync(z => z.Id == itemId);
 
-        var removed = await RemoveItemAsync(activeItem);
+        var removed = await RemoveNode(activeItem);
 
         foreach (var item in removed)
         {
@@ -183,7 +100,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
             .Select(z => (Guid?)z.Id)
             .FirstOrDefaultAsync();
 
-        var relocating = await RemoveItemAsync(active);
+        var relocating = await RemoveNode(active);
 
         ReindexSubtree(relocating);
 
@@ -209,7 +126,44 @@ public class ItemRepository(ListListContext _context) : IItemRepository
             .ToListAsync();
     }
 
-    private async Task<List<ListItemEntity>> RemoveItemAsync(ListItemEntity active)
+    private async Task<int> GetInsertionPoint(Guid listHeaderId, Guid? parentId, Guid? overId)
+    {
+        var over = overId is null ? null :
+            await _context.ListItems
+                .AsNoTracking()
+                .Where(z => z.Id == overId)
+                .SingleOrDefaultAsync();
+
+        var parent = parentId is null ? null :
+            await _context.ListItems
+                .AsNoTracking()
+                .Where(z => z.Id == parentId)
+                .SingleOrDefaultAsync();
+
+        var maxRight = await _context.ListItems
+            .AsNoTracking()
+            .Where(z => z.ListHeaderId == listHeaderId && !z.Deleted)
+            .OrderByDescending(z => z.Right)
+            .Select(z => (int?)z.Right)
+            .FirstOrDefaultAsync();
+
+        var partOfTheMess = maxRight is null ? 0 : maxRight.Value + 1;
+
+        var leftBoundary =
+            over is null && parent is null
+
+            ?
+        partOfTheMess
+:
+        Math.Min(
+            over?.Left ?? parent?.Right ?? 0,
+            parent?.Right ?? over?.Left ?? 0
+        );
+
+        return leftBoundary;
+    }
+
+    private async Task<List<ListItemEntity>> RemoveNode(ListItemEntity active)
     {
         var removeCount = (active.Right - active.Left + 1) / 2;
 
@@ -234,6 +188,27 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         }
 
         return [active, .. descendants];
+    }
+
+    private async Task ShiftExistingNodes(Guid listHeaderId, int insertionPoint, int spaceNeeded)
+    {
+        var items = await _context.ListItems
+            .Where(z =>
+                z.ListHeaderId == listHeaderId &&
+                z.Right >= insertionPoint &&
+                !z.Deleted)
+            .OrderBy(z => z.Left)
+            .ToListAsync();
+
+        foreach (var item in items)
+        {
+            if (item.Left >= insertionPoint)
+            {
+                item.Left += spaceNeeded;
+            }
+
+            item.Right += spaceNeeded;
+        }
     }
 
     private static void ReindexSubtree(List<ListItemEntity> items)

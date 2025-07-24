@@ -1,2 +1,2 @@
-export {TreeItem} from './TreeItem';
-export {SortableTreeItem} from './SortableTreeItem';
+export * from './SortableTreeItem';
+export * from './TreeItem';
