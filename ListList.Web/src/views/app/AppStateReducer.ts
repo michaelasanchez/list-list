@@ -1,8 +1,11 @@
 import { filter, map } from 'lodash';
 import { AppState } from '.';
-import { ApiListHeader, ApiListItemCreation } from '../../contracts';
+import {
+  ApiListHeader,
+  ApiListItem,
+  ApiListItemCreation,
+} from '../../contracts';
 import { ListItemMapper } from '../../mappers';
-import { ListItem } from '../../models';
 
 export enum AppStateActionType {
   // AddHeader,
@@ -14,6 +17,7 @@ export enum AppStateActionType {
   SelectHeader,
   SetHeader,
   SetHeaders,
+  SetItem,
   SetSyncing,
   // SetItem,
   ToggleExpanded,
@@ -29,7 +33,7 @@ export interface AppStateAction {
   headerId?: string;
   headers?: ApiListHeader[];
   syncing?: boolean;
-  item?: ListItem;
+  item?: ApiListItem;
   itemId?: string;
   path?: NodePath;
 }
@@ -91,6 +95,30 @@ export const AppStateReducer = (
       return {
         ...state,
         headers: ListItemMapper.mapHeaders(action.headers, state.expanded),
+      };
+    }
+    case AppStateActionType.SetItem: {
+      if (!action.item) return state;
+
+      return {
+        ...state,
+        headers: state.headers.map((h) =>
+          h.id == action.item.headerId
+            ? {
+                ...h,
+                items: h.items.map((i) =>
+                  i.id == action.item.id
+                    ? {
+                        ...i,
+                        // just updating label & description for now !!
+                        label: action.item.label,
+                        description: action.item.description,
+                      }
+                    : i
+                ),
+              }
+            : h
+        ),
       };
     }
     case AppStateActionType.SetSyncing: {

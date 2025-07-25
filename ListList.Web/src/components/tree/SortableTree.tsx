@@ -286,10 +286,6 @@ export function SortableTree({
     setOverId(over?.id ?? null);
   }
 
-  function op(items: FlattenedItem[], id: UniqueIdentifier): string {
-    return (items.find((i) => i.id == id) as any as { label: string }).label;
-  }
-
   function handleDragEnd({ active, over }: DragEndEvent) {
     resetState();
 
@@ -299,16 +295,6 @@ export function SortableTree({
       dragEndLocal(active.id, over.id, depth, parentId);
 
       const flattened = flattenTree(items);
-
-      const oho = (l: string, id: UniqueIdentifier) =>
-        console.log(
-          l,
-          (flattened.find((i) => i.id == id) as any as { label: string })?.label
-        );
-
-      oho('ACTIVE', active.id);
-      oho('OVER', over.id);
-      oho('PARENT', parentId);
 
       listeners?.onDragEnd(active.id, over.id, parentId);
     }

@@ -10,9 +10,11 @@ public class ListItemProfile : Profile
 {
     public ListItemProfile()
     {
-        CreateMap<ListItemEntity, ListItem>();
+        CreateMap<ListItemEntity, ListItem>()
+            .ForMember(dest => dest.HeaderId, opt => opt.MapFrom(src => src.ListHeaderId));
 
-        CreateMap<ListItem, ListItemEntity>();
+        CreateMap<ListItem, ListItemEntity>()
+            .ForMember(dest => dest.ListHeaderId, opt => opt.MapFrom(src => src.HeaderId));
 
         CreateMap<ListItemCreation, ListItemEntity>();
 

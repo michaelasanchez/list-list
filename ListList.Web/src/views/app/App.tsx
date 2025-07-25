@@ -51,7 +51,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (authState.initialized) {
       if (authState.authenticated) {
-        loadHeaders(state.expanded);
+        loadHeaders();
       } else {
         dispatch({ type: ActionType.SetHeaders, headers: [] });
         dispatch({ type: ActionType.SetSyncing, syncing: false });
@@ -59,8 +59,16 @@ export const App: React.FC = () => {
     }
   }, [authState.initialized, authState.authenticated]);
 
-  const loadHeaders = (expanded?: string[]) => {
-    new ListHeaderApi(authState.token).Get().then((headers) => {
+  const apis = React.useMemo<{ header: ListHeaderApi; item: ListItemApi }>(
+    () => ({
+      header: new ListHeaderApi(authState.token),
+      item: new ListItemApi(authState.token),
+    }),
+    [authState]
+  );
+
+  const loadHeaders = () => {
+    apis.header.Get().then((headers) => {
       dispatch({
         type: ActionType.SetHeaders,
         headers,
@@ -75,16 +83,17 @@ export const App: React.FC = () => {
     });
   };
 
-  const loadHeader = (headerId: string, expanded: string[]) => {
-    new ListHeaderApi(authState.token)
+  const loadHeader = (headerId: string) => {
+    apis.header
       .GetById(headerId)
       .then((header) => dispatch({ type: ActionType.SetHeader, header }));
   };
 
-  // TODO: gets tricky because we have to map child nodes tooooo
-  // const loadItem = (itemId: string) => {
-  //   new ListItemApi(authState.token).GetById(itemId).then((resp) => {});
-  // };
+  const loadItem = (itemId: string) => {
+    apis.item
+      .GetById(itemId)
+      .then((item) => dispatch({ type: ActionType.SetItem, item }));
+  };
 
   const handleCreateHeader = (listItem: ApiListItemCreation) => {
     if (listItem.label.trim().length > 0) {
@@ -94,7 +103,7 @@ export const App: React.FC = () => {
         .Create(headerCreation)
         .then((id: string) => {
           dispatch({ type: ActionType.FinalizeHeaderCreate });
-          loadHeaders(state.expanded);
+          loadHeaders();
         });
     } else {
       dispatch({ type: ActionType.CancelHeaderCreate });
@@ -118,14 +127,6 @@ export const App: React.FC = () => {
 
   const displayHeader = activeHeader || previousHeader;
 
-  const apis = React.useMemo<{ header: ListHeaderApi; item: ListItemApi }>(
-    () => ({
-      header: new ListHeaderApi(authState.token),
-      item: new ListItemApi(authState.token),
-    }),
-    [authState]
-  );
-
   const headerListeners = React.useMemo<Listeners>(
     (): Listeners | null => ({
       onClick: (headerId: string) =>
@@ -135,7 +136,7 @@ export const App: React.FC = () => {
 
         new ListHeaderApi(authState.token)
           .Relocate(headerId, { order })
-          .then(() => loadHeaders(state.expanded));
+          .then(() => loadHeaders());
       },
       onSaveDescription: (id: string, description: string) =>
         apis.header
@@ -143,14 +144,14 @@ export const App: React.FC = () => {
             ...state.headers.find((h) => h.id == id),
             description,
           })
-          .then(() => loadHeader(id, state.expanded)),
+          .then(() => loadHeader(id)),
       onSaveLabel: (id: string, label: string) =>
         apis.header
           .Put(id, {
             ...state.headers.find((h) => h.id == id),
             label,
           })
-          .then(() => loadHeader(id, state.expanded)),
+          .then(() => loadHeader(id)),
     }),
     [authState?.token, state.expanded, state.headers, activeHeader]
   );
@@ -169,21 +170,21 @@ export const App: React.FC = () => {
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
               apis.item
                 .Relocate(activeId, overId, parentId)
-                .then(() => loadHeader(activeHeader.id, state.expanded)),
+                .then(() => loadHeader(activeHeader.id)),
             onSaveDescription: (id: string, description: string) =>
               apis.item
                 .Put(id, {
                   ...activeHeader.items.find((i) => i.id == id),
                   description,
                 })
-                .then(() => loadHeader(activeHeader.id, state.expanded)),
+                .then(() => loadItem(id)),
             onSaveLabel: (id: string, label: string) =>
               apis.item
                 .Put(id, {
                   ...activeHeader.items.find((i) => i.id == id),
                   label,
                 })
-                .then(() => loadHeader(activeHeader.id, state.expanded)),
+                .then(() => loadItem(id)),
           }
         : null,
     [activeHeader]

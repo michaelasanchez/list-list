@@ -1,5 +1,5 @@
 import { Api } from '.';
-import { ApiListItemPut } from '../contracts';
+import { ApiListItem, ApiListItemPut } from '../contracts';
 import { ApiListItemCreation } from '../contracts/post/ApiListItemCreation';
 
 export class ListItemApi extends Api {
@@ -7,8 +7,9 @@ export class ListItemApi extends Api {
     super('item', token);
   }
 
-  public Complete = (listItemId: string) => {
+  public Complete = (listItemId: string): Promise<void> => {
     this.setActionPath(`${listItemId}/complete`);
+    
     return this.executePost(null, null, false);
   };
 
@@ -21,25 +22,25 @@ export class ListItemApi extends Api {
     return this.executePost(creation);
   };
 
-  public Delete = (listItemId: string) => {
+  public Delete = (listItemId: string): Promise<void> => {
     return this.executeDelete(listItemId);
   };
 
-  public GetById = (listItemId: string) => {
+  public GetById = (listItemId: string): Promise<ApiListItem> => {
     this.setActionPath(`${listItemId}`);
 
     return this.executeGet();
   };
 
-  public Put = (listItemId: string, put: ApiListItemPut) => {
-    return this.executePut(put, listItemId) as Promise<void>;
+  public Put = (listItemId: string, put: ApiListItemPut): Promise<void> => {
+    return this.executePut(put, listItemId);
   };
 
   public Relocate = (
     activeId: string,
     overId: string,
     parentId: string
-  ) => {
+  ): Promise<void> => {
     this.setActionPath(`${activeId}/relocate`);
 
     return this.executePost({ overId, parentId }, null, false);
