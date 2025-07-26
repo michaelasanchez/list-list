@@ -53,11 +53,11 @@ export const AppStateReducer = (
 
       return { ...rest };
     }
-    case AppStateActionType.DeselectHeader: {
-      const { activeHeaderId, ...rest } = state;
+    // case AppStateActionType.DeselectHeader: {
+    //   const { activeHeaderId, ...rest } = state;
 
-      return { ...rest, previousHeaderId: activeHeaderId };
-    }
+    //   return { ...rest, previousHeaderId: activeHeaderId };
+    // }
     case AppStateActionType.FinalizeHeaderCreate: {
       const { headerCreation, ...rest } = state;
 
@@ -74,11 +74,11 @@ export const AppStateReducer = (
         headers: updatedHeaders,
       };
     }
-    case AppStateActionType.SelectHeader: {
-      const { previousHeaderId, ...rest } = state;
+    // case AppStateActionType.SelectHeader: {
+    //   const { previousHeaderId, ...rest } = state;
 
-      return { ...rest, activeHeaderId: action.headerId };
-    }
+    //   return { ...rest, activeHeaderId: action.headerId };
+    // }
     case AppStateActionType.SetHeader: {
       const headers = map(state.headers, (h) =>
         h.id == action.header.id

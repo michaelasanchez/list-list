@@ -2,6 +2,7 @@ import { findIndex } from 'lodash';
 import * as React from 'react';
 import { useEffect, useReducer } from 'react';
 import { Button, Container } from 'react-bootstrap';
+import { Router, useLocation, useRoute } from 'wouter';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
 import { Icon, LabelAndDescriptionEditor } from '../../components';
 import { Listeners, SortableTree } from '../../components/tree/SortableTree';
@@ -29,9 +30,17 @@ const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   };
 };
 
+export type RouteParams = { activeHeaderId: string };
+
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
   const themeState = useTheme('ll-theme');
+
+  const [location, navigate] = useLocation();
+
+  const [match, params] = useRoute<RouteParams>('/:activeHeaderId');
+
+  const { activeHeaderId } = match ? params : {};
 
   const localStorage = useLocalStorage('ll-data');
 
@@ -58,6 +67,9 @@ export const App: React.FC = () => {
       }
     }
   }, [authState.initialized, authState.authenticated]);
+
+  // Keep state up-to-date with route
+  useEffect(() => {}, [location]);
 
   const apis = React.useMemo<{ header: ListHeaderApi; item: ListItemApi }>(
     () => ({
@@ -111,10 +123,11 @@ export const App: React.FC = () => {
   };
 
   const activeHeader = React.useMemo(() => {
-    const index = findIndex(state.headers, (h) => h.id == state.activeHeaderId);
+    // return null as typeof state.headers[0]
+    const index = findIndex(state.headers, (h) => h.id == activeHeaderId);
 
     return index >= 0 ? state.headers[index] : null;
-  }, [state.activeHeaderId, state.headers, state.expanded]);
+  }, [activeHeaderId, state.headers, state.expanded]);
 
   const previousHeader = React.useMemo(() => {
     const index = findIndex(
@@ -129,8 +142,10 @@ export const App: React.FC = () => {
 
   const headerListeners = React.useMemo<Listeners>(
     (): Listeners | null => ({
-      onClick: (headerId: string) =>
-        dispatch({ type: ActionType.SelectHeader, headerId }),
+      onClick: (headerId: string) => {
+        navigate(headerId);
+        dispatch({ type: ActionType.SelectHeader, headerId });
+      },
       onDragEnd: (headerId: string, destinationId: string) => {
         const order = state.headers.findIndex((h) => h.id == destinationId);
 
@@ -191,7 +206,7 @@ export const App: React.FC = () => {
   );
 
   return (
-    <>
+    <Router>
       <Navbar
         theme={themeState.current}
         authState={authState}
@@ -243,9 +258,11 @@ export const App: React.FC = () => {
                   <div className="actions">
                     <Button
                       variant="outline-secondary"
-                      onClick={() =>
-                        dispatch({ type: ActionType.DeselectHeader })
-                      }
+                      onClick={() => {
+                        navigate('/');
+
+                        dispatch({ type: ActionType.DeselectHeader });
+                      }}
                     >
                       <Icon type="backward" />
                     </Button>
@@ -266,6 +283,6 @@ export const App: React.FC = () => {
           </Container>
         </div>
       </main>
-    </>
+    </Router>
   );
 };

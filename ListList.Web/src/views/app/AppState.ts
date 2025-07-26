@@ -4,7 +4,7 @@ import { ListHeader } from '../../models';
 export interface AppState {
   syncing: boolean;
   expanded: string[];
-  activeHeaderId?: string;
+  // activeHeaderId?: string;
   previousHeaderId?: string;
   headers?: ListHeader[];
   parentId?: string;
