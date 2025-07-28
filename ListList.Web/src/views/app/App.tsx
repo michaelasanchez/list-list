@@ -1,10 +1,10 @@
 import { findIndex } from 'lodash';
 import * as React from 'react';
 import { useEffect, useReducer } from 'react';
-import { Button, Container } from 'react-bootstrap';
+import { Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import { Icon, LabelAndDescriptionEditor } from '../../components';
+import { IconButton, LabelAndDescriptionEditor } from '../../components';
 import { Listeners, SortableTree } from '../../components/tree/SortableTree';
 import { ApiListItemCreation } from '../../contracts';
 import {
@@ -256,16 +256,25 @@ export const App: React.FC = () => {
                     />
                   </div>
                   <div className="actions">
-                    <Button
+                    <IconButton
+                      iconType="share"
+                      size="sm"
                       variant="outline-secondary"
+                    />
+                    <IconButton
+                      iconType="kebab"
+                      size="sm"
+                      variant="outline-secondary"
+                    />
+                    <IconButton
+                      iconType="backward"
+                      variant="secondary"
                       onClick={() => {
                         navigate('/');
 
                         dispatch({ type: ActionType.DeselectHeader });
                       }}
-                    >
-                      <Icon type="backward" />
-                    </Button>
+                    />
                   </div>
                 </div>
                 <SortableTree

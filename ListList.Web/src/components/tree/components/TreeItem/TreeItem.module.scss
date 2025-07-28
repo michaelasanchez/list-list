@@ -96,6 +96,11 @@
   // overflow: hidden;
 }
 
+.Actions {
+  display: flex;
+  gap: 0.5em;
+}
+
 .Count {
   position: absolute;
   top: -10px;

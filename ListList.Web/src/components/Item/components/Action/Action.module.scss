@@ -11,6 +11,7 @@ $focused-outline-color: #4c9ffe;
   cursor: var(--cursor, pointer);
   border-radius: 5px;
   border: none;
+  // opacity: 0.7;
   outline: none;
   appearance: none;
   background-color: transparent;
@@ -21,7 +22,7 @@ $focused-outline-color: #4c9ffe;
       background-color: var(--action-background, rgba(0, 0, 0, 0.05));
 
       svg {
-        fill: #6f7b88;
+        stroke: #6f7b88;
       }
     }
   }
@@ -29,16 +30,15 @@ $focused-outline-color: #4c9ffe;
   svg {
     flex: 0 0 auto;
     margin: auto;
-    height: 100%;
     overflow: visible;
-    fill: #919eab;
+    stroke: #919eab;
   }
 
   &:active {
     background-color: var(--background, rgba(0, 0, 0, 0.05));
 
     svg {
-      fill: var(--fill, #788491);
+      stroke: var(--fill, #788491);
     }
   }
 
