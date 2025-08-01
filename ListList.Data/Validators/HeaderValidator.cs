@@ -11,7 +11,7 @@ public class HeaderValidator(IListListContext _context) : IHeaderValidator
     {
         var isValidIndex = index >= 0 &&
             index < await _context.ListHeaders
-                .CountAsync(z => z.UserId == userId && !z.Deleted);
+                .CountAsync(z => z.OwnerId == userId && !z.Deleted);
 
         if (!isValidIndex)
         {
@@ -22,7 +22,7 @@ public class HeaderValidator(IListListContext _context) : IHeaderValidator
     public async Task UserOwnsListHeaderAsync(Guid userId, Guid listHeaderId, ValidationResult result)
     {
         var userOwnsListHeader = await _context.ListHeaders
-            .AnyAsync(z => z.Id == listHeaderId && z.UserId == userId && !z.Deleted);
+            .AnyAsync(z => z.Id == listHeaderId && z.OwnerId == userId && !z.Deleted);
 
         if (!userOwnsListHeader)
         {

@@ -1,7 +1,6 @@
-﻿namespace ListList.Data.Models.Entities
+﻿namespace ListList.Data.Models.Entities;
+
+public class UserEntity : BaseEntity
 {
-    public class UserEntity : BaseEntity
-    {
-        public string Subject { get; set; }
-    }
+    public string Subject { get; set; } = string.Empty;
 }

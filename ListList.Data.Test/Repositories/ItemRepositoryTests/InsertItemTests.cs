@@ -33,7 +33,7 @@ public class InsertItemTests : BaseItemRepositoryTest
         var over = await SeedItem(headerId, 12, 13);
 
         var active = _fixture.Build<ListItemEntity>()
-            .With(z => z.ListHeaderId, headerId)
+            .With(z => z.HeaderId, headerId)
             .With(z => z.Left, 1)
             .With(z => z.Right, 2)
             .Without(x => x.ListHeader)

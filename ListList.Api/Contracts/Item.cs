@@ -1,6 +1,6 @@
 ﻿namespace ListList.Api.Contracts;
 
-public class ListItem
+public class Item
 {
     public Guid? Id { get; set; }
     public string? Label { get; set; }

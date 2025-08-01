@@ -70,6 +70,8 @@ export const useAuth = (clientId: string) => {
         ux_mode: 'popup',
         // TODO: does this need error handling? (probably)
         callback: (response: AuthorizationCodeReponse) => {
+          console.log('CALLBACK');
+
           setState((s) => ({ ...s, loading: true }));
 
           userApi.Login(response.code).then((token: ApiToken) => {
@@ -77,6 +79,8 @@ export const useAuth = (clientId: string) => {
             tokenStorage.commit(tokenString);
 
             const parsedToken = parseJwt(token.idToken);
+
+            console.log('LOGIN');
 
             setState((s) => ({
               ...s,
@@ -88,6 +92,8 @@ export const useAuth = (clientId: string) => {
           });
         },
       });
+
+      console.log('INIT');
 
       setState((s) => ({
         ...s,
@@ -109,6 +115,9 @@ export const useAuth = (clientId: string) => {
 
   const logout = () => {
     localStorage.clear();
+
+    console.log('LOGOUT');
+
     setState((s) => ({
       ...s,
       authenticated: false,
@@ -126,6 +135,8 @@ export const useAuth = (clientId: string) => {
         expiresWithinThreshold(new Date(storedToken.expiry), refreshThreshold);
 
       if (isStale) {
+        console.log('IS STALE');
+
         setState((s) => ({ ...s, loading: true }));
 
         userApi
@@ -142,6 +153,8 @@ export const useAuth = (clientId: string) => {
 
             const parsedToken = parseJwt(storedToken.idToken);
 
+            console.log('REFRESHED');
+
             setState((s) => ({
               ...s,
               authenticated: true,
@@ -150,16 +163,20 @@ export const useAuth = (clientId: string) => {
               picture: parsedToken.picture ?? state.picture,
             }));
           })
-          .catch(() =>
+          .catch(() => {
+            console.log('ERROR');
+
             setState((s) => ({
               ...s,
               authenticated: false,
               loading: false,
               token: null,
-            }))
-          );
+            }));
+          });
       } else {
         const parsedToken = parseJwt(storedToken.idToken);
+
+        console.log('RECOVERED (FROM CACHE)');
 
         setState((s) => ({
           ...s,

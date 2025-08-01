@@ -10,9 +10,13 @@ using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Api.Services;
 
-public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, IMapper _mapper, IGuard _guard) : BaseService, IHeaderService
+public class HeaderService(
+    IUnitOfWork _unitOfWork,
+    IUserService _userService,
+    IMapper _mapper,
+    IGuard _guard) : BaseService, IHeaderService
 {
-    private readonly IHeaderRepository _listHeaderRepository = _unitOfWork.ListHeaderRepository;
+    private readonly IHeaderRepository _listHeaderRepository = _unitOfWork.HeaderRepository;
 
     public async Task<Guid> CreateListHeader(ListHeaderCreation listHeader)
     {
@@ -25,36 +29,47 @@ public class HeaderService(IUnitOfWork _unitOfWork, IUserService _userService, I
             throw new Exception(result.Message);
         }
 
-        var creation = _mapper.Map<ListHeaderEntity>(listHeader);
+        var creation = _mapper.Map<HeaderEntity>(listHeader);
 
         await _listHeaderRepository.CreateListHeaderAsync(userId, creation);
 
         return creation.Id;
     }
 
-    public async Task<ListHeader> GetListHeaderById(Guid listHeaderId)
+    public async Task<Header> GetListHeader(string token)
     {
         var userId = await _userService.GetUserIdAsync();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListHeaderGetAsync(userId, listHeaderId));
+        if (Guid.TryParse(token, out var listHeaderId))
+        {
+            await InvokeGuard(() => _guard.AgainstInvalidListHeaderGetAsync(userId, listHeaderId));
 
-        var listHeader = await _listHeaderRepository.GetListHeaderByIdAsync(userId, listHeaderId);
+        }
 
-        return _mapper.Map<ListHeader>(listHeader);
+        var listHeader = listHeaderId == default
+            ? await _listHeaderRepository.GetListHeaderByToken(token)
+            : await _listHeaderRepository.GetListHeaderByIdAsync(userId, listHeaderId);
+
+        return _mapper.Map<Header>(listHeader);
     }
 
-    public async Task<IEnumerable<ListHeader>> GetListHeaders()
+    public Task<Header> GetListHeaderByToken(string token)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<IEnumerable<Header>> GetListHeaders()
     {
         var userId = await _userService.GetUserIdAsync();
 
         var listHeaders = await _listHeaderRepository.GetListHeadersAsync(userId);
 
-        return _mapper.Map<IEnumerable<ListHeader>>(listHeaders);
+        return _mapper.Map<IEnumerable<Header>>(listHeaders);
     }
 
     public async Task PutListHeader(Guid listHeaderId, ListHeaderPut listHeaderPut)
     {
-        var entityUpdate = _mapper.Map<ListHeaderEntity>(listHeaderPut);
+        var entityUpdate = _mapper.Map<HeaderEntity>(listHeaderPut);
 
         await _listHeaderRepository.PutListHeader(listHeaderId, entityUpdate);
     }

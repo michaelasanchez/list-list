@@ -11,14 +11,14 @@ public class ItemValidator(IListListContext _context) : IItemValidator
     {
         var targetNode = await _context.ListItems
             .Where(z => z.Id == listItemId)
-            .Select(z => new { z.ListHeaderId, z.Left, z.Right })
+            .Select(z => new { z.HeaderId, z.Left, z.Right })
             .SingleOrDefaultAsync();
 
         if (targetNode is not null)
         {
             var listItemNotEmpty = await _context.ListItems
                 .AnyAsync(z =>
-                    z.ListHeaderId == targetNode.ListHeaderId &&
+                    z.HeaderId == targetNode.HeaderId &&
                     z.Left > targetNode.Left &&
                     z.Right < targetNode.Right);
 
@@ -44,7 +44,7 @@ public class ItemValidator(IListListContext _context) : IItemValidator
     {
         var userOwnsListHeader = await _context.ListItems
             .Include(z => z.ListHeader)
-            .AnyAsync(z => z.Id == listItemId && z.ListHeader.UserId == userId);
+            .AnyAsync(z => z.Id == listItemId && z.ListHeader.OwnerId == userId);
 
         if (!userOwnsListHeader)
         {

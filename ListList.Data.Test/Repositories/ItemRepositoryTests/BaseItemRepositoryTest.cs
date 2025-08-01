@@ -24,7 +24,7 @@ public class BaseItemRepositoryTest : BaseRepositoryTest
         label ??= _fixture.Create<string>();
 
         var item = _fixture.Build<ListItemEntity>()
-            .With(z => z.ListHeaderId, listHeaderId)
+            .With(z => z.HeaderId, listHeaderId)
             .With(z => z.Left, left)
             .With(z => z.Right, right)
             .With(z => z.Label, label)

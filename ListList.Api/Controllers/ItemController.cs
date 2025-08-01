@@ -58,9 +58,9 @@ public class ItemController(IItemService _service) : Controller
     }
 
     [HttpGet("{listItemId}")]
-    public async Task<ActionResult<ListItem>> GetListItemByIdAsync([FromRoute] Guid listItemId)
+    public async Task<ActionResult<Item>> GetListItemByIdAsync([FromRoute] Guid listItemId)
     {
-        ListItem listItem;
+        Item listItem;
 
         try
         {

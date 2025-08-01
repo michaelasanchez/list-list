@@ -1,0 +1,86 @@
+.ShareModal {
+}
+
+.Inset {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 1rem 0.5rem;
+
+  & + .Heading {
+    margin-top: 1rem;
+  }
+}
+
+.Heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  margin-bottom: 0.5em;
+}
+
+.Users {
+  align-items: center;
+}
+
+.ShareLink {
+  border: none !important;
+
+  :global(.card-body) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    :global(.label-editor) {
+      font-size: 0.875rem;
+    }
+
+    :global(.badge) {
+      font-size: 0.75rem;
+    }
+
+    --badge-opacity: 0.4;
+
+    :global(.bg-info) {
+      background-color: rgba(
+        var(--bs-info-rgb),
+        var(--badge-opacity)
+      ) !important;
+    }
+
+    :global(.bg-success) {
+      background-color: rgba(
+        var(--bs-success-rgb),
+        var(--badge-opacity)
+      ) !important;
+    }
+    
+    :global(.bg-warning) {
+      background-color: rgba(
+        var(--bs-warning-rgb),
+        var(--badge-opacity)
+      ) !important;
+    }
+    
+    .Content {
+      code {
+        color: gray;
+
+        // border: 1px solid gray;
+        // border-radius: 4px;
+
+        // padding: 0.125rem 0.25rem;
+      }
+    }
+
+    .Content,
+    .Actions {
+      display: flex;
+      gap: 1rem;
+    }
+  }
+}

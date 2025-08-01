@@ -15,12 +15,12 @@ export class ListHeaderApi extends Api {
     return this.executePost(creation);
   };
 
-  public Get = (): Promise<ApiListHeader[]> => {
+  public GetAll = (): Promise<ApiListHeader[]> => {
     return this.executeGet();
   };
 
-  public GetById = (id: string): Promise<ApiListHeader> => {
-    this.setActionPath(id);
+  public Get = (token: string): Promise<ApiListHeader> => {
+    this.setActionPath(token);
 
     return this.executeGet();
   };

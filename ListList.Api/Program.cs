@@ -12,14 +12,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.RegisterDataServices(builder.Configuration.GetConnectionString("ListListContext"));
 
 // DI
-builder.Services.AddAutoMapper(cfg => { }, typeof(ListHeaderProfile).Assembly);
+builder.Services.AddAutoMapper(cfg => { }, typeof(HeaderProfile).Assembly);
 
 builder.Services.AddScoped<IGuard, Guard>();
 
 builder.Services.AddScoped<IHeaderService, HeaderService>();
 builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddScoped<IShareService, ShareService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<UserService, UserService>();
 
 builder.Services.AddHttpContextAccessor();
 

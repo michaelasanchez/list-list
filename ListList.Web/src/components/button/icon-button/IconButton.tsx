@@ -10,19 +10,33 @@ export interface IconButtonProps extends ButtonProps {
   align?: 'start' | 'end';
 }
 
+const getIconSize = (size?: 'sm' | 'lg'): number | null => {
+  switch (size) {
+    case 'sm':
+      return 12;
+    case 'lg':
+      return 20;
+    default:
+      return 16;
+  }
+};
+
 export const IconButton: React.FC<IconButtonProps> = (props) => {
   const { children, iconType, align, ...rest } = props;
 
+  const iconProps = { type: iconType, size: getIconSize(props.size) };
+
   return (
-    <Button {...rest} className={classNames(styles.IconButton)}>
+    <Button {...rest}>
+       {/* className={classNames(styles.IconButton)}> */}
       {align == 'end' ? (
         <>
           {children}
-          <Icon type={iconType} />
+          <Icon {...iconProps} />
         </>
       ) : (
         <>
-          <Icon type={iconType} />
+          <Icon {...iconProps} />
           {children}
         </>
       )}

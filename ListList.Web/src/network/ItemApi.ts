@@ -9,7 +9,7 @@ export class ListItemApi extends Api {
 
   public Complete = (listItemId: string): Promise<void> => {
     this.setActionPath(`${listItemId}/complete`);
-    
+
     return this.executePost(null, null, false);
   };
 

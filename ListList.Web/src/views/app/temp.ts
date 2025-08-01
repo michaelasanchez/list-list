@@ -1,5 +1,6 @@
 import { TreeItem, TreeItems } from '../../components/tree/types';
-import { ApiListHeader, ApiListItem } from '../../contracts';
+import { ApiListItem } from '../../contracts';
+import { ListHeader, ListItem } from '../../models';
 
 export interface ApiListItemWithChildren extends ApiListItem {
   index: number;
@@ -7,7 +8,7 @@ export interface ApiListItemWithChildren extends ApiListItem {
   children: ApiListItemWithChildren[];
 }
 
-function buildTreeFromHeaders(headers: ApiListHeader[]): TreeItems {
+function buildTreeFromHeaders(headers: ListHeader[]): TreeItems {
   return (
     headers?.map<TreeItem>((header, index) => ({
       ...header,
@@ -19,10 +20,7 @@ function buildTreeFromHeaders(headers: ApiListHeader[]): TreeItems {
   );
 }
 
-function buildTreeFromItems(
-  items: ApiListItem[],
-  expanded: string[]
-): TreeItems {
+function buildTreeFromItems(items: ListItem[], expanded: string[]): TreeItems {
   if (!items?.length) return [];
 
   const itemMap = new Map<string, ApiListItemWithChildren>();

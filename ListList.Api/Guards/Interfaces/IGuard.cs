@@ -1,4 +1,5 @@
-﻿using ListList.Data.Models;
+﻿using ListList.Api.Contracts.Post;
+using ListList.Data.Models;
 
 namespace ListList.Api.Guards.Interfaces;
 
@@ -13,4 +14,5 @@ public interface IGuard
     Task<ValidationResult> AgainstInvalidListItemGetAsync(Guid userId, Guid listItemId);
     Task<ValidationResult> AgainstInvalidListItemPutAsync(Guid userId, Guid listItemId);
     Task<ValidationResult> AgainstInvalidListItemRelocation(Guid userId, Guid listItemId, Guid? parentId);
+    Task<ValidationResult> AgainstInvalidListShare(Guid userId, Guid listHeaderId, ListHeaderShare listHeaderShare);
 }

@@ -80,11 +80,12 @@ export const AppStateReducer = (
     //   return { ...rest, activeHeaderId: action.headerId };
     // }
     case AppStateActionType.SetHeader: {
-      const headers = map(state.headers, (h) =>
-        h.id == action.header.id
-          ? ListItemMapper.mapHeader(action.header, state.expanded)
-          : h
-      );
+      const exists = state.headers?.some((h) => h.id == action.header.id);
+      const mapped = ListItemMapper.mapHeader(action.header, state.expanded);
+
+      const headers = exists
+        ? map(state.headers, (h) => (h.id == action.header.id ? mapped : h))
+        : [...(state.headers ?? []), mapped].sort((a, b) => a.order - b.order);
 
       return {
         ...state,

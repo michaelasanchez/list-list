@@ -1,48 +1,53 @@
-﻿using ListList.Data.Validators;
-using ListList.Data.Validators.Interfaces;
+﻿using AutoMapper;
 using ListList.Data.Models.Interfaces;
 using ListList.Data.Repositories;
 using ListList.Data.Repositories.Interfaces;
+using ListList.Data.Validators;
+using ListList.Data.Validators.Interfaces;
 
-namespace ListList.Data.Models
+namespace ListList.Data.Models;
+
+internal class UnitOfWork : IUnitOfWork
 {
-    internal class UnitOfWork : IUnitOfWork
+    private readonly ListListContext _context;
+    private readonly IMapper _mapper;
+
+    private readonly Lazy<IHeaderRepository> _headerRepository;
+    private readonly Lazy<IItemRepository> _itemRepository;
+    private readonly Lazy<IShareRepository> _shareRepository;
+    private readonly Lazy<IUserRepository> _userRepository;
+
+    private readonly Lazy<IItemValidator> _itemValidator;
+
+    public UnitOfWork(ListListContext context, IMapper mapper)
     {
-        private readonly ListListContext _context;
+        _context = context;
+        _mapper = mapper;
 
-        private readonly Lazy<IItemRepository> _listItemRepository;
-        private readonly Lazy<IHeaderRepository> _listHeaderRepository;
-        private readonly Lazy<IUserRepository> _userRepository;
+        _headerRepository = new Lazy<IHeaderRepository>(() => new HeaderRepository(_context, _mapper));
+        _itemRepository = new Lazy<IItemRepository>(() => new ItemRepository(_context));
+        _shareRepository = new Lazy<IShareRepository>(() => new ShareRepository(_context));
+        _userRepository = new Lazy<IUserRepository>(() => new UserRepository(_context));
 
-        private readonly Lazy<IItemValidator> _listItemValidator;
+        _itemValidator = new Lazy<IItemValidator>(() => new ItemValidator(_context));
+    }
 
-        public UnitOfWork(ListListContext context)
+    public IHeaderRepository HeaderRepository => _headerRepository.Value;
+    public IItemRepository ItemRepository => _itemRepository.Value;
+    public IShareRepository ShareRepository => _shareRepository.Value;
+    public IUserRepository UserRepository => _userRepository.Value;
+
+    public IItemValidator ItemValidator => _itemValidator.Value;
+
+    public async Task SaveChangesAsync()
+    {
+        try
         {
-            _context = context;
-
-            _listHeaderRepository = new Lazy<IHeaderRepository>(() => new HeaderRepository(_context));
-            _listItemRepository = new Lazy<IItemRepository>(() => new ItemRepository(_context));
-            _userRepository = new Lazy<IUserRepository>(() => new UserRepository(_context));
-
-            _listItemValidator = new Lazy<IItemValidator>(() => new ItemValidator(_context));
+            await _context.SaveChangesAsync();
         }
-
-        public IItemRepository ListItemRepository => _listItemRepository.Value;
-        public IHeaderRepository ListHeaderRepository => _listHeaderRepository.Value;
-        public IUserRepository UserRepository => _userRepository.Value;
-
-        public IItemValidator ListItemValidator => _listItemValidator.Value;
-
-        public async Task SaveChangesAsync()
+        catch (Exception ex)
         {
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("SaveChanges failed", ex);
-            }
+            throw new Exception("SaveChanges failed", ex);
         }
     }
 }

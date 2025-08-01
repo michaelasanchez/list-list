@@ -12,7 +12,7 @@ namespace ListList.Api.Services;
 
 public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMapper _mapper, IGuard _guard) : BaseService, IItemService
 {
-    private readonly IItemRepository _listItemRepository = _unitOfWork.ListItemRepository;
+    private readonly IItemRepository _listItemRepository = _unitOfWork.ItemRepository;
 
     public async Task CompleteListItemAsync(Guid listItemId)
     {
@@ -61,7 +61,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<ListItem> GetListItemByIdAsync(Guid listItemId)
+    public async Task<Item> GetListItemByIdAsync(Guid listItemId)
     {
         var userId = await _userService.GetUserIdAsync();
 
@@ -74,7 +74,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
         var listItem = await _listItemRepository.GetListItemById(listItemId);
 
-        return _mapper.Map<ListItem>(listItem);
+        return _mapper.Map<Item>(listItem);
     }
 
     public async Task PutListItemAsync(Guid listItemId, ListItemPut listItemPut)

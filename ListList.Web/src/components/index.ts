@@ -13,6 +13,8 @@ export * from './ListHeaderDisplay';
 export * from './ListNodeCreation';
 export * from './ListNodeDisplay';
 export * from './modal';
+export * from './selected-header';
+export * from './share-modal';
 export * from './tree/components';
 export * from './tree/components/TreeItem';
 export * from './tree/keyboardCoordinates';

@@ -28,13 +28,13 @@ public class HeaderController(IHeaderService _service) : Controller
     }
 
     [HttpGet("{headerId}")]
-    public async Task<ActionResult<ListHeader>> GetListHeaderByIdAsync(Guid headerId)
+    public async Task<ActionResult<Header>> GetListHeaderAsync(string headerId)
     {
-        ListHeader listHeader;
+        Header listHeader;
 
         try
         {
-            listHeader = await _service.GetListHeaderById(headerId);
+            listHeader = await _service.GetListHeader(headerId);
         }
         catch (Exception ex)
         {
@@ -45,9 +45,9 @@ public class HeaderController(IHeaderService _service) : Controller
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ListHeader>>> GetListHeadersAsync()
+    public async Task<ActionResult<IEnumerable<Header>>> GetListHeadersAsync()
     {
-        IEnumerable<ListHeader> listHeaders;
+        IEnumerable<Header> listHeaders;
 
         try
         {

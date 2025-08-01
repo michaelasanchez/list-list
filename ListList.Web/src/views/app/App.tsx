@@ -4,7 +4,7 @@ import { useEffect, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import { IconButton, LabelAndDescriptionEditor } from '../../components';
+import { SelectedHeader } from '../../components';
 import { Listeners, SortableTree } from '../../components/tree/SortableTree';
 import { ApiListItemCreation } from '../../contracts';
 import {
@@ -13,7 +13,7 @@ import {
   useLocalStorage,
   useTheme,
 } from '../../hooks';
-import { ListHeaderApi, ListItemApi } from '../../network';
+import { ListHeaderApi, ListItemApi, ShareApi } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
 import { Temp } from './temp';
@@ -30,7 +30,7 @@ const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   };
 };
 
-export type RouteParams = { activeHeaderId: string };
+export type RouteParams = { token: string };
 
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
@@ -38,9 +38,9 @@ export const App: React.FC = () => {
 
   const [location, navigate] = useLocation();
 
-  const [match, params] = useRoute<RouteParams>('/:activeHeaderId');
+  const [match, params] = useRoute<RouteParams>('/:token');
 
-  const { activeHeaderId } = match ? params : {};
+  const { token } = match ? params : {};
 
   const localStorage = useLocalStorage('ll-data');
 
@@ -60,7 +60,11 @@ export const App: React.FC = () => {
   useEffect(() => {
     if (authState.initialized) {
       if (authState.authenticated) {
-        loadHeaders();
+        if (token) {
+          loadHeader(token);
+        } else {
+          loadHeaders();
+        }
       } else {
         dispatch({ type: ActionType.SetHeaders, headers: [] });
         dispatch({ type: ActionType.SetSyncing, syncing: false });
@@ -71,38 +75,43 @@ export const App: React.FC = () => {
   // Keep state up-to-date with route
   useEffect(() => {}, [location]);
 
-  const apis = React.useMemo<{ header: ListHeaderApi; item: ListItemApi }>(
+  const apis = React.useMemo(
     () => ({
-      header: new ListHeaderApi(authState.token),
-      item: new ListItemApi(authState.token),
+      headerApi: new ListHeaderApi(authState.token),
+      itemApi: new ListItemApi(authState.token),
+      shareApi: new ShareApi(authState.token),
     }),
     [authState]
   );
 
+  const finishSyncing = () =>
+    state.syncing &&
+    dispatch({
+      type: ActionType.SetSyncing,
+      syncing: false,
+    });
+
   const loadHeaders = () => {
-    apis.header.Get().then((headers) => {
+    apis.headerApi.GetAll().then((headers) => {
       dispatch({
         type: ActionType.SetHeaders,
         headers,
       });
 
-      if (state.syncing) {
-        dispatch({
-          type: ActionType.SetSyncing,
-          syncing: false,
-        });
-      }
+      finishSyncing();
     });
   };
 
-  const loadHeader = (headerId: string) => {
-    apis.header
-      .GetById(headerId)
-      .then((header) => dispatch({ type: ActionType.SetHeader, header }));
+  const loadHeader = (token: string) => {
+    apis.headerApi.Get(token).then((header) => {
+      dispatch({ type: ActionType.SetHeader, header });
+
+      finishSyncing();
+    });
   };
 
   const loadItem = (itemId: string) => {
-    apis.item
+    apis.itemApi
       .GetById(itemId)
       .then((item) => dispatch({ type: ActionType.SetItem, item }));
   };
@@ -123,11 +132,12 @@ export const App: React.FC = () => {
   };
 
   const activeHeader = React.useMemo(() => {
-    // return null as typeof state.headers[0]
-    const index = findIndex(state.headers, (h) => h.id == activeHeaderId);
+    const index = !token
+      ? -1
+      : findIndex(state.headers, (h) => h.id == token || h.token == token);
 
     return index >= 0 ? state.headers[index] : null;
-  }, [activeHeaderId, state.headers, state.expanded]);
+  }, [token, state.headers, state.expanded]);
 
   const previousHeader = React.useMemo(() => {
     const index = findIndex(
@@ -154,14 +164,14 @@ export const App: React.FC = () => {
           .then(() => loadHeaders());
       },
       onSaveDescription: (id: string, description: string) =>
-        apis.header
+        apis.headerApi
           .Put(id, {
             ...state.headers.find((h) => h.id == id),
             description,
           })
           .then(() => loadHeader(id)),
       onSaveLabel: (id: string, label: string) =>
-        apis.header
+        apis.headerApi
           .Put(id, {
             ...state.headers.find((h) => h.id == id),
             label,
@@ -171,7 +181,7 @@ export const App: React.FC = () => {
     [authState?.token, state.expanded, state.headers, activeHeader]
   );
 
-  const activeListeners = React.useMemo<Listeners>(
+  const displayListeners = React.useMemo<Listeners>(
     (): Listeners | null =>
       activeHeader
         ? {
@@ -183,18 +193,18 @@ export const App: React.FC = () => {
               });
             },
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
-              apis.item
+              apis.itemApi
                 .Relocate(activeId, overId, parentId)
                 .then(() => loadHeader(activeHeader.id)),
             onSaveDescription: (id: string, description: string) =>
-              apis.item
+              apis.itemApi
                 .Put(id, {
                   ...activeHeader.items.find((i) => i.id == id),
                   description,
                 })
                 .then(() => loadItem(id)),
             onSaveLabel: (id: string, label: string) =>
-              apis.item
+              apis.itemApi
                 .Put(id, {
                   ...activeHeader.items.find((i) => i.id == id),
                   label,
@@ -221,62 +231,17 @@ export const App: React.FC = () => {
               listeners={headerListeners}
               defaultItems={Temp.buildTreeFromHeaders(state.headers)}
             />
-            {/* {authState.authenticated && (
-              <ListNodeCreation
-                node={(state as AppState).headerCreation}
-                placeholder="New List"
-                onCancel={() => dispatch({ type: ActionType.CancelNodeDelete })}
-                onSave={() => handleCreateHeader(state.headerCreation)}
-                onUpdate={(creation: ListItemCreation) =>
-                  dispatch({ type: ActionType.UpdateHeaderCreation, creation })
-                }
-              />
-            )} */}
           </Container>
         </div>
         <div className={`list-view${!!activeHeader ? ' show' : ''}`}>
           <Container className="list-container">
             {displayHeader && (
               <>
-                <div className="selected-header">
-                  <div className="content">
-                    <LabelAndDescriptionEditor
-                      name={displayHeader?.id ?? 'none'}
-                      label={displayHeader?.label ?? ''}
-                      description={displayHeader?.description ?? ''}
-                      onSaveLabel={(label) =>
-                        headerListeners?.onSaveLabel(activeHeader.id, label)
-                      }
-                      onSaveDescription={(description) =>
-                        headerListeners?.onSaveDescription(
-                          activeHeader.id,
-                          description
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="actions">
-                    <IconButton
-                      iconType="share"
-                      size="sm"
-                      variant="outline-secondary"
-                    />
-                    <IconButton
-                      iconType="kebab"
-                      size="sm"
-                      variant="outline-secondary"
-                    />
-                    <IconButton
-                      iconType="backward"
-                      variant="secondary"
-                      onClick={() => {
-                        navigate('/');
-
-                        dispatch({ type: ActionType.DeselectHeader });
-                      }}
-                    />
-                  </div>
-                </div>
+                <SelectedHeader
+                  header={displayHeader}
+                  listeners={displayListeners}
+                  onBack={() => navigate('/')}
+                />
                 <SortableTree
                   collapsible
                   indicator
@@ -285,7 +250,7 @@ export const App: React.FC = () => {
                     displayHeader.items,
                     state.expanded
                   )}
-                  listeners={activeListeners}
+                  listeners={displayListeners}
                 />
               </>
             )}

@@ -1,6 +1,6 @@
 import { map } from 'lodash';
-import { ApiListHeader, ApiListItem } from '../contracts';
-import { ListHeader } from '../models';
+import { ApiListHeader, ApiListItem, ApiShareLink } from '../contracts';
+import { ListHeader, ShareLink } from '../models';
 import { ListItem } from '../models/ListItem';
 
 // const mapChildNodes = (
@@ -58,6 +58,12 @@ const mapItems = (items: ApiListItem[], expanded: string[]): ListItem[] =>
     // children: [],
   }));
 
+const mapShareLinks = (links: ApiShareLink[]): ShareLink[] =>
+  links?.map((l) => ({
+    ...l,
+    expiresOn: l.expiresOn ? new Date(l.expiresOn) : null,
+  }));
+
 const mapHeaders = (
   headers: ApiListHeader[],
   expanded?: string[]
@@ -68,14 +74,17 @@ const mapHeaders = (
     description: h.description,
     order: h.order,
     items: mapItems(h.items, expanded),
+    shareLinks: mapShareLinks(h.shareLinks),
   }));
 
 const mapHeader = (header: ApiListHeader, expanded: string[]): ListHeader => ({
   id: header.id,
+  token: header.token,
   label: header.label,
   description: header.description,
   order: header.order,
   items: mapItems(header.items, expanded),
+  shareLinks: mapShareLinks(header.shareLinks),
 });
 
 export const ListItemMapper = {

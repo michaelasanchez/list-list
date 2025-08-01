@@ -1,4 +1,5 @@
 export * from './Api';
-export * from './ListHeaderApi';
-export * from './ListItemApi';
+export * from './HeaderApi';
+export * from './ItemApi';
+export * from './ShareApi';
 export * from './UserApi';

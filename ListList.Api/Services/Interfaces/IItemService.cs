@@ -9,7 +9,7 @@ public interface IItemService
     Task CompleteListItemAsync(Guid listItemId);
     Task<Guid> CreateListItemAsync(ListItemCreation creation, Guid parentId);
     Task DeleteListItemAsync(Guid listItemId);
-    Task<ListItem> GetListItemByIdAsync(Guid listItemId);
+    Task<Item> GetListItemByIdAsync(Guid listItemId);
     Task PutListItemAsync(Guid listItemId, ListItemPut listItemPut);
     Task RelocateListItemAsync(Guid activeId, Guid overId, Guid? parentId);
 }

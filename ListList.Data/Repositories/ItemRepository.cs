@@ -28,7 +28,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
             return;
         }
 
-        var listHeaderId = active.First().ListHeaderId;
+        var listHeaderId = active.First().HeaderId;
         var spaceNeeded = active.Count * 2;
 
         var insertionPoint = await GetInsertionPoint(listHeaderId, parentId, overId);
@@ -93,7 +93,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
         var nextId = await _context.ListItems
             .Where(z =>
-                z.ListHeaderId == active.ListHeaderId &&
+                z.HeaderId == active.HeaderId &&
                 z.Left > (useNext ? over.Right : active.Right) &&
                 !z.Deleted)
             .OrderBy(z => z.Left)
@@ -119,7 +119,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
     {
         return await _context.ListItems
             .Where(z =>
-                z.ListHeaderId == parent.ListHeaderId &&
+                z.HeaderId == parent.HeaderId &&
                 z.Left > parent.Left &&
                 z.Right < parent.Right &&
                 !z.Deleted)
@@ -142,7 +142,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
         var maxRight = await _context.ListItems
             .AsNoTracking()
-            .Where(z => z.ListHeaderId == listHeaderId && !z.Deleted)
+            .Where(z => z.HeaderId == listHeaderId && !z.Deleted)
             .OrderByDescending(z => z.Right)
             .Select(z => (int?)z.Right)
             .FirstOrDefaultAsync();
@@ -172,7 +172,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         var subsequent = await _context.ListItems
             .Where(z =>
                 z.Id != active.Id &&
-                z.ListHeaderId == active.ListHeaderId &&
+                z.HeaderId == active.HeaderId &&
                 z.Right > active.Right &&
                 !z.Deleted)
             .ToListAsync();
@@ -194,7 +194,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
     {
         var items = await _context.ListItems
             .Where(z =>
-                z.ListHeaderId == listHeaderId &&
+                z.HeaderId == listHeaderId &&
                 z.Right >= insertionPoint &&
                 !z.Deleted)
             .OrderBy(z => z.Left)
