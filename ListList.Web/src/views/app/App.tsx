@@ -13,10 +13,13 @@ import {
   useLocalStorage,
   useTheme,
 } from '../../hooks';
+import { Temp } from '../../mappers/TreeItemMapper';
 import { ListHeaderApi, ListItemApi, ShareApi } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
-import { Temp } from './temp';
+
+const themeKey = 'll-them';
+const cacheKey = 'll-data';
 
 const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   const defaultState = localStorage.exists()
@@ -25,8 +28,9 @@ const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
 
   return {
     syncing: true,
+    loading: false,
     expanded: defaultState.expanded ?? [],
-    headers: defaultState.headers,
+    headers: defaultState.headers ?? [],
   };
 };
 
@@ -34,7 +38,7 @@ export type RouteParams = { token: string };
 
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
-  const themeState = useTheme('ll-theme');
+  const themeState = useTheme(themeKey);
 
   const [location, navigate] = useLocation();
 
@@ -42,38 +46,46 @@ export const App: React.FC = () => {
 
   const { token } = match ? params : {};
 
-  const localStorage = useLocalStorage('ll-data');
+  const localStorage = useLocalStorage(cacheKey);
 
-  const [state, dispatch] = useReducer(
-    AppStateReducer,
+  const [state, dispatch] = useReducer(AppStateReducer, null, () =>
     getDefaultAppState(localStorage)
   );
 
   // Keep local storage up-to-date
   useEffect(() => {
-    localStorage.commit(
-      JSON.stringify({ expanded: state.expanded, headers: state.headers })
-    );
+    const json = JSON.stringify({
+      expanded: state.expanded,
+      headers: state.headers,
+    });
+    localStorage.commit(json);
   }, [state.expanded, state.headers]);
 
-  // Load/unload list headers
+  // Load/unload headers
   useEffect(() => {
     if (authState.initialized) {
       if (authState.authenticated) {
-        if (token) {
-          loadHeader(token);
-        } else {
-          loadHeaders();
-        }
+        loadHeaders();
       } else {
         dispatch({ type: ActionType.SetHeaders, headers: [] });
-        dispatch({ type: ActionType.SetSyncing, syncing: false });
+
+        finishSyncing();
       }
     }
   }, [authState.initialized, authState.authenticated]);
 
   // Keep state up-to-date with route
-  useEffect(() => {}, [location]);
+  useEffect(() => {
+    if (state.headers) {
+    }
+  }, [state.headers, token]);
+
+  const finishSyncing = () =>
+    state.syncing &&
+    dispatch({
+      type: ActionType.SetSyncing,
+      syncing: false,
+    });
 
   const apis = React.useMemo(
     () => ({
@@ -84,26 +96,22 @@ export const App: React.FC = () => {
     [authState]
   );
 
-  const finishSyncing = () =>
-    state.syncing &&
-    dispatch({
-      type: ActionType.SetSyncing,
-      syncing: false,
-    });
-
   const loadHeaders = () => {
+    dispatch({ type: ActionType.SetLoading, loading: true });
+
     apis.headerApi.GetAll().then((headers) => {
-      dispatch({
-        type: ActionType.SetHeaders,
-        headers,
-      });
+      dispatch({ type: ActionType.SetLoading, loading: false });
+      dispatch({ type: ActionType.SetHeaders, headers });
 
       finishSyncing();
     });
   };
 
   const loadHeader = (token: string) => {
+    dispatch({ type: ActionType.SetLoading, loading: true });
+
     apis.headerApi.Get(token).then((header) => {
+      dispatch({ type: ActionType.SetLoading, loading: false });
       dispatch({ type: ActionType.SetHeader, header });
 
       finishSyncing();
@@ -111,9 +119,12 @@ export const App: React.FC = () => {
   };
 
   const loadItem = (itemId: string) => {
-    apis.itemApi
-      .GetById(itemId)
-      .then((item) => dispatch({ type: ActionType.SetItem, item }));
+    dispatch({ type: ActionType.SetLoading, loading: true });
+
+    apis.itemApi.GetById(itemId).then((item) => {
+      dispatch({ type: ActionType.SetLoading, loading: false });
+      dispatch({ type: ActionType.SetItem, item });
+    });
   };
 
   const handleCreateHeader = (listItem: ApiListItemCreation) => {
@@ -139,22 +150,32 @@ export const App: React.FC = () => {
     return index >= 0 ? state.headers[index] : null;
   }, [token, state.headers, state.expanded]);
 
-  const previousHeader = React.useMemo(() => {
+  // Load header if not found from initial load
+  useEffect(() => {
+    if (!state.syncing && !activeHeader && !!token) {
+      loadHeader(token);
+    }
+  }, [activeHeader, state.syncing]);
+
+  const displayHeader = React.useMemo(() => {
+    if (activeHeader) {
+      return activeHeader;
+    }
+
     const index = findIndex(
       state.headers,
       (h) => h.id == state.previousHeaderId
     );
 
-    return index >= 0 ? state.headers[index] : null;
-  }, [state.previousHeaderId]);
+    const d = index >= 0 ? state.headers[index] : null;
 
-  const displayHeader = activeHeader || previousHeader;
+    return d;
+  }, [activeHeader]);
 
   const headerListeners = React.useMemo<Listeners>(
     (): Listeners | null => ({
       onClick: (headerId: string) => {
         navigate(headerId);
-        dispatch({ type: ActionType.SelectHeader, headerId });
       },
       onDragEnd: (headerId: string, destinationId: string) => {
         const order = state.headers.findIndex((h) => h.id == destinationId);
@@ -178,7 +199,7 @@ export const App: React.FC = () => {
           })
           .then(() => loadHeader(id)),
     }),
-    [authState?.token, state.expanded, state.headers, activeHeader]
+    [authState?.token, state.headers]
   );
 
   const displayListeners = React.useMemo<Listeners>(
@@ -246,6 +267,7 @@ export const App: React.FC = () => {
                   collapsible
                   indicator
                   removable
+                  readonly={displayHeader.isReadOnly}
                   defaultItems={Temp.buildTreeFromItems(
                     displayHeader.items,
                     state.expanded

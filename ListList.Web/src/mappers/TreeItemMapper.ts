@@ -1,6 +1,6 @@
-import { TreeItem, TreeItems } from '../../components/tree/types';
-import { ApiListItem } from '../../contracts';
-import { ListHeader, ListItem } from '../../models';
+import { TreeItem, TreeItems } from '../components/tree/types';
+import { ApiListItem } from '../contracts';
+import { ListHeader, ListItem } from '../models';
 
 export interface ApiListItemWithChildren extends ApiListItem {
   index: number;
@@ -11,9 +11,10 @@ export interface ApiListItemWithChildren extends ApiListItem {
 function buildTreeFromHeaders(headers: ListHeader[]): TreeItems {
   return (
     headers?.map<TreeItem>((header, index) => ({
-      ...header,
+      id: header.id,
       index,
-      on: header.description,
+      label: header.label,
+      description: header.description,
       collapsed: true,
       children: [],
     })) ?? []
@@ -29,6 +30,7 @@ function buildTreeFromItems(items: ListItem[], expanded: string[]): TreeItems {
   items.forEach((item, index) => {
     itemMap.set(item.id, {
       ...item,
+      id: item.id,
       index,
       collapsed: !expanded?.includes(item.id),
       children: [],

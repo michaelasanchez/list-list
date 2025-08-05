@@ -19,7 +19,7 @@ const directions: string[] = [
 const horizontal: string[] = [KeyboardCode.Left, KeyboardCode.Right];
 
 export const sortableTreeKeyboardCoordinates: (
-  context: SensorContext,
+  context: React.RefObject<SensorContext>,
   indicator: boolean,
   indentationWidth: number
 ) => KeyboardCoordinateGetter =

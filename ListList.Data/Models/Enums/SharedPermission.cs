@@ -2,6 +2,6 @@
 
 public enum SharedPermission
 {
-    View = 1,
-    Edit = 2
+    View = 0,
+    Edit = 1
 }

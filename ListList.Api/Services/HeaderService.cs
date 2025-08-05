@@ -31,7 +31,7 @@ public class HeaderService(
 
         var creation = _mapper.Map<HeaderEntity>(listHeader);
 
-        await _listHeaderRepository.CreateListHeaderAsync(userId, creation);
+        await _listHeaderRepository.CreateListHeaderAsync(userId.Value, creation);
 
         return creation.Id;
     }
@@ -48,7 +48,7 @@ public class HeaderService(
 
         var listHeader = listHeaderId == default
             ? await _listHeaderRepository.GetListHeaderByToken(token)
-            : await _listHeaderRepository.GetListHeaderByIdAsync(userId, listHeaderId);
+            : await _listHeaderRepository.GetListHeaderByIdAsync(userId.Value, listHeaderId);
 
         return _mapper.Map<Header>(listHeader);
     }
@@ -62,7 +62,7 @@ public class HeaderService(
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var listHeaders = await _listHeaderRepository.GetListHeadersAsync(userId);
+        var listHeaders = await _listHeaderRepository.GetListHeadersAsync(userId.Value);
 
         return _mapper.Map<IEnumerable<Header>>(listHeaders);
     }
@@ -80,6 +80,6 @@ public class HeaderService(
 
         await InvokeGuard(() => _guard.AgainstInvalidListHeaderRelocationAsync(userId, listHeaderId, index));
 
-        await _listHeaderRepository.RelocateListHeaderAsync(userId, listHeaderId, index);
+        await _listHeaderRepository.RelocateListHeaderAsync(userId.Value, listHeaderId, index);
     }
 }

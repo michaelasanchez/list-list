@@ -5,14 +5,14 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
-    public Task<ValidationResult> AgainstInvalidListHeaderCreation(Guid userId)
+    public Task<ValidationResult> AgainstInvalidListHeaderCreation(Guid? userId)
     {
         var result = new ValidationResult();
 
         return Task.FromResult(result);
     }
 
-    public async Task<ValidationResult> AgainstInvalidListHeaderGetAsync(Guid userId, Guid listHeaderId)
+    public async Task<ValidationResult> AgainstInvalidListHeaderGetAsync(Guid? userId, Guid listHeaderId)
     {
         var result = new ValidationResult();
 
@@ -21,7 +21,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListHeaderRelocationAsync(Guid userId, Guid listHeaderId, int index)
+    public async Task<ValidationResult> AgainstInvalidListHeaderRelocationAsync(Guid? userId, Guid listHeaderId, int index)
     {
         var result = new ValidationResult();
 

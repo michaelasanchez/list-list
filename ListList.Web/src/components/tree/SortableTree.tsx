@@ -88,6 +88,7 @@ interface Props {
   indentationWidth?: number;
   indicator?: boolean;
   maxDepth?: number | null;
+  readonly?: boolean;
   removable?: boolean;
   listeners?: Listeners;
 }
@@ -135,7 +136,7 @@ export function SortableTree({
         )
       : null;
 
-  const sensorContext: SensorContext = useRef({
+  const sensorContext = useRef<SensorContext>({
     items: flattenedItems,
     offset: offsetLeft,
   });
@@ -206,8 +207,6 @@ export function SortableTree({
         {flattenedItems.map(({ id, children, collapsed, depth, ...rest }) => {
           // TODO
           const listItem = rest as any as ApiListItem;
-
-
 
           return (
             <SortableTreeItem

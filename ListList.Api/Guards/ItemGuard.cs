@@ -5,7 +5,7 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
-    public async Task<ValidationResult> AgainstInvalidListItemCompleteAsync(Guid userId, Guid listItemId)
+    public async Task<ValidationResult> AgainstInvalidListItemCompleteAsync(Guid? userId, Guid listItemId)
     {
         var result = new ValidationResult();
 
@@ -14,7 +14,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid userId, Guid parentId)
+    public async Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid? userId, Guid parentId)
     {
         var result = new ValidationResult();
 
@@ -23,7 +23,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemDeleteAsync(Guid userId, Guid listItemId)
+    public async Task<ValidationResult> AgainstInvalidListItemDeleteAsync(Guid? userId, Guid listItemId)
     {
         var result = new ValidationResult();
 
@@ -34,7 +34,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemGetAsync(Guid userId, Guid listItemId)
+    public async Task<ValidationResult> AgainstInvalidListItemGetAsync(Guid? userId, Guid listItemId)
     {
         var result = new ValidationResult();
 
@@ -43,7 +43,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemPutAsync(Guid userId, Guid listItemId)
+    public async Task<ValidationResult> AgainstInvalidListItemPutAsync(Guid? userId, Guid listItemId)
     {
         var result = new ValidationResult();
 
@@ -52,7 +52,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemRelocation(Guid userId, Guid listItemId, Guid? parentId)
+    public async Task<ValidationResult> AgainstInvalidListItemRelocation(Guid? userId, Guid listItemId, Guid? parentId)
     {
         var result = new ValidationResult();
 

@@ -7,7 +7,7 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
-    public async Task<ValidationResult> AgainstInvalidListShare(Guid userId, Guid listHeaderId, ListHeaderShare listHeaderShare)
+    public async Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, ListHeaderShare listHeaderShare)
     {
         var result = new ValidationResult();
 

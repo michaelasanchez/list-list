@@ -1,8 +1,43 @@
 import React from 'react';
-import { IconButton, LabelAndDescriptionEditor, ShareModal } from '..';
+import { ButtonVariant } from 'react-bootstrap/esm/types';
+import {
+  IconButton,
+  IconButtonProps,
+  IconType,
+  LabelAndDescriptionEditor,
+  ShareModal,
+} from '..';
 import { ApiListHeaderShare, SharedPermission } from '../../contracts';
 import { ListHeader } from '../../models';
 import { Listeners } from '../tree/SortableTree';
+
+type Test = Pick<IconButtonProps, 'iconType' | 'size' | 'variant' | 'onClick'>;
+
+interface SelectedHeaderAction {
+  iconType: IconType;
+  size?: 'sm' | 'lg';
+  variant: ButtonVariant;
+  onClick: () => void;
+}
+
+const createSecondary = (
+  iconType: IconType,
+  onClick: () => void
+): SelectedHeaderAction => ({
+  iconType,
+  size: 'sm',
+  variant: 'outline-secondary',
+  onClick,
+});
+
+const createPrimary = (
+  iconType: IconType,
+  onClick: () => void
+): SelectedHeaderAction => ({
+  iconType,
+  variant: 'secondary',
+  onClick,
+});
 
 export interface SelectedHeaderProps {
   header: ListHeader;
@@ -21,9 +56,19 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
     pendingShare: { permission: SharedPermission.View },
   });
 
-  const handleClose = React.useCallback(
-    () => setState((s) => ({ ...s, show: false })),
-    [state.show]
+  const selectionHeaderActions = React.useMemo(
+    () => [
+      ...(props.header.isReadOnly
+        ? []
+        : [
+            createSecondary('share', () =>
+              setState((s) => ({ ...s, show: true }))
+            ),
+            createSecondary('kebab', () => {}),
+          ]),
+      createPrimary('backward', () => props.onBack?.()),
+    ],
+    [props.onBack]
   );
 
   return (
@@ -42,23 +87,14 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
         />
       </div>
       <div className="actions">
-        <IconButton
-          iconType="share"
-          size="sm"
-          variant="outline-secondary"
-          onClick={() => setState((s) => ({ ...s, show: true }))}
-        />
-        <IconButton iconType="kebab" size="sm" variant="outline-secondary" />
-        <IconButton
-          iconType="backward"
-          variant="secondary"
-          onClick={() => props.onBack?.()}
-        />
+        {selectionHeaderActions.map((a, i) => (
+          <IconButton key={i} {...a} />
+        ))}
       </div>
       <ShareModal
         show={state.show}
         shareLinks={props.header.shareLinks}
-        onClose={handleClose}
+        onClose={() => setState((s) => ({ ...s, show: false }))}
       />
     </div>
   );

@@ -13,11 +13,11 @@ public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache
     private readonly MemoryCacheEntryOptions _cacheOptions = new MemoryCacheEntryOptions()
         .SetSlidingExpiration(TimeSpan.FromDays(7));
 
-    public async Task<Guid> GetUserIdAsync()
+    public async Task<Guid?> GetUserIdAsync()
     {
         if (_httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated is false)
         {
-            throw new Exception("User not authenticated.");
+            return null;
         }
 
         var userClaims = _httpContextAccessor.HttpContext?.User.Identities.Single().Claims;
@@ -26,12 +26,12 @@ public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache
 
         if (subject is null)
         {
-            throw new Exception("User subject is missing.");
+            return null;
         }
 
         if (_cache.TryGetValue<Guid?>(subject, out var userId))
         {
-            return userId!.Value;
+            return userId;
         }
 
         userId = await _unitOfWork.UserRepository.GetUserIdAsync(subject);

@@ -7,7 +7,7 @@ namespace ListList.Data.Validators;
 
 public class HeaderValidator(IListListContext _context) : IHeaderValidator
 {
-    public async Task IsValidHeaderIndexAsync(Guid userId, int index, ValidationResult result)
+    public async Task IsValidHeaderIndexAsync(Guid? userId, int index, ValidationResult result)
     {
         var isValidIndex = index >= 0 &&
             index < await _context.ListHeaders
@@ -19,7 +19,7 @@ public class HeaderValidator(IListListContext _context) : IHeaderValidator
         }
     }
 
-    public async Task UserOwnsListHeaderAsync(Guid userId, Guid listHeaderId, ValidationResult result)
+    public async Task UserOwnsListHeaderAsync(Guid? userId, Guid listHeaderId, ValidationResult result)
     {
         var userOwnsListHeader = await _context.ListHeaders
             .AnyAsync(z => z.Id == listHeaderId && z.OwnerId == userId && !z.Deleted);
