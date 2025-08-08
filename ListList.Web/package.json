@@ -7,7 +7,7 @@
     "start": "npm run server",
     "server": "webpack-dev-server --history-api-fallback --progress",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --bail --progress --profile"
+    "build": "webpack --bail --progress --profile --mode production"
   },
   "keywords": [],
   "author": "Michael Sanchez",
@@ -34,6 +34,7 @@
     "autoprefixer": "^10.4.21",
     "classnames": "^2.5.1",
     "css-loader": "^7.1.2",
+    "dotenv": "^17.2.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.6.3",
     "mini-css-extract-plugin": "^2.9.2",
