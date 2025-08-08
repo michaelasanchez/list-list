@@ -16,7 +16,7 @@ const mapShareLinks = (links: ApiShareLink[]): ShareLink[] =>
 
 const mapHeader = (header: ApiListHeader, expanded: string[]): ListHeader => ({
   id: header.id,
-  token: header.token,
+  tokens: !!header.token ? [header.token] : null,
   isReadOnly: header.isReadOnly,
   label: header.label,
   description: header.description,

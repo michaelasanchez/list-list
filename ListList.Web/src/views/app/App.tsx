@@ -30,6 +30,7 @@ const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
     syncing: true,
     loading: false,
     expanded: defaultState.expanded ?? [],
+    tokens: {},
     headers: defaultState.headers ?? [],
   };
 };
@@ -145,7 +146,10 @@ export const App: React.FC = () => {
   const activeHeader = React.useMemo(() => {
     const index = !token
       ? -1
-      : findIndex(state.headers, (h) => h.id == token || h.token == token);
+      : findIndex(
+          state.headers,
+          (h) => h.id == token || h.tokens?.includes(token)
+        );
 
     return index >= 0 ? state.headers[index] : null;
   }, [token, state.headers, state.expanded]);
@@ -250,7 +254,9 @@ export const App: React.FC = () => {
             <SortableTree
               // indicator
               listeners={headerListeners}
-              defaultItems={Temp.buildTreeFromHeaders(state.headers)}
+              defaultItems={Temp.buildTreeFromHeaders(
+                state.headers.filter((h) => !h.isNotOwned)
+              )}
             />
           </Container>
         </div>
@@ -260,7 +266,7 @@ export const App: React.FC = () => {
               <>
                 <SelectedHeader
                   header={displayHeader}
-                  listeners={displayListeners}
+                  listeners={headerListeners}
                   onBack={() => navigate('/')}
                 />
                 <SortableTree

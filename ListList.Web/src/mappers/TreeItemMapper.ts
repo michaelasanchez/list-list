@@ -10,7 +10,7 @@ export interface ApiListItemWithChildren extends ApiListItem {
 
 function buildTreeFromHeaders(headers: ListHeader[]): TreeItems {
   return (
-    headers?.map<TreeItem>((header, index) => ({
+    headers.map<TreeItem>((header, index) => ({
       id: header.id,
       index,
       label: header.label,

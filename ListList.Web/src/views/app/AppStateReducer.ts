@@ -71,55 +71,52 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.SetHeader: {
-      const existingIndex =
-        state.headers?.findIndex((h) => h.id == action.header.id) ?? -1;
+      const existingIndex = state.headers.findIndex(
+        (h) => h.id == action.header.id
+      );
+
       const mapped = ListItemMapper.mapHeader(action.header, state.expanded);
 
-      const headers =
-        existingIndex >= 0
-          ? map(state.headers, (h) => (h.id == action.header.id ? mapped : h))
-          : [...(state.headers ?? []), mapped].sort(
-              (a, b) => a.order - b.order
-            );
+      if (action.header.token) {
+        if (!state.tokens[action.header.id]) {
+          state.tokens[action.header.id] = [action.header.token];
+        } else {
+          const combined = [
+            ...state.tokens[action.header.id],
+            action.header.token,
+          ];
+
+          state.tokens[action.header.id] = combined;
+          mapped.tokens = combined;
+        }
+      }
 
       return {
         ...state,
-        headers,
+        headers:
+          existingIndex >= 0
+            ? map(state.headers, (h) => (h.id == action.header.id ? mapped : h))
+            : [...state.headers, mapped],
       };
 
+      return state;
+
       // if (existingIndex >= 0) {
-      //   const mapped = ListItemMapper.mapHeader(action.header, state.expanded);
-
-      //   // i'm just really wondering if any of this crap needs to happen.
-      //   // like....
-      //   /* if we're being directed to a different url, for some reason, the page
-      //    * is going to reload everything anyways, so why put all this work into
-      //    * keeping track of or managing a tokens objects if it's not going to be
-      //    * persisted?
-      //    */
-      //   if (action.header.token) {
-      //     if (!state.tokens[action.header.id]) {
-      //       state.tokens[action.header.id] = [action.header.token];
-      //     } else {
-      //       const combined = [
-      //         ...state.tokens[action.header.id],
-      //         action.header.token,
-      //       ];
-
-      //       state.tokens[action.header.id] = combined;
-      //       mapped.tokens = combined;
-      //     }
-      //   }
-
-      //   return {
-      //     ...state,
-      //     headers: map(state.headers, (h) =>
-      //       h.id == action.header.id ? mapped : h
-      //     ),
-      //   };
       // }
 
-      // return state;
+      // const mapped = ListItemMapper.mapHeader(action.header, state.expanded);
+
+      // const headers =
+      //   existingIndex >= 0
+      //     ? map(state.headers, (h) => (h.id == action.header.id ? mapped : h))
+      //     : [...(state.headers ?? []), { ...mapped, isNotOwned: true }].sort(
+      //         (a, b) => a.order - b.order
+      //       );
+
+      // return {
+      //   ...state,
+      //   headers,
+      // };
     }
     case AppStateActionType.SetHeaders: {
       return {
