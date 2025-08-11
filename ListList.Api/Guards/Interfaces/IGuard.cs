@@ -15,4 +15,5 @@ public interface IGuard
     Task<ValidationResult> AgainstInvalidListItemPutAsync(Guid? userId, Guid listItemId);
     Task<ValidationResult> AgainstInvalidListItemRelocation(Guid? userId, Guid listItemId, Guid? parentId);
     Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, ListHeaderShare listHeaderShare);
+    Task<ValidationResult> AgainstInvalidListItemPatchAsync(Guid? userId, Guid listItemId);
 }

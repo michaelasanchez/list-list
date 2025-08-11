@@ -15,13 +15,13 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
 
         creation.OwnerId = ownerId;
         creation.Order = nextOrder;
-        creation.ListItems = [];
+        creation.Nodes = [];
 
         await _context.ListHeaders.AddAsync(creation);
         await _context.SaveChangesAsync();
     }
 
-    public async Task<HeaderResource> GetListHeaderByIdAsync(Guid ownerId, Guid listHeaderId)
+    public async Task<HeaderResource> GetListHeaderByIdAsync(Guid? ownerId, Guid listHeaderId)
     {
         var entity = await GetQuery(ownerId)
             .Where(z => z.Id == listHeaderId)
@@ -46,7 +46,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         return resource;
     }
 
-    public async Task<List<HeaderResource>> GetListHeadersAsync(Guid ownerId)
+    public async Task<List<HeaderResource>> GetListHeadersAsync(Guid? ownerId)
     {
         var entities = await GetQuery(ownerId)
             .ToListAsync();
@@ -93,7 +93,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
     private IQueryable<HeaderEntity> GetQuery(Guid? ownerId = null)
     {
         var query = _context.ListHeaders
-            .Include(z => z.ListItems.Where(y => !y.Deleted))
+            .Include(z => z.Nodes.Where(y => !y.Deleted))
             .Include(z => z.ShareLinks)
             .OrderBy(z => z.Order);
 

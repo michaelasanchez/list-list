@@ -5,7 +5,7 @@ namespace ListList.Api.Mappers;
 
 public class ItemMapper
 {
-    public static List<ItemResource> MapEntitiesToResources(List<ListItemEntity> entities)
+    public static List<ItemResource> MapEntitiesToResources(List<NodeEntity> entities)
     {
         if (entities == null || entities.Count == 0)
         {
@@ -15,7 +15,7 @@ public class ItemMapper
         var sortedEntities = entities.OrderBy(e => e.Left).ToList();
 
         var resources = new List<ItemResource>();
-        var parentStack = new Stack<ListItemEntity>();
+        var parentStack = new Stack<NodeEntity>();
 
         foreach (var entity in sortedEntities)
         {

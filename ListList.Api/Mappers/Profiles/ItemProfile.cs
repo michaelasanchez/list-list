@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
+using ListList.Api.Contracts.Patch;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Data.Models.Entities;
@@ -11,14 +12,16 @@ public class ItemProfile : Profile
 {
     public ItemProfile()
     {
-        CreateMap<ListItemEntity, ItemResource>();
+        CreateMap<NodeEntity, ItemResource>();
 
         CreateMap<ItemResource, Item>();
 
-        CreateMap<Item, ListItemEntity>();
+        CreateMap<Item, NodeEntity>();
 
-        CreateMap<ListItemCreation, ListItemEntity>();
+        CreateMap<ListItemCreation, NodeEntity>();
 
-        CreateMap<ListItemPut, ListItemEntity>();
+        CreateMap<ItemPatch, ItemResource>();
+
+        CreateMap<ItemPut, NodeEntity>();
     }
 }

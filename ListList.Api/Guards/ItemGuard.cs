@@ -43,6 +43,15 @@ public partial class Guard : IGuard
         return result;
     }
 
+    public async Task<ValidationResult> AgainstInvalidListItemPatchAsync(Guid? userId, Guid listItemId)
+    {
+        var result = new ValidationResult();
+
+        await _itemValidator.ListItemIsOwnedByUserAsync(userId, listItemId, result);
+
+        return result;
+    }
+
     public async Task<ValidationResult> AgainstInvalidListItemPutAsync(Guid? userId, Guid listItemId)
     {
         var result = new ValidationResult();

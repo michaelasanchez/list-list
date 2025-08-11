@@ -1,13 +1,15 @@
 ﻿using ListList.Data.Models.Entities;
+using ListList.Data.Models.Resources;
 
 namespace ListList.Data.Repositories.Interfaces;
 
 public interface IItemRepository
 {
     Task CompleteListItem(Guid listItemId);
-    Task CreateListItem(ListItemEntity creation, Guid parentId);
+    Task CreateListItem(NodeEntity creation, Guid parentId);
     Task DeleteListItem(Guid listItemId);
-    Task<ListItemEntity> GetListItemById(Guid listItemId);
-    Task PutListItem(Guid listItemId, ListItemEntity entityPut);
+    Task<NodeEntity> GetListItemById(Guid listItemId);
+    Task PatchListItem(Guid listItemId, ItemResource resource, bool? recursive);
+    Task PutListItem(Guid listItemId, NodeEntity entityPut);
     Task RelocateListItem(Guid activeId, Guid overId, Guid? parentId);
 }

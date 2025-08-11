@@ -27,7 +27,6 @@ import { createPortal } from 'react-dom';
 
 import { CSS } from '@dnd-kit/utilities';
 import React from 'react';
-import { ApiListItem } from '../../contracts';
 import { SortableTreeItem } from './components';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
 import type { FlattenedItem, SensorContext, TreeItems } from './types';
@@ -184,12 +183,9 @@ export function SortableTree({
     },
   };
 
-  // dnd-kit
   const activeItem = activeId
     ? flattenedItems.find(({ id }) => id === activeId)
     : null;
-
-  const activeListItem = activeItem as any as ApiListItem;
 
   return (
     <DndContext
@@ -204,41 +200,40 @@ export function SortableTree({
       onDragCancel={handleDragCancel}
     >
       <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
-        {flattenedItems.map(({ id, children, collapsed, depth, ...rest }) => {
-          // TODO
-          const listItem = rest as any as ApiListItem;
-
-          return (
-            <SortableTreeItem
-              key={id}
-              id={id}
-              name={listItem.id}
-              label={listItem.label}
-              description={listItem.description}
-              depth={id === activeId && projected ? projected.depth : depth}
-              indentationWidth={indentationWidth}
-              indicator={indicator}
-              collapsed={Boolean(collapsed && children.length)}
-              childCount={children.length}
-              onClick={() =>
-                listeners?.onClick
-                  ? listeners.onClick(id)
-                  : collapsible && handleCollapse(id)
-              }
-              onCollapse={
-                collapsible && children.length
-                  ? () => handleCollapse(id)
-                  : undefined
-              }
-              onRemove={removable ? () => handleRemove(id) : undefined}
-              listeners={{
-                onSaveDescription: (description) =>
-                  listeners?.onSaveDescription(id, description),
-                onSaveLabel: (label) => listeners?.onSaveLabel(id, label),
-              }}
-            />
-          );
-        })}
+        {flattenedItems.map(
+          ({ id, children, collapsed, depth, label, description, ...rest }) => {
+            return (
+              <SortableTreeItem
+                key={id}
+                id={id}
+                name={`${id}`}
+                label={label}
+                description={description}
+                depth={id === activeId && projected ? projected.depth : depth}
+                indentationWidth={indentationWidth}
+                indicator={indicator}
+                collapsed={Boolean(collapsed && children.length)}
+                childCount={children.length}
+                onClick={() =>
+                  listeners?.onClick
+                    ? listeners.onClick(id)
+                    : collapsible && handleCollapse(id)
+                }
+                onCollapse={
+                  collapsible && children.length
+                    ? () => handleCollapse(id)
+                    : undefined
+                }
+                onRemove={removable ? () => handleRemove(id) : undefined}
+                listeners={{
+                  onSaveDescription: (description) =>
+                    listeners?.onSaveDescription(id, description),
+                  onSaveLabel: (label) => listeners?.onSaveLabel(id, label),
+                }}
+              />
+            );
+          }
+        )}
         {createPortal(
           <DragOverlay
             dropAnimation={dropAnimationConfig}
@@ -250,9 +245,9 @@ export function SortableTree({
                 depth={activeItem.depth}
                 clone
                 childCount={getChildCount(items, activeId) + 1}
-                name={`active-${activeListItem.id}`}
-                label={activeListItem.label}
-                description={activeListItem.description}
+                name={`active-${activeId}`}
+                label={activeItem.label}
+                description={activeItem.description}
                 indentationWidth={indentationWidth}
               />
             ) : null}

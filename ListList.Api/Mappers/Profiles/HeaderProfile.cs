@@ -13,17 +13,17 @@ public class HeaderProfile : Profile
     {
         CreateMap<HeaderEntity, HeaderResource>()
             .ForMember(dest => dest.Items, opt => opt.MapFrom(src =>
-                ItemMapper.MapEntitiesToResources(src.ListItems.ToList())));
+                ItemMapper.MapEntitiesToResources(src.Nodes.ToList())));
 
         CreateMap<HeaderResource, Header>();
 
         CreateMap<Header, HeaderEntity>()
-            .ForMember(dest => dest.ListItems, opt => opt.MapFrom(src => src.Items));
+            .ForMember(dest => dest.Nodes, opt => opt.MapFrom(src => src.Items));
 
         CreateMap<ListHeaderCreation, HeaderEntity>()
-            .ForMember(dest => dest.ListItems, opt => opt.Ignore());
+            .ForMember(dest => dest.Nodes, opt => opt.Ignore());
 
         CreateMap<ListHeaderPut, HeaderEntity>()
-            .ForMember(dest => dest.ListItems, opt => opt.Ignore());
+            .ForMember(dest => dest.Nodes, opt => opt.Ignore());
     }
 }

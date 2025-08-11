@@ -48,7 +48,7 @@ public class HeaderService(
 
         var listHeader = listHeaderId == default
             ? await _listHeaderRepository.GetListHeaderByToken(token)
-            : await _listHeaderRepository.GetListHeaderByIdAsync(userId.Value, listHeaderId);
+            : await _listHeaderRepository.GetListHeaderByIdAsync(userId, listHeaderId);
 
         return _mapper.Map<Header>(listHeader);
     }
@@ -62,7 +62,7 @@ public class HeaderService(
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var listHeaders = await _listHeaderRepository.GetListHeadersAsync(userId.Value);
+        var listHeaders = await _listHeaderRepository.GetListHeadersAsync(userId);
 
         return _mapper.Map<IEnumerable<Header>>(listHeaders);
     }

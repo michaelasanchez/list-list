@@ -32,11 +32,11 @@ public class InsertItemTests : BaseItemRepositoryTest
         var ancestor5 = await SeedItem(headerId, 6, 7);
         var over = await SeedItem(headerId, 12, 13);
 
-        var active = _fixture.Build<ListItemEntity>()
+        var active = _fixture.Build<NodeEntity>()
             .With(z => z.HeaderId, headerId)
             .With(z => z.Left, 1)
             .With(z => z.Right, 2)
-            .Without(x => x.ListHeader)
+            .Without(x => x.Header)
             .Create();
 
         var ancestorId = GetIndex(

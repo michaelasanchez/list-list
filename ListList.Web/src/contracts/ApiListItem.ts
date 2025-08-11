@@ -2,6 +2,8 @@ export interface ApiListItem {
   id: string;
   label: string;
   description: string;
+
+  completable: boolean;
   complete: boolean;
   completedOn: string;
 

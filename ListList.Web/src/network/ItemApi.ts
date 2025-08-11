@@ -1,5 +1,6 @@
 import { Api } from '.';
-import { ApiListItem, ApiListItemPut } from '../contracts';
+import { ApiListItemPut as ApiItemPut, ApiListItem } from '../contracts';
+import { ApiItemPatch } from '../contracts/patch/ApiItemPatch';
 import { ApiListItemCreation } from '../contracts/post/ApiListItemCreation';
 
 export class ListItemApi extends Api {
@@ -32,7 +33,19 @@ export class ListItemApi extends Api {
     return this.executeGet();
   };
 
-  public Put = (listItemId: string, put: ApiListItemPut): Promise<void> => {
+  public Patch = (
+    listItemId: string,
+    patch: ApiItemPatch,
+    recursive?: boolean
+  ): Promise<void> => {
+    if (recursive) {
+      this.setQueryParameters({ recursive });
+    }
+
+    return this.executePatch(listItemId, patch);
+  };
+
+  public Put = (listItemId: string, put: ApiItemPut): Promise<void> => {
     return this.executePut(put, listItemId);
   };
 

@@ -89,7 +89,7 @@ export class Api {
   }
 
   protected executePatch(
-    id: number,
+    id: string,
     obj: any,
     init: RequestInit = null
   ): Promise<any> {

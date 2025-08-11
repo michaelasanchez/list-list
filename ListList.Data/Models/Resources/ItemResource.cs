@@ -5,7 +5,9 @@ public class ItemResource
     public Guid? Id { get; set; }
     public string? Label { get; set; }
     public string? Description { get; set; }
-    public bool Complete { get; set; }
+
+    public bool? Completable { get; set; } = false;
+    public bool? Complete { get; set; }
     public DateTimeOffset? CompletedOn { get; set; }
 
     public int Left { get; set; }

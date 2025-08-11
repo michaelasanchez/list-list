@@ -1,5 +1,7 @@
-﻿using ListList.Data.Models;
+﻿using ListList.Data.Extensions;
+using ListList.Data.Models;
 using ListList.Data.Models.Entities;
+using ListList.Data.Models.Resources;
 using ListList.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,14 +16,14 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         listItem.Complete = !listItem.Complete;
     }
 
-    public async Task CreateListItem(ListItemEntity creation, Guid parentId)
+    public async Task CreateListItem(NodeEntity creation, Guid parentId)
     {
         await InsertItem([creation], parentId);
 
         await _context.ListItems.AddAsync(creation);
     }
 
-    public async Task InsertItem(List<ListItemEntity> active, Guid? parentId, Guid? overId = null)
+    public async Task InsertItem(List<NodeEntity> active, Guid? parentId, Guid? overId = null)
     {
         if (active is not { Count: > 0 })
         {
@@ -59,7 +61,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         }
     }
 
-    public async Task<ListItemEntity> GetListItemById(Guid listItemId)
+    public async Task<NodeEntity> GetListItemById(Guid listItemId)
     {
         var parent = await _context.ListItems.Where(z => z.Id == listItemId).SingleAsync();
 
@@ -73,7 +75,54 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         return parent;
     }
 
-    public async Task PutListItem(Guid listItemId, ListItemEntity entityPut)
+    public async Task PatchListItem(Guid listItemId, ItemResource resource, bool? recursive)
+    {
+        var active = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
+
+        var entities = new List<NodeEntity> { active };
+
+        if (recursive is true && active.HasDescendants())
+        {
+            var query = _context.ListItems
+                .Where(z => z.Left > resource.Left && z.Right <= resource.Right && !z.Deleted);
+
+            var descendants = await query.ToListAsync();
+
+            entities.AddRange(descendants);
+        }
+
+        foreach (var entity in entities)
+        {
+            if (resource.Label is not null)
+            {
+                entity.Label = resource.Label;
+            }
+
+            if (resource.Description is not null)
+            {
+                entity.Description = resource.Description;
+            }
+
+            if (resource.Completable is not null)
+            {
+                entity.Completable = resource.Completable.Value;
+            }
+
+            if (resource.Complete is not null)
+            {
+                if (resource.Complete is true && !entity.Complete)
+                {
+                    entity.CompletedOn = DateTime.UtcNow;
+                }
+
+                entity.Complete = resource.Complete.Value;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task PutListItem(Guid listItemId, NodeEntity entityPut)
     {
         var entity = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
 
@@ -115,7 +164,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         await _context.SaveChangesAsync();
     }
 
-    private async Task<List<ListItemEntity>> GetDescendants(ListItemEntity parent)
+    private async Task<List<NodeEntity>> GetDescendants(NodeEntity parent)
     {
         return await _context.ListItems
             .Where(z =>
@@ -163,7 +212,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         return leftBoundary;
     }
 
-    private async Task<List<ListItemEntity>> RemoveNode(ListItemEntity active)
+    private async Task<List<NodeEntity>> RemoveNode(NodeEntity active)
     {
         var removeCount = (active.Right - active.Left + 1) / 2;
 
@@ -211,7 +260,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         }
     }
 
-    private static void ReindexSubtree(List<ListItemEntity> items)
+    private static void ReindexSubtree(List<NodeEntity> items)
     {
         if (items is not { Count: > 0 })
         {

@@ -6,7 +6,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const isProd = process.env.NODE_ENV === 'production';
 
-module.exports = (env, argv) => {
+module.exports = (_, argv) => {
   const envFile = `config/.env.${argv.mode || 'development'}`;
   const envVars = dotenv.config({ path: envFile }).parsed || {};
 

@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
+using ListList.Api.Contracts.Patch;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
+using ListList.Data.Models.Resources;
 using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Api.Services;
@@ -29,14 +31,9 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListItemCreationAsync(userId, parentId);
+        await InvokeGuard(() => _guard.AgainstInvalidListItemCreationAsync(userId, parentId));
 
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
-
-        var creation = _mapper.Map<ListItemEntity>(listItem);
+        var creation = _mapper.Map<NodeEntity>(listItem);
 
         await _listItemRepository.CreateListItem(creation, parentId);
 
@@ -49,12 +46,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListItemDeleteAsync(userId, listItemId);
-
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
+        await InvokeGuard(() => _guard.AgainstInvalidListItemDeleteAsync(userId, listItemId));
 
         await _listItemRepository.DeleteListItem(listItemId);
 
@@ -65,30 +57,31 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListItemGetAsync(userId, listItemId);
-
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
+        await InvokeGuard(() => _guard.AgainstInvalidListItemGetAsync(userId, listItemId));
 
         var listItem = await _listItemRepository.GetListItemById(listItemId);
 
         return _mapper.Map<Item>(listItem);
     }
 
-    public async Task PutListItemAsync(Guid listItemId, ListItemPut listItemPut)
+    public async Task PatchItemAsync(Guid listItemId, ItemPatch itemPatch, bool? recursive)
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListItemPutAsync(userId, listItemId);
+        await InvokeGuard(() => _guard.AgainstInvalidListItemPatchAsync(userId, listItemId));
 
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
+        var resource = _mapper.Map<ItemResource>(itemPatch);
 
-        var entityPut = _mapper.Map<ListItemEntity>(listItemPut);
+        await _listItemRepository.PatchListItem(listItemId, resource, recursive);
+    }
+
+    public async Task PutListItemAsync(Guid listItemId, ItemPut listItemPut)
+    {
+        var userId = await _userService.GetUserIdAsync();
+
+        await InvokeGuard(() => _guard.AgainstInvalidListItemPutAsync(userId, listItemId));
+
+        var entityPut = _mapper.Map<NodeEntity>(listItemPut);
 
         await _listItemRepository.PutListItem(listItemId, entityPut);
 

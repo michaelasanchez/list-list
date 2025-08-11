@@ -1,4 +1,5 @@
 ﻿using ListList.Api.Contracts;
+using ListList.Api.Contracts.Patch;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Api.Services.Interfaces;
@@ -74,12 +75,26 @@ public class ItemController(IItemService _service) : Controller
         return Ok(listItem);
     }
 
-    [HttpPost("{activeId}/relocate")]
-    public async Task<IActionResult> RelocateListItemAsync(Guid activeId, ListItemRelocation listItemRelocation)
+    [HttpPatch("{listItemId}")]
+    public async Task<ActionResult> PatchItem(Guid listItemId, ItemPatch itemPatch, [FromQuery] bool? recursive)
     {
         try
         {
-            await _service.RelocateListItemAsync(activeId, listItemRelocation.OverId, listItemRelocation.ParentId);
+            await _service.PatchItemAsync(listItemId, itemPatch, recursive);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        return Ok();
+    }
+
+    [HttpPut("{listItemId}")]
+    public async Task<ActionResult> PutListItemAsync(Guid listItemId, ItemPut listItemPut)
+    {
+        try
+        {
+            await _service.PutListItemAsync(listItemId, listItemPut);
         }
         catch (Exception ex)
         {
@@ -89,12 +104,12 @@ public class ItemController(IItemService _service) : Controller
         return Ok();
     }
 
-    [HttpPut("{listItemId}")]
-    public async Task<ActionResult> PutListItemAsync(Guid listItemId, ListItemPut listItemPut)
+    [HttpPost("{activeId}/relocate")]
+    public async Task<IActionResult> RelocateListItemAsync(Guid activeId, ListItemRelocation listItemRelocation)
     {
         try
         {
-            await _service.PutListItemAsync(listItemId, listItemPut);
+            await _service.RelocateListItemAsync(activeId, listItemRelocation.OverId, listItemRelocation.ParentId);
         }
         catch (Exception ex)
         {

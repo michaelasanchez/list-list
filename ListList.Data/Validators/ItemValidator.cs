@@ -43,8 +43,8 @@ public class ItemValidator(IListListContext _context) : IItemValidator
     public async Task ListItemIsOwnedByUserAsync(Guid? userId, Guid listItemId, ValidationResult result)
     {
         var userOwnsListHeader = await _context.ListItems
-            .Include(z => z.ListHeader)
-            .AnyAsync(z => z.Id == listItemId && z.ListHeader.OwnerId == userId);
+            .Include(z => z.Header)
+            .AnyAsync(z => z.Id == listItemId && z.Header.OwnerId == userId);
 
         if (!userOwnsListHeader)
         {

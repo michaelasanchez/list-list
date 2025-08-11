@@ -5,6 +5,8 @@ public class Item
     public Guid? Id { get; set; }
     public string? Label { get; set; }
     public string? Description { get; set; }
+
+    public bool Completable { get; set; }
     public bool Complete { get; set; }
     public DateTimeOffset? CompletedOn { get; set; }
 
