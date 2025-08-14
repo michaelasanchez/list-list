@@ -1,12 +1,15 @@
 import { map } from 'lodash';
-import { ApiListHeader, ApiListItem, ApiShareLink } from '../contracts';
-import { ListHeader, ListItem, ShareLink } from '../models';
+import { ApiHeader, ApiItem, ApiShareLink } from '../contracts';
+import { Header, Item, ShareLink } from '../models';
 
-const mapItems = (items: ApiListItem[], expanded: string[]): ListItem[] =>
-  items?.map((i) => ({
-    ...i,
-    expanded: expanded.includes(i.id),
-  }));
+const mapItem = (item: ApiItem, expanded: string[] = null): Item => ({
+  ...item,
+  completedOn: !!item.completedOn ? new Date(item.completedOn) : null,
+  expanded: !expanded ? expanded.includes(item.id) : false,
+});
+
+const mapItems = (items: ApiItem[], expanded: string[]): Item[] =>
+  items?.map((i) => mapItem(i, expanded));
 
 const mapShareLinks = (links: ApiShareLink[]): ShareLink[] =>
   links?.map((l) => ({
@@ -14,10 +17,11 @@ const mapShareLinks = (links: ApiShareLink[]): ShareLink[] =>
     expiresOn: l.expiresOn ? new Date(l.expiresOn) : null,
   }));
 
-const mapHeader = (header: ApiListHeader, expanded: string[]): ListHeader => ({
+const mapHeader = (header: ApiHeader, expanded: string[]): Header => ({
   id: header.id,
   tokens: !!header.token ? [header.token] : null,
-  isReadOnly: header.isReadOnly,
+  isChecklist: header.checklist,
+  isReadonly: header.readonly,
   label: header.label,
   description: header.description,
   order: header.order,
@@ -25,15 +29,14 @@ const mapHeader = (header: ApiListHeader, expanded: string[]): ListHeader => ({
   shareLinks: mapShareLinks(header.shareLinks),
 });
 
-const mapHeaders = (
-  headers: ApiListHeader[],
-  expanded?: string[]
-): ListHeader[] =>
+const mapHeaders = (headers: ApiHeader[], expanded?: string[]): Header[] =>
   map(headers, (h) => ({
     ...mapHeader(h, expanded),
   }));
 
 export const ListItemMapper = {
+  mapItem,
+  mapItems,
   mapHeader,
   mapHeaders,
 };

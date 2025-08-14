@@ -9,7 +9,7 @@ namespace ListList.Data.Repositories;
 
 public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHeaderRepository
 {
-    public async Task CreateListHeaderAsync(Guid ownerId, HeaderEntity creation)
+    public async Task CreateHeader(Guid ownerId, HeaderEntity creation)
     {
         var nextOrder = await _context.ListHeaders.CountAsync() + 1;
 
@@ -21,7 +21,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
-    public async Task<HeaderResource> GetListHeaderByIdAsync(Guid? ownerId, Guid listHeaderId)
+    public async Task<HeaderResource> GetHeaderById(Guid? ownerId, Guid listHeaderId)
     {
         var entity = await GetQuery(ownerId)
             .Where(z => z.Id == listHeaderId)
@@ -30,7 +30,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         return _mapper.Map<HeaderResource>(entity);
     }
 
-    public async Task<HeaderResource> GetListHeaderByToken(string token)
+    public async Task<HeaderResource> GetHeaderByToken(string token)
     {
         var entity = await GetQuery()
             .Where(z => z.ShareLinks.Any(y => y.Token == token))
@@ -41,12 +41,12 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         var resource = _mapper.Map<HeaderResource>(entity);
 
         resource.Token = token;
-        resource.IsReadOnly = shareLink.Permission is not Models.Enums.SharedPermission.Edit;
+        resource.ReadOnly = shareLink.Permission is not Models.Enums.SharedPermission.Edit;
 
         return resource;
     }
 
-    public async Task<List<HeaderResource>> GetListHeadersAsync(Guid? ownerId)
+    public async Task<List<HeaderResource>> GetHeaders(Guid? ownerId)
     {
         var entities = await GetQuery(ownerId)
             .ToListAsync();
@@ -54,7 +54,37 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         return _mapper.Map<List<HeaderResource>>(entities);
     }
 
-    public async Task PutListHeader(Guid listHeaderId, HeaderEntity listHeaderPut)
+    public async Task PatchHeader(Guid headerId, HeaderResource resource)
+    {
+        var entity = await _context.ListHeaders
+            .SingleAsync(z => z.Id == headerId);
+
+        var updateChecklist = resource.Checklist is not null && resource.Checklist.Value != entity.Checklist;
+        var updateLabel = resource.Label is not null && resource.Label != entity.Label;
+        var updateDescription = resource.Description is not null && resource.Description != entity.Description;
+
+        if (updateChecklist || updateLabel || updateDescription)
+        {
+            if (resource.Checklist is not null)
+            {
+                entity.Checklist = resource.Checklist.Value;
+            }
+
+            if (resource.Label is not null)
+            {
+                entity.Label = resource.Label;
+            }
+
+            if (resource.Description is not null)
+            {
+                entity.Description = resource.Description;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task PutHeader(Guid listHeaderId, HeaderEntity listHeaderPut)
     {
         var existing = await _context.ListHeaders
             .SingleOrDefaultAsync(z => z.Id == listHeaderId);
@@ -68,7 +98,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
-    public async Task RelocateListHeaderAsync(Guid ownerId, Guid listHeaderId, int destinationIndex)
+    public async Task RelocateHeader(Guid ownerId, Guid listHeaderId, int destinationIndex)
     {
         var listHeaders = await _context.ListHeaders
             .Where(z => z.OwnerId == ownerId && !z.Deleted)

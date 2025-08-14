@@ -1,4 +1,5 @@
 ﻿using ListList.Api.Contracts;
+using ListList.Api.Contracts.Patch;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Api.Services.Interfaces;
@@ -61,12 +62,12 @@ public class HeaderController(IHeaderService _service) : Controller
         return Ok(listHeaders);
     }
 
-    [HttpPut("{listHeaderId}")]
-    public async Task<ActionResult> PutListHeader(Guid listHeaderId, ListHeaderPut listHeaderPut)
+    [HttpPatch("{headerId}")]
+    public async Task<ActionResult<Header>> PatchHeader(Guid headerId, HeaderPatch headerPatch)
     {
         try
         {
-            await _service.PutListHeader(listHeaderId, listHeaderPut);
+            await _service.PatchHeader(headerId, headerPatch);
         }
         catch (Exception ex)
         {
@@ -76,12 +77,27 @@ public class HeaderController(IHeaderService _service) : Controller
         return Ok();
     }
 
-    [HttpPost("{listHeaderId}/relocate")]
-    public async Task<ActionResult> RelocateListHeaderAsync(Guid listHeaderId, ListHeaderRelocation listHeaderRelocation)
+    [HttpPut("{headerId}")]
+    public async Task<ActionResult> PutListHeader(Guid headerId, HeaderPut listHeaderPut)
     {
         try
         {
-            await _service.RelocateListHeader(listHeaderId, listHeaderRelocation.Order);
+            await _service.PutHeader(headerId, listHeaderPut);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
+    }
+
+    [HttpPost("{headerId}/relocate")]
+    public async Task<ActionResult> RelocateListHeaderAsync(Guid headerId, ListHeaderRelocation listHeaderRelocation)
+    {
+        try
+        {
+            await _service.RelocateListHeader(headerId, listHeaderRelocation.Order);
         }
         catch (Exception ex)
         {

@@ -1,4 +1,5 @@
-﻿using ListList.Api.Guards.Interfaces;
+﻿using ListList.Api.Contracts.Patch;
+using ListList.Api.Guards.Interfaces;
 using ListList.Data.Models;
 
 namespace ListList.Api.Guards;
@@ -17,6 +18,15 @@ public partial class Guard : IGuard
         var result = new ValidationResult();
 
         await _headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
+
+        return result;
+    }
+
+    public async Task<ValidationResult> AgainstInvalidListHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch)
+    {
+        var result = new ValidationResult();
+
+        await _headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
 
         return result;
     }

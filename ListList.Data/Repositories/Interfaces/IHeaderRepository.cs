@@ -5,10 +5,11 @@ namespace ListList.Data.Repositories.Interfaces;
 
 public interface IHeaderRepository
 {
-    Task CreateListHeaderAsync(Guid ownerId, HeaderEntity creation);
-    Task<HeaderResource> GetListHeaderByIdAsync(Guid? ownerId, Guid listHeaderId);
-    Task<HeaderResource> GetListHeaderByToken(string token);
-    Task<List<HeaderResource>> GetListHeadersAsync(Guid? ownerId);
-    Task PutListHeader(Guid listHeaderId, HeaderEntity update);
-    Task RelocateListHeaderAsync(Guid ownerId, Guid listHeaderId, int index);
+    Task CreateHeader(Guid ownerId, HeaderEntity creation);
+    Task<HeaderResource> GetHeaderById(Guid? ownerId, Guid listHeaderId);
+    Task<HeaderResource> GetHeaderByToken(string token);
+    Task<List<HeaderResource>> GetHeaders(Guid? ownerId);
+    Task PatchHeader(Guid headerId, HeaderResource resource);
+    Task PutHeader(Guid listHeaderId, HeaderEntity update);
+    Task RelocateHeader(Guid ownerId, Guid listHeaderId, int index);
 }

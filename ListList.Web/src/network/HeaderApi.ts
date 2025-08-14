@@ -1,6 +1,7 @@
 import { Api } from '.';
 import {
-  ApiListHeader,
+  ApiHeader,
+  ApiHeaderPatch,
   ApiListHeaderPut,
   ApiListHeaderRelocation,
   ApiListItemCreation,
@@ -15,14 +16,18 @@ export class ListHeaderApi extends Api {
     return this.executePost(creation);
   };
 
-  public GetAll = (): Promise<ApiListHeader[]> => {
+  public GetAll = (): Promise<ApiHeader[]> => {
     return this.executeGet();
   };
 
-  public Get = (token: string): Promise<ApiListHeader> => {
+  public Get = (token: string): Promise<ApiHeader> => {
     this.setActionPath(token);
 
     return this.executeGet();
+  };
+
+  public Patch = (id: string, patch: ApiHeaderPatch): Promise<void> => {
+    return this.executePatch(id, patch);
   };
 
   public Put = (id: string, put: ApiListHeaderPut): Promise<void> => {

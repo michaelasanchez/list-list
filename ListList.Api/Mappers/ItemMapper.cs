@@ -1,11 +1,12 @@
-﻿using ListList.Data.Models.Entities;
+﻿using ListList.Data.Extensions;
+using ListList.Data.Models.Entities;
 using ListList.Data.Models.Resources;
 
 namespace ListList.Api.Mappers;
 
 public class ItemMapper
 {
-    public static List<ItemResource> MapEntitiesToResources(List<NodeEntity> entities)
+    public static List<ItemResource> MapEntitiesToResources(List<ItemEntity> entities)
     {
         if (entities == null || entities.Count == 0)
         {
@@ -15,7 +16,7 @@ public class ItemMapper
         var sortedEntities = entities.OrderBy(e => e.Left).ToList();
 
         var resources = new List<ItemResource>();
-        var parentStack = new Stack<NodeEntity>();
+        var parentStack = new Stack<ItemEntity>();
 
         foreach (var entity in sortedEntities)
         {
@@ -40,8 +41,8 @@ public class ItemMapper
 
             resource.ParentId = parentStack.Count != 0 ? parentStack.Peek().Id : null;
 
-            resource.HasChildren = (entity.Right - entity.Left) > 1;
-            resource.DescendantCount = (entity.Right - entity.Left - 1) / 2;
+            resource.IsParent = entity.IsParent();
+            resource.DescendantCount = entity.DescendantCount();
 
             resources.Add(resource);
 

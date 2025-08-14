@@ -1,10 +1,6 @@
 import { filter, map } from 'lodash';
 import { AppState } from '.';
-import {
-  ApiListHeader,
-  ApiListItem,
-  ApiListItemCreation,
-} from '../../contracts';
+import { ApiHeader, ApiItem, ApiListItemCreation } from '../../contracts';
 import { ListItemMapper } from '../../mappers';
 
 export enum AppStateActionType {
@@ -30,12 +26,12 @@ export type NodePath = number[];
 export interface AppStateAction {
   type: AppStateActionType;
   creation?: ApiListItemCreation;
-  header?: ApiListHeader;
+  header?: ApiHeader;
   headerId?: string;
-  headers?: ApiListHeader[];
+  headers?: ApiHeader[];
   loading?: boolean;
   syncing?: boolean;
-  item?: ApiListItem;
+  item?: ApiItem;
   itemId?: string;
 }
 
@@ -127,25 +123,22 @@ export const AppStateReducer = (
     case AppStateActionType.SetItem: {
       if (!action.item) return state;
 
+      const headers = state.headers.map((h) =>
+        h.id == action.item.headerId
+          ? {
+              ...h,
+              items: h.items.map((i) =>
+                i.id == action.item.id
+                  ? ListItemMapper.mapItem(action.item, state.expanded)
+                  : i
+              ),
+            }
+          : h
+      );
+
       return {
         ...state,
-        headers: state.headers.map((h) =>
-          h.id == action.item.headerId
-            ? {
-                ...h,
-                items: h.items.map((i) =>
-                  i.id == action.item.id
-                    ? {
-                        ...i,
-                        // just updating label & description for now !!
-                        label: action.item.label,
-                        description: action.item.description,
-                      }
-                    : i
-                ),
-              }
-            : h
-        ),
+        headers,
       };
     }
     case AppStateActionType.SetLoading: {

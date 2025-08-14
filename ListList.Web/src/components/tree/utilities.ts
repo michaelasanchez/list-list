@@ -104,7 +104,11 @@ export function flattenTree(items: TreeItems): FlattenedItem[] {
 }
 
 export function buildTree(flattenedItems: FlattenedItem[]): TreeItems {
-  const root: TreeItem = { id: 'root', children: [] };
+  const root: TreeItem = {
+    id: 'root',
+    children: [],
+    data: null,
+  };
   const nodes: Record<string, TreeItem> = { [root.id]: root };
   const items = flattenedItems.map<FlattenedItem>((item) => ({
     ...item,
@@ -112,11 +116,11 @@ export function buildTree(flattenedItems: FlattenedItem[]): TreeItems {
   }));
 
   for (const item of items) {
-    const { id, children } = item;
+    const { id, children, data } = item;
     const parentId = item.parentId ?? root.id;
     const parent = nodes[parentId] ?? findItem(items, parentId);
 
-    nodes[id] = { id, children };
+    nodes[id] = { id, children, data };
     parent.children.push(item);
   }
 

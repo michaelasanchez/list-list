@@ -1,13 +1,12 @@
 ﻿namespace ListList.Data.Models.Entities;
 
-public class NodeEntity : BaseEntity
+public class ItemEntity : BaseEntity
 {
     public Guid HeaderId { get; set; } = default;
 
     public string? Label { get; set; }
     public string? Description { get; set; }
 
-    public bool Completable { get; set; } = default;
     public bool Complete { get; set; } = default;
     public DateTimeOffset? CompletedOn { get; set; }
 

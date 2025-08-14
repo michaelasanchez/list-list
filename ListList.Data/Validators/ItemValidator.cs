@@ -7,10 +7,10 @@ namespace ListList.Data.Validators;
 
 public class ItemValidator(IListListContext _context) : IItemValidator
 {
-    public async Task ListItemIsEmptyAsync(Guid listItemId, ValidationResult result)
+    public async Task ListItemIsEmptyAsync(Guid itemId, ValidationResult result)
     {
         var targetNode = await _context.ListItems
-            .Where(z => z.Id == listItemId)
+            .Where(z => z.Id == itemId)
             .Select(z => new { z.HeaderId, z.Left, z.Right })
             .SingleOrDefaultAsync();
 
@@ -29,22 +29,27 @@ public class ItemValidator(IListListContext _context) : IItemValidator
         }
     }
 
-    public async Task ListItemIsNotDeletedAsync(Guid? listItemId, ValidationResult result)
+    public async Task ListItemIsNotDeletedAsync(Guid? itemId, ValidationResult result)
     {
         var listItemIsDeleted = await _context.ListItems
-            .AnyAsync(z => z.Id == listItemId && z.Deleted);
+            .AnyAsync(z => z.Id == itemId && z.Deleted);
 
         if (listItemIsDeleted)
         {
-            result.AddError($"List item [{listItemId}] is deleted.");
+            result.AddError($"List item [{itemId}] is deleted.");
         }
     }
 
-    public async Task ListItemIsOwnedByUserAsync(Guid? userId, Guid listItemId, ValidationResult result)
+    public async Task ListItemIsOwnedByUserAsync(Guid? userId, Guid itemId, ValidationResult result)
     {
+        var test = await _context.ListItems
+            .Include(z => z.Header)
+            .Where(z => z.Id == itemId)
+            .SingleOrDefaultAsync();
+
         var userOwnsListHeader = await _context.ListItems
             .Include(z => z.Header)
-            .AnyAsync(z => z.Id == listItemId && z.Header.OwnerId == userId);
+            .AnyAsync(z => z.Id == itemId && z.Header.OwnerId == userId);
 
         if (!userOwnsListHeader)
         {

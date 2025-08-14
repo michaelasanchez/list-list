@@ -1,50 +1,56 @@
 import { TreeItem, TreeItems } from '../components/tree/types';
-import { ApiListItem } from '../contracts';
-import { ListHeader, ListItem } from '../models';
+import { Header, Item } from '../models';
 
-export interface ApiListItemWithChildren extends ApiListItem {
-  index: number;
-  collapsed: boolean;
-  children: ApiListItemWithChildren[];
-}
-
-function buildTreeFromHeaders(headers: ListHeader[]): TreeItems {
+function buildTreeFromHeaders(headers: Header[]): TreeItems {
   return (
     headers.map<TreeItem>((header, index) => ({
       id: header.id,
       index,
-      label: header.label,
-      description: header.description,
       collapsed: true,
       children: [],
+      data: {
+        label: header.label,
+        description: header.description,
+      },
     })) ?? []
   );
 }
 
-function buildTreeFromItems(items: ListItem[], expanded: string[]): TreeItems {
+interface TreeItemWithParentId extends TreeItem {
+  parentId: string;
+}
+
+function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
   if (!items?.length) return [];
 
-  const itemMap = new Map<string, ApiListItemWithChildren>();
+  const itemMap = new Map<string, TreeItemWithParentId>();
   const roots: TreeItems = [];
 
-  items.forEach((item, index) => {
-    itemMap.set(item.id, {
-      ...item,
-      id: item.id,
-      index,
-      collapsed: !expanded?.includes(item.id),
+  items.forEach((i) => {
+    itemMap.set(i.id, {
+      id: i.id,
+      collapsed: !expanded?.includes(i.id),
       children: [],
+      parentId: i.parentId,
+      data: {
+        label: i.label,
+        description: i.description,
+        complete: i.complete,
+      },
     });
   });
 
   itemMap.forEach((item) => {
-    if (item.parentId) {
-      const parent = itemMap.get(item.parentId);
+    const { parentId, ...rest } = item;
+
+    if (parentId) {
+      const parent = itemMap.get(parentId);
+
       if (parent) {
-        parent.children.push(item);
+        parent.children.push(rest);
       }
     } else {
-      roots.push(item);
+      roots.push(rest);
     }
   });
 

@@ -1,5 +1,5 @@
 import { ApiListItemCreation } from '../../contracts';
-import { ListHeader } from '../../models';
+import { Header } from '../../models';
 
 export interface AppState {
   syncing: boolean;
@@ -7,6 +7,6 @@ export interface AppState {
   expanded: string[];
   tokens: { [headerId: string]: string[] };
   previousHeaderId?: string;
-  headers?: ListHeader[];
+  headers?: Header[];
   headerCreation?: ApiListItemCreation;
 }

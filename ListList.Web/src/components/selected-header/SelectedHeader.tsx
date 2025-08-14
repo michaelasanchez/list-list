@@ -1,48 +1,19 @@
 import React from 'react';
-import { ButtonVariant } from 'react-bootstrap/esm/types';
+import { Dropdown } from 'react-bootstrap';
+import { Icon, IconButton, LabelAndDescriptionEditor, ShareModal } from '..';
 import {
-  IconButton,
-  IconButtonProps,
-  IconType,
-  LabelAndDescriptionEditor,
-  ShareModal,
-} from '..';
-import { ApiListHeaderShare, SharedPermission } from '../../contracts';
-import { ListHeader } from '../../models';
-import { Listeners } from '../tree/SortableTree';
-
-type Test = Pick<IconButtonProps, 'iconType' | 'size' | 'variant' | 'onClick'>;
-
-interface SelectedHeaderAction {
-  iconType: IconType;
-  size?: 'sm' | 'lg';
-  variant: ButtonVariant;
-  onClick: () => void;
-}
-
-const createSecondary = (
-  iconType: IconType,
-  onClick: () => void
-): SelectedHeaderAction => ({
-  iconType,
-  size: 'sm',
-  variant: 'outline-secondary',
-  onClick,
-});
-
-const createPrimary = (
-  iconType: IconType,
-  onClick: () => void
-): SelectedHeaderAction => ({
-  iconType,
-  variant: 'secondary',
-  onClick,
-});
+  ApiHeaderPatch,
+  ApiListHeaderShare,
+  SharedPermission,
+} from '../../contracts';
+import { Header } from '../../models';
+import { SortableTreeHooks } from '../tree/SortableTree';
 
 export interface SelectedHeaderProps {
-  header: ListHeader;
-  listeners?: Listeners;
+  header: Header;
+  listeners?: SortableTreeHooks;
   onBack?: () => void;
+  onPatch?: (patch: ApiHeaderPatch) => void;
 }
 
 interface State {
@@ -56,18 +27,40 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
     pendingShare: { permission: SharedPermission.View },
   });
 
-  const selectionHeaderActions = React.useMemo(
-    () => [
-      ...(props.header.isReadOnly
-        ? []
-        : [
-            createSecondary('share', () =>
-              setState((s) => ({ ...s, show: true }))
-            ),
-            createSecondary('kebab', () => {}),
-          ]),
-      createPrimary('backward', () => props.onBack?.()),
-    ],
+  const headerActions = React.useMemo(
+    () =>
+      props.header.isReadonly ? (
+        <></>
+      ) : (
+        <>
+          <IconButton
+            iconType="share"
+            size="sm"
+            variant="outline-secondary"
+            onClick={() => setState((s) => ({ ...s, show: true }))}
+          />
+          <Dropdown className="menu">
+            <Dropdown.Toggle size="sm" variant="outline-secondary">
+              <Icon type="kebab" />
+            </Dropdown.Toggle>
+            <Dropdown.Menu>
+              <Dropdown.Item
+                onClick={() =>
+                  props.onPatch?.({ checklist: !props.header.isChecklist })
+                }
+              >
+                Checklist
+                {props.header.isChecklist && <Icon type="check" />}
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
+          <IconButton
+            iconType="backward"
+            variant="secondary"
+            onClick={() => props.onBack?.()}
+          />
+        </>
+      ),
     [props.onBack]
   );
 
@@ -86,11 +79,7 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
           }
         />
       </div>
-      <div className="actions">
-        {selectionHeaderActions.map((a, i) => (
-          <IconButton key={i} {...a} />
-        ))}
-      </div>
+      <div className="actions">{headerActions}</div>
       <ShareModal
         show={state.show}
         shareLinks={props.header.shareLinks}

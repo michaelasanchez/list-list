@@ -1,4 +1,4 @@
-export * from './ListHeader';
-export * from './ListItem';
+export * from './Header';
+export * from './Item';
 export * from './ShareLink';
 export * from './auth';

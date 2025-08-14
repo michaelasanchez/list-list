@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
+using ListList.Api.Contracts.Patch;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
+using ListList.Data.Models.Resources;
 using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Api.Services;
@@ -31,7 +33,7 @@ public class HeaderService(
 
         var creation = _mapper.Map<HeaderEntity>(listHeader);
 
-        await _listHeaderRepository.CreateListHeaderAsync(userId.Value, creation);
+        await _listHeaderRepository.CreateHeader(userId.Value, creation);
 
         return creation.Id;
     }
@@ -47,8 +49,8 @@ public class HeaderService(
         }
 
         var listHeader = listHeaderId == default
-            ? await _listHeaderRepository.GetListHeaderByToken(token)
-            : await _listHeaderRepository.GetListHeaderByIdAsync(userId, listHeaderId);
+            ? await _listHeaderRepository.GetHeaderByToken(token)
+            : await _listHeaderRepository.GetHeaderById(userId, listHeaderId);
 
         return _mapper.Map<Header>(listHeader);
     }
@@ -62,16 +64,27 @@ public class HeaderService(
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var listHeaders = await _listHeaderRepository.GetListHeadersAsync(userId);
+        var listHeaders = await _listHeaderRepository.GetHeaders(userId);
 
         return _mapper.Map<IEnumerable<Header>>(listHeaders);
     }
 
-    public async Task PutListHeader(Guid listHeaderId, ListHeaderPut listHeaderPut)
+    public async Task PatchHeader(Guid headerId, HeaderPatch headerPatch)
+    {
+        var userId = await _userService.GetUserIdAsync();
+
+        await InvokeGuard(() => _guard.AgainstInvalidListHeaderPatch(userId, headerId, headerPatch));
+
+        var resource = _mapper.Map<HeaderResource>(headerPatch);
+
+        await _listHeaderRepository.PatchHeader(headerId, resource);
+    }
+
+    public async Task PutHeader(Guid listHeaderId, HeaderPut listHeaderPut)
     {
         var entityUpdate = _mapper.Map<HeaderEntity>(listHeaderPut);
 
-        await _listHeaderRepository.PutListHeader(listHeaderId, entityUpdate);
+        await _listHeaderRepository.PutHeader(listHeaderId, entityUpdate);
     }
 
     public async Task RelocateListHeader(Guid listHeaderId, int index)
@@ -80,6 +93,6 @@ public class HeaderService(
 
         await InvokeGuard(() => _guard.AgainstInvalidListHeaderRelocationAsync(userId, listHeaderId, index));
 
-        await _listHeaderRepository.RelocateListHeaderAsync(userId.Value, listHeaderId, index);
+        await _listHeaderRepository.RelocateHeader(userId.Value, listHeaderId, index);
     }
 }

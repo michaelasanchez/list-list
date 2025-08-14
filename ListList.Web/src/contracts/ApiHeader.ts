@@ -1,13 +1,14 @@
-import { ApiListItem } from '.';
+import { ApiItem } from '.';
 import { ApiShareLink } from './ApiShareLink';
 
-export interface ApiListHeader {
+export interface ApiHeader {
   id: string;
   token?: string;
-  isReadOnly: boolean;
+  order: number;
+  checklist: boolean;
+  readonly: boolean;
   label: string;
   description: string;
-  order: number;
-  items: ApiListItem[];
+  items: ApiItem[];
   shareLinks: ApiShareLink[];
 }

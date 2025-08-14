@@ -1,12 +1,16 @@
 import type { UniqueIdentifier } from '@dnd-kit/core';
 
+export interface TreeItemData {
+  label: string;
+  description: string;
+  complete?: boolean;
+}
+
 export interface TreeItem {
   id: UniqueIdentifier;
   children: TreeItem[];
   collapsed?: boolean;
-
-  label: string;
-  description: string;
+  data: TreeItemData;
 }
 
 export type TreeItems = TreeItem[];
@@ -14,7 +18,6 @@ export type TreeItems = TreeItem[];
 export interface FlattenedItem extends TreeItem {
   parentId: UniqueIdentifier | null;
   depth: number;
-  index: number;
 }
 
 export interface SensorContext {

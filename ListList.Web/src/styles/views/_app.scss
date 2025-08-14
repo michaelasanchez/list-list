@@ -27,8 +27,11 @@ main {
   grid-row: 1;
 
   overflow: hidden;
-
   transition: transform 300ms ease-in-out;
+
+  --item-gap: 1em;
+
+  padding: var(--item-gap) 0;
 
   &.show {
     overflow: auto;
@@ -47,5 +50,5 @@ main {
 .list-container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--item-gap);
 }

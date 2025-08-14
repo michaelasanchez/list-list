@@ -1,5 +1,5 @@
 import { Api } from '.';
-import { ApiListItemPut as ApiItemPut, ApiListItem } from '../contracts';
+import { ApiListItemPut as ApiItemPut, ApiItem } from '../contracts';
 import { ApiItemPatch } from '../contracts/patch/ApiItemPatch';
 import { ApiListItemCreation } from '../contracts/post/ApiListItemCreation';
 
@@ -27,7 +27,7 @@ export class ListItemApi extends Api {
     return this.executeDelete(listItemId);
   };
 
-  public GetById = (listItemId: string): Promise<ApiListItem> => {
+  public GetById = (listItemId: string): Promise<ApiItem> => {
     this.setActionPath(`${listItemId}`);
 
     return this.executeGet();

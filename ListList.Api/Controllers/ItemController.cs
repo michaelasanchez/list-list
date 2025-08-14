@@ -59,13 +59,13 @@ public class ItemController(IItemService _service) : Controller
     }
 
     [HttpGet("{listItemId}")]
-    public async Task<ActionResult<Item>> GetListItemByIdAsync([FromRoute] Guid listItemId)
+    public async Task<ActionResult<Item>> GetItemById([FromRoute] Guid listItemId)
     {
         Item listItem;
 
         try
         {
-            listItem = await _service.GetListItemByIdAsync(listItemId);
+            listItem = await _service.GetItemById(listItemId);
         }
         catch (Exception ex)
         {

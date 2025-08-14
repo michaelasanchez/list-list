@@ -1,6 +1,6 @@
 .list-view {
   padding-bottom: 1rem;
-  
+
   .selected-header {
     display: flex;
     justify-content: space-between;
@@ -13,6 +13,10 @@
     margin-bottom: -1rem;
 
     background: var(--bs-body-bg);
+
+    .dropdown.menu .dropdown-toggle::after {
+      display: none;
+    }
 
     .content {
       .label-editor {

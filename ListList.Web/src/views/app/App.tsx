@@ -5,7 +5,10 @@ import { Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
 import { SelectedHeader } from '../../components';
-import { Listeners, SortableTree } from '../../components/tree/SortableTree';
+import {
+  SortableTreeHooks as Hooks,
+  SortableTree,
+} from '../../components/tree/SortableTree';
 import { ApiListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
@@ -143,7 +146,7 @@ export const App: React.FC = () => {
     }
   };
 
-  const activeHeader = React.useMemo(() => {
+  const selectedHeader = React.useMemo(() => {
     const index = !token
       ? -1
       : findIndex(
@@ -156,14 +159,14 @@ export const App: React.FC = () => {
 
   // Load header if not found from initial load
   useEffect(() => {
-    if (!state.syncing && !activeHeader && !!token) {
+    if (!state.syncing && !selectedHeader && !!token) {
       loadHeader(token);
     }
-  }, [activeHeader, state.syncing]);
+  }, [selectedHeader, state.syncing]);
 
   const displayHeader = React.useMemo(() => {
-    if (activeHeader) {
-      return activeHeader;
+    if (selectedHeader) {
+      return selectedHeader;
     }
 
     const index = findIndex(
@@ -174,10 +177,10 @@ export const App: React.FC = () => {
     const d = index >= 0 ? state.headers[index] : null;
 
     return d;
-  }, [activeHeader]);
+  }, [selectedHeader]);
 
-  const headerListeners = React.useMemo<Listeners>(
-    (): Listeners | null => ({
+  const headersListHooks = React.useMemo<Hooks>(
+    (): Hooks | null => ({
       onClick: (headerId: string) => {
         navigate(headerId);
       },
@@ -206,38 +209,41 @@ export const App: React.FC = () => {
     [authState?.token, state.headers]
   );
 
-  const displayListeners = React.useMemo<Listeners>(
-    (): Listeners | null =>
-      activeHeader
+  const selectedListHooks = React.useMemo<Hooks>(
+    (): Hooks | null =>
+      selectedHeader
         ? {
+            onCheck: (itemId: string) => {
+              apis.itemApi.Complete(itemId).then(() => loadItem(itemId));
+            },
             onClick: (itemId: string) => {
               dispatch({
                 type: ActionType.ToggleExpanded,
-                headerId: activeHeader.id,
+                headerId: selectedHeader.id,
                 itemId,
               });
             },
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
               apis.itemApi
                 .Relocate(activeId, overId, parentId)
-                .then(() => loadHeader(activeHeader.id)),
+                .then(() => loadHeader(selectedHeader.id)),
             onSaveDescription: (id: string, description: string) =>
               apis.itemApi
                 .Put(id, {
-                  ...activeHeader.items.find((i) => i.id == id),
+                  ...selectedHeader.items.find((i) => i.id == id),
                   description,
                 })
                 .then(() => loadItem(id)),
             onSaveLabel: (id: string, label: string) =>
               apis.itemApi
                 .Put(id, {
-                  ...activeHeader.items.find((i) => i.id == id),
+                  ...selectedHeader.items.find((i) => i.id == id),
                   label,
                 })
                 .then(() => loadItem(id)),
           }
         : null,
-    [activeHeader]
+    [selectedHeader]
   );
 
   return (
@@ -249,36 +255,41 @@ export const App: React.FC = () => {
         onSetTheme={themeState.setTheme}
       />
       <main>
-        <div className={`header-view${!activeHeader ? ' show' : ''}`}>
+        <div className={`header-view${!selectedHeader ? ' show' : ''}`}>
           <Container className="list-container">
             <SortableTree
-              // indicator
-              listeners={headerListeners}
+              listeners={headersListHooks}
               defaultItems={Temp.buildTreeFromHeaders(
                 state.headers.filter((h) => !h.isNotOwned)
               )}
             />
           </Container>
         </div>
-        <div className={`list-view${!!activeHeader ? ' show' : ''}`}>
+        <div className={`list-view${!!selectedHeader ? ' show' : ''}`}>
           <Container className="list-container">
             {displayHeader && (
               <>
                 <SelectedHeader
                   header={displayHeader}
-                  listeners={headerListeners}
+                  listeners={headersListHooks}
                   onBack={() => navigate('/')}
+                  onPatch={(patch) =>
+                    apis.headerApi
+                      .Patch(displayHeader.id, patch)
+                      .then(() => loadHeader(displayHeader.id))
+                  }
                 />
                 <SortableTree
                   collapsible
                   indicator
                   removable
-                  readonly={displayHeader.isReadOnly}
+                  checklist={displayHeader.isChecklist}
+                  readonly={displayHeader.isReadonly}
                   defaultItems={Temp.buildTreeFromItems(
                     displayHeader.items,
                     state.expanded
                   )}
-                  listeners={displayListeners}
+                  listeners={selectedListHooks}
                 />
               </>
             )}

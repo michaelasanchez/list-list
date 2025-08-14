@@ -7,13 +7,13 @@ import {
   MemoizedIcon,
 } from '.';
 import { ApiListItemCreation } from '../contracts';
-import { ListItem } from '../models';
+import { Item } from '../models';
 import { ListItemApi } from '../network';
 import { AppStateActionType as ActionType, AppStateAction } from '../views/app';
 
 interface ListNodeDisplayProps {
   token: string;
-  node: ListItem;
+  node: Item;
   className?: string;
   dispatchAction: (action: AppStateAction) => void;
   reloadHeader: () => void;
@@ -133,7 +133,7 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
     <div
       className={`list-node${props.className ? ` ${props.className}` : ''}${
         props.node.expanded ? ' expanded' : ''
-      }${props.node.hasChildren ? ' parent' : ''}`}
+      }${props.node.isParent ? ' parent' : ''}`}
     >
       <div className="node-header" onClick={handleToggleNode}>
         <div className="node-left">
@@ -162,18 +162,18 @@ export const ListNodeDisplay: React.FC<ListNodeDisplayProps> = (props) => {
           </div>
         </div>
         <div className="node-right">
-          {props.node.hasChildren && (
+          {props.node.isParent && (
             <div className="completed">
               {/* ({countBy(props.node.children, (n) => n.complete)['true'] ?? 0}/ */}
               (got me/{props.node.descendantCount})
             </div>
           )}
-          {!props.node.hasChildren && !props.node.expanded ? (
+          {!props.node.isParent && !props.node.expanded ? (
             <Button
               className="delete`"
               size="sm"
               variant="none"
-              disabled={props.node.hasChildren}
+              disabled={props.node.isParent}
               onClick={handleDeleteNode}
             >
               <MemoizedIcon type="delete" />

@@ -46,7 +46,7 @@ public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache
         return userId.Value;
     }
 
-    public async Task<ApiToken?> LoginAsync(string authorizationCode)
+    public async Task<Token?> LoginAsync(string authorizationCode)
     {
         var tokenResponse = await _tokenService.ExchangeTokenAsync(authorizationCode);
 
@@ -63,7 +63,7 @@ public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache
             await _unitOfWork.SaveChangesAsync();
         }
 
-        return new ApiToken
+        return new Token
         {
             IdToken = tokenResponse.IdToken,
             Expiry = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds!.Value),
@@ -71,11 +71,11 @@ public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache
         };
     }
 
-    public async Task<ApiToken?> RefreshAsync(string refreshToken)
+    public async Task<Token?> RefreshAsync(string refreshToken)
     {
         var tokenResponse = await _tokenService.RefreshTokenAsync(refreshToken);
 
-        return new ApiToken
+        return new Token
         {
             IdToken = tokenResponse.IdToken,
             Expiry = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds!.Value),

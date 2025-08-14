@@ -70,7 +70,8 @@ const dropAnimationConfig: DropAnimation = {
 };
 
 // TODO: get headerId outta here !!
-export interface Listeners {
+export interface SortableTreeHooks {
+  onCheck?: (id: UniqueIdentifier) => void;
   onClick?: (id: UniqueIdentifier) => void;
   onDragEnd?: (
     id: UniqueIdentifier,
@@ -82,17 +83,19 @@ export interface Listeners {
 }
 
 interface Props {
-  defaultItems: TreeItems;
+  checklist?: boolean;
   collapsible?: boolean;
+  defaultItems: TreeItems;
   indentationWidth?: number;
   indicator?: boolean;
   maxDepth?: number | null;
   readonly?: boolean;
   removable?: boolean;
-  listeners?: Listeners;
+  listeners?: SortableTreeHooks;
 }
 
 export function SortableTree({
+  checklist,
   collapsible,
   defaultItems,
   indicator = false,
@@ -200,40 +203,37 @@ export function SortableTree({
       onDragCancel={handleDragCancel}
     >
       <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
-        {flattenedItems.map(
-          ({ id, children, collapsed, depth, label, description, ...rest }) => {
-            return (
-              <SortableTreeItem
-                key={id}
-                id={id}
-                name={`${id}`}
-                label={label}
-                description={description}
-                depth={id === activeId && projected ? projected.depth : depth}
-                indentationWidth={indentationWidth}
-                indicator={indicator}
-                collapsed={Boolean(collapsed && children.length)}
-                childCount={children.length}
-                onClick={() =>
-                  listeners?.onClick
-                    ? listeners.onClick(id)
-                    : collapsible && handleCollapse(id)
-                }
-                onCollapse={
-                  collapsible && children.length
-                    ? () => handleCollapse(id)
-                    : undefined
-                }
-                onRemove={removable ? () => handleRemove(id) : undefined}
-                listeners={{
-                  onSaveDescription: (description) =>
-                    listeners?.onSaveDescription(id, description),
-                  onSaveLabel: (label) => listeners?.onSaveLabel(id, label),
-                }}
-              />
-            );
-          }
-        )}
+        {flattenedItems.map(({ id, children, collapsed, depth, data }) => (
+          <SortableTreeItem
+            key={id}
+            id={id}
+            name={`${id}`}
+            checkbox={checklist}
+            data={data}
+            depth={id === activeId && projected ? projected.depth : depth}
+            indentationWidth={indentationWidth}
+            indicator={indicator}
+            childCount={children.length}
+            collapsed={Boolean(collapsed && children.length)}
+            listeners={{
+              onSaveDescription: (description) =>
+                listeners?.onSaveDescription(id, description),
+              onSaveLabel: (label) => listeners?.onSaveLabel(id, label),
+            }}
+            onCheck={() => listeners?.onCheck(id)}
+            onClick={() =>
+              listeners?.onClick
+                ? listeners.onClick(id)
+                : collapsible && handleCollapse(id)
+            }
+            onCollapse={
+              collapsible && children.length
+                ? () => handleCollapse(id)
+                : undefined
+            }
+            onRemove={removable ? () => handleRemove(id) : undefined}
+          />
+        ))}
         {createPortal(
           <DragOverlay
             dropAnimation={dropAnimationConfig}
@@ -246,8 +246,7 @@ export function SortableTree({
                 clone
                 childCount={getChildCount(items, activeId) + 1}
                 name={`active-${activeId}`}
-                label={activeItem.label}
-                description={activeItem.description}
+                data={activeItem.data}
                 indentationWidth={indentationWidth}
               />
             ) : null}

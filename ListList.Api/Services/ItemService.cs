@@ -33,7 +33,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemCreationAsync(userId, parentId));
 
-        var creation = _mapper.Map<NodeEntity>(listItem);
+        var creation = _mapper.Map<ItemEntity>(listItem);
 
         await _listItemRepository.CreateListItem(creation, parentId);
 
@@ -53,13 +53,13 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<Item> GetListItemByIdAsync(Guid listItemId)
+    public async Task<Item> GetItemById(Guid listItemId)
     {
         var userId = await _userService.GetUserIdAsync();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListItemGetAsync(userId, listItemId));
+        await InvokeGuard(() => _guard.AgainstInvalidListGet(userId, listItemId));
 
-        var listItem = await _listItemRepository.GetListItemById(listItemId);
+        var listItem = await _listItemRepository.GetItemById(listItemId);
 
         return _mapper.Map<Item>(listItem);
     }
@@ -81,11 +81,9 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemPutAsync(userId, listItemId));
 
-        var entityPut = _mapper.Map<NodeEntity>(listItemPut);
+        var entityPut = _mapper.Map<ItemEntity>(listItemPut);
 
         await _listItemRepository.PutListItem(listItemId, entityPut);
-
-        await _unitOfWork.SaveChangesAsync();
     }
 
     public async Task RelocateListItemAsync(Guid activeId, Guid overId, Guid? parentId)

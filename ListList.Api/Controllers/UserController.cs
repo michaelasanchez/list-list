@@ -10,9 +10,9 @@ namespace ListList.Api.Controllers;
 public class UserController(IUserService _userService) : ControllerBase
 {
     [HttpPost("login")]
-    public async Task<ActionResult<ApiToken?>> Login(AuthorizationCode authorizationCode)
+    public async Task<ActionResult<Token?>> Login(AuthorizationCode authorizationCode)
     {
-        ApiToken? token;
+        Token? token;
 
         try
         {
@@ -27,9 +27,9 @@ public class UserController(IUserService _userService) : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult<ApiToken?>> Refresh(RefreshToken refreshToken)
+    public async Task<ActionResult<Token?>> Refresh(RefreshToken refreshToken)
     {
-        ApiToken? token;
+        Token? token;
 
         try
         {

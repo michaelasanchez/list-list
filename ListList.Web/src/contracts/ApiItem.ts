@@ -1,9 +1,9 @@
-export interface ApiListItem {
+export interface ApiItem {
   id: string;
   label: string;
   description: string;
 
-  completable: boolean;
+  // completable: boolean;
   complete: boolean;
   completedOn: string;
 
@@ -15,7 +15,7 @@ export interface ApiListItem {
   headerId: string;
   parentId?: string;
 
-  hasChildren: boolean;
+  isParent: boolean;
   childCount: number;
   descendantCount: number;
 }

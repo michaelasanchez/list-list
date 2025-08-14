@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
+using ListList.Api.Contracts.Patch;
 using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Data.Models.Entities;
@@ -23,7 +24,9 @@ public class HeaderProfile : Profile
         CreateMap<ListHeaderCreation, HeaderEntity>()
             .ForMember(dest => dest.Nodes, opt => opt.Ignore());
 
-        CreateMap<ListHeaderPut, HeaderEntity>()
+        CreateMap<HeaderPatch, HeaderResource>();
+
+        CreateMap<HeaderPut, HeaderEntity>()
             .ForMember(dest => dest.Nodes, opt => opt.Ignore());
     }
 }

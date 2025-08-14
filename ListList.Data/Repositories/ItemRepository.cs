@@ -14,16 +14,25 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         var listItem = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
 
         listItem.Complete = !listItem.Complete;
+
+        if (listItem.Complete)
+        {
+            listItem.CompletedOn = DateTime.UtcNow;
+        }
+        else
+        {
+            listItem.CompletedOn = null;
+        }
     }
 
-    public async Task CreateListItem(NodeEntity creation, Guid parentId)
+    public async Task CreateListItem(ItemEntity creation, Guid parentId)
     {
         await InsertItem([creation], parentId);
 
         await _context.ListItems.AddAsync(creation);
     }
 
-    public async Task InsertItem(List<NodeEntity> active, Guid? parentId, Guid? overId = null)
+    public async Task InsertItem(List<ItemEntity> active, Guid? parentId, Guid? overId = null)
     {
         if (active is not { Count: > 0 })
         {
@@ -61,27 +70,64 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         }
     }
 
-    public async Task<NodeEntity> GetListItemById(Guid listItemId)
+    public async Task<ItemResource> GetItemById(Guid listItemId)
     {
-        var parent = await _context.ListItems.Where(z => z.Id == listItemId).SingleAsync();
+        var entity = await _context.ListItems
+            .Where(z => z.Id == listItemId)
+            .SingleAsync();
 
-        var children = await _context.ListItems
-            .Where(z =>
-                z.Left > parent.Left &&
-                z.Right < parent.Right &&
-                !z.Deleted)
-            .ToListAsync();
+        var ancestorIds = entity.Left > 1
+            ? await _context.ListItems
+                .Where(z =>
+                    z.HeaderId == entity.HeaderId &&
+                    z.Left < entity.Left &&
+                    z.Right > entity.Right &&
+                    !z.Deleted)
+                .OrderBy(z => z.Left)
+                .Select(z => z.Id)
+                .ToListAsync()
+            : [];
 
-        return parent;
+        var descendantIds = entity.IsParent()
+            ? await _context.ListItems
+                .Where(z =>
+                    z.HeaderId == entity.HeaderId &&
+                    z.Left > entity.Left &&
+                    z.Right < entity.Right &&
+                    !z.Deleted)
+                .OrderBy(z => z.Left)
+                .Select(z => z.Id)
+                .ToListAsync()
+            : [];
+
+        return MapResource(entity, ancestorIds, descendantIds);
     }
+
+    private static ItemResource MapResource(ItemEntity entity, List<Guid> ancestorIds, List<Guid> descendantIds) => new()
+    {
+        Id = entity.Id,
+        Label = entity.Label,
+        Description = entity.Description,
+        Complete = entity.Complete,
+        CompletedOn = entity.CompletedOn,
+        Left = entity.Left,
+        Right = entity.Right,
+        Depth = ancestorIds.Count,
+        HeaderId = entity.HeaderId,
+        ParentId = ancestorIds.Count > 0 ? ancestorIds.Last() : null,
+        //ChildrenIds = descendantIds,
+        IsParent = entity.IsParent(),
+        //ChildCount = 0,
+        DescendantCount = entity.DescendantCount()
+    };
 
     public async Task PatchListItem(Guid listItemId, ItemResource resource, bool? recursive)
     {
         var active = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
 
-        var entities = new List<NodeEntity> { active };
+        var entities = new List<ItemEntity> { active };
 
-        if (recursive is true && active.HasDescendants())
+        if (recursive is true && active.IsParent())
         {
             var query = _context.ListItems
                 .Where(z => z.Left > resource.Left && z.Right <= resource.Right && !z.Deleted);
@@ -103,11 +149,6 @@ public class ItemRepository(ListListContext _context) : IItemRepository
                 entity.Description = resource.Description;
             }
 
-            if (resource.Completable is not null)
-            {
-                entity.Completable = resource.Completable.Value;
-            }
-
             if (resource.Complete is not null)
             {
                 if (resource.Complete is true && !entity.Complete)
@@ -122,12 +163,14 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task PutListItem(Guid listItemId, NodeEntity entityPut)
+    public async Task PutListItem(Guid listItemId, ItemEntity entityPut)
     {
         var entity = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
 
         entity.Label = entityPut.Label;
         entity.Description = entityPut.Description;
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task RelocateListItem(Guid activeId, Guid overId, Guid? parentId)
@@ -164,7 +207,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         await _context.SaveChangesAsync();
     }
 
-    private async Task<List<NodeEntity>> GetDescendants(NodeEntity parent)
+    private async Task<List<ItemEntity>> GetDescendants(ItemEntity parent)
     {
         return await _context.ListItems
             .Where(z =>
@@ -212,7 +255,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         return leftBoundary;
     }
 
-    private async Task<List<NodeEntity>> RemoveNode(NodeEntity active)
+    private async Task<List<ItemEntity>> RemoveNode(ItemEntity active)
     {
         var removeCount = (active.Right - active.Left + 1) / 2;
 
@@ -260,7 +303,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         }
     }
 
-    private static void ReindexSubtree(List<NodeEntity> items)
+    private static void ReindexSubtree(List<ItemEntity> items)
     {
         if (items is not { Count: > 0 })
         {

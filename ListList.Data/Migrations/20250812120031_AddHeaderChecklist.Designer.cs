@@ -4,6 +4,7 @@ using ListList.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ListList.Data.Migrations
 {
     [DbContext(typeof(ListListContext))]
-    partial class ListListContextModelSnapshot : ModelSnapshot
+    [Migration("20250812120031_AddHeaderChecklist")]
+    partial class AddHeaderChecklist
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,11 +67,14 @@ namespace ListList.Data.Migrations
                     b.ToTable("ListHeader", (string)null);
                 });
 
-            modelBuilder.Entity("ListList.Data.Models.Entities.ItemEntity", b =>
+            modelBuilder.Entity("ListList.Data.Models.Entities.NodeEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("Completable")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Complete")
                         .HasColumnType("bit");
@@ -215,7 +221,7 @@ namespace ListList.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ListList.Data.Models.Entities.ItemEntity", b =>
+            modelBuilder.Entity("ListList.Data.Models.Entities.NodeEntity", b =>
                 {
                     b.HasOne("ListList.Data.Models.Entities.HeaderEntity", "Header")
                         .WithMany("Nodes")

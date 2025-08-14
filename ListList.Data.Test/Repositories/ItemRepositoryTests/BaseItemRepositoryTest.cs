@@ -13,9 +13,9 @@ public class BaseItemRepositoryTest : BaseRepositoryTest
         _repository = new ItemRepository(_context);
     }
 
-    protected Guid GetIndex(List<NodeEntity> items, int index) => items[index].Id;
+    protected Guid GetIndex(List<ItemEntity> items, int index) => items[index].Id;
 
-    protected async Task<NodeEntity> SeedItem(
+    protected async Task<ItemEntity> SeedItem(
         Guid listHeaderId,
         int left,
         int right,
@@ -23,7 +23,7 @@ public class BaseItemRepositoryTest : BaseRepositoryTest
     {
         label ??= _fixture.Create<string>();
 
-        var item = _fixture.Build<NodeEntity>()
+        var item = _fixture.Build<ItemEntity>()
             .With(z => z.HeaderId, listHeaderId)
             .With(z => z.Left, left)
             .With(z => z.Right, right)

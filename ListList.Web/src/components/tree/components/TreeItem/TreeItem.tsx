@@ -1,12 +1,13 @@
 import classNames from 'classnames';
 import { forwardRef, HTMLAttributes } from 'react';
 
-import { Action, Handle, Remove } from '../../../Item';
+import { Action, Handle } from '../../../Item';
 import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
 import { Icon } from '../../../icon';
+import { TreeItemData } from '../../types';
 
 export interface Listeners {
   onSaveDescription?: (updated: string) => void;
@@ -14,6 +15,7 @@ export interface Listeners {
 }
 
 export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
+  checkbox?: boolean;
   childCount?: number;
   clone?: boolean;
   collapsed?: boolean;
@@ -26,9 +28,9 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   indentationWidth: number;
   //
   name: string;
-  label: string;
-  description: string;
+  data: TreeItemData;
   listeners?: Listeners;
+  onCheck?(): void;
   onCollapse?(): void;
   onRemove?(): void;
   //
@@ -39,6 +41,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
   (
     {
       childCount,
+      checkbox,
       clone,
       depth,
       disableSelection,
@@ -48,13 +51,13 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
       indentationWidth,
       indicator,
       collapsed,
+      onCheck,
       onCollapse,
       onRemove,
       style,
       name,
-      label,
-      description,
-      listeners: hooks,
+      data,
+      listeners,
       wrapperRef,
       ...props
     },
@@ -84,14 +87,25 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
           <div className={styles.Text}>
             <LabelAndDescriptionEditor
               name={name}
-              label={label}
-              description={description}
-              onSaveDescription={hooks?.onSaveDescription}
-              onSaveLabel={hooks?.onSaveLabel}
+              label={data.label}
+              description={data.description}
+              onSaveDescription={listeners?.onSaveDescription}
+              onSaveLabel={listeners?.onSaveLabel}
             />
           </div>
           <div className={styles.Actions}>
-            {onCollapse && (
+            {checkbox && (
+              <Action
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCheck?.();
+                }}
+              >
+                <Icon type={data.complete ? 'checked' : 'unchecked'} />
+              </Action>
+            )}
+            {onCollapse ? (
               <Action
                 onClick={onCollapse}
                 className={classNames(
@@ -101,11 +115,18 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               >
                 {collapseIcon}
               </Action>
+            ) : (
+              <Action />
             )}
             {/* {!clone && !childCount && onRemove && <Remove onClick={onRemove} />} */}
-            {/* <Action>
-              <Icon type="kebab" />
-            </Action> */}
+            {/* <Dropdown>
+                <Dropdown.Toggle>
+                  <Icon type="kebab" />
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  {hooks.}
+                </Dropdown.Menu>
+              </Dropdown> */}
           </div>
           {clone && childCount && childCount > 1 ? (
             <span className={styles.Count}>{childCount}</span>

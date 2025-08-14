@@ -5,6 +5,6 @@ namespace ListList.Api.Services.Interfaces;
 public interface IUserService
 {
     Task<Guid?> GetUserIdAsync();
-    Task<ApiToken?> LoginAsync(string authorizationCode);
-    Task<ApiToken?> RefreshAsync(string refreshToken);
+    Task<Token?> LoginAsync(string authorizationCode);
+    Task<Token?> RefreshAsync(string refreshToken);
 }

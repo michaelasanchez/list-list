@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { Icon, LabelAndDescriptionEditor } from '.';
-import { ListHeader } from '../models';
+import { Header } from '../models';
 import { ListItemApi } from '../network';
 
 export interface ListHeaderDisplayProps {
   token: string;
-  header: ListHeader;
+  header: Header;
   selected: boolean;
   onSelect: () => void;
   reloadHeader: () => void;

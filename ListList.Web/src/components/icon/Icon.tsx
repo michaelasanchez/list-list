@@ -3,6 +3,7 @@ import React from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  Check,
   ChevronDown,
   ChevronUp,
   CircleQuestionMark,
@@ -15,6 +16,8 @@ import {
   PlusSquare,
   Settings,
   Share2,
+  Square,
+  SquareCheckBig,
   Sun,
   Trash,
   X,
@@ -22,6 +25,8 @@ import {
 
 const icons = {
   backward: ArrowLeft,
+  check: Check,
+  checked: SquareCheckBig,
   close: X,
   collapsed: ChevronUp,
   copy: Copy,
@@ -38,6 +43,7 @@ const icons = {
   question: CircleQuestionMark,
   settings: Settings,
   share: Share2,
+  unchecked: Square,
 };
 
 export type IconType = keyof typeof icons;
