@@ -24,6 +24,8 @@ import { Navbar } from '../Navbar';
 const themeKey = 'll-them';
 const cacheKey = 'll-data';
 
+export type Succeeded = boolean;
+
 const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   const defaultState = localStorage.exists()
     ? JSON.parse(localStorage.fetch())
@@ -122,13 +124,18 @@ export const App: React.FC = () => {
     });
   };
 
-  const loadItem = (itemId: string) => {
+  const loadItem = (itemId: string): Promise<Succeeded> => {
     dispatch({ type: ActionType.SetLoading, loading: true });
 
-    apis.itemApi.GetById(itemId).then((item) => {
-      dispatch({ type: ActionType.SetLoading, loading: false });
-      dispatch({ type: ActionType.SetItem, item });
-    });
+    return apis.itemApi
+      .GetById(itemId)
+      .then((item) => {
+        dispatch({ type: ActionType.SetLoading, loading: false });
+        dispatch({ type: ActionType.SetItem, item });
+
+        return true;
+      })
+      .catch(() => false);
   };
 
   const handleCreateHeader = (listItem: ApiListItemCreation) => {
@@ -213,9 +220,10 @@ export const App: React.FC = () => {
     (): Hooks | null =>
       selectedHeader
         ? {
-            onCheck: (itemId: string) => {
-              apis.itemApi.Complete(itemId).then(() => loadItem(itemId));
-            },
+            onCheck: (itemId: string) =>
+              apis.itemApi
+                .Complete(itemId)
+                .then(() => loadItem(itemId)),
             onClick: (itemId: string) => {
               dispatch({
                 type: ActionType.ToggleExpanded,

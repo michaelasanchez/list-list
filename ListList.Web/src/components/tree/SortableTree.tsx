@@ -27,6 +27,7 @@ import { createPortal } from 'react-dom';
 
 import { CSS } from '@dnd-kit/utilities';
 import React from 'react';
+import { Succeeded } from '../../views/app/App';
 import { SortableTreeItem } from './components';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
 import type { FlattenedItem, SensorContext, TreeItems } from './types';
@@ -71,7 +72,7 @@ const dropAnimationConfig: DropAnimation = {
 
 // TODO: get headerId outta here !!
 export interface SortableTreeHooks {
-  onCheck?: (id: UniqueIdentifier) => void;
+  onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
   onClick?: (id: UniqueIdentifier) => void;
   onDragEnd?: (
     id: UniqueIdentifier,

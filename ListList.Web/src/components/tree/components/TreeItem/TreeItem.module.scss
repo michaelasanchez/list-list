@@ -101,6 +101,22 @@
   gap: 0.5em;
 }
 
+.SpinnerContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .Spinner {
+    --bs-spinner-size: 0.8rem;
+    --bs-spinner-border-width: 0.1em;
+
+    --bs-spinner-height: var(--bs-spinner-size);
+    --bs-spinner-width: var(--bs-spinner-size);
+
+    color: #919eab;
+  }
+}
+
 .Count {
   position: absolute;
   top: -10px;

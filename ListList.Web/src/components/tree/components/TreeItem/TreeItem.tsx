@@ -5,6 +5,8 @@ import { Action, Handle } from '../../../Item';
 import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
+import { Spinner } from 'react-bootstrap';
+import { Succeeded } from '../../../../views/app/App';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
 import { Icon } from '../../../icon';
 import { TreeItemData } from '../../types';
@@ -30,7 +32,7 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   name: string;
   data: TreeItemData;
   listeners?: Listeners;
-  onCheck?(): void;
+  onCheck?(): Promise<Succeeded>;
   onCollapse?(): void;
   onRemove?(): void;
   //
@@ -63,6 +65,8 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
     },
     ref
   ) => {
+    const [checkLoading, setCheckLoading] = React.useState<boolean>(false);
+
     return (
       <li
         className={classNames(
@@ -99,10 +103,25 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  onCheck?.();
+
+                  if (onCheck) {
+                    setCheckLoading(true);
+
+                    onCheck().then(() => setCheckLoading(false));
+                  }
                 }}
               >
-                <Icon type={data.complete ? 'checked' : 'unchecked'} />
+                {checkLoading ? (
+                // {data.complete ? (
+                  <div className={styles.SpinnerContainer}>
+                    <Spinner
+                      className={styles.Spinner}
+                      size="sm"
+                    />
+                  </div>
+                ) : (
+                  <Icon type={data.complete ? 'checked' : 'unchecked'} />
+                )}
               </Action>
             )}
             {onCollapse ? (
