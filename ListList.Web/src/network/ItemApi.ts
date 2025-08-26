@@ -1,5 +1,5 @@
 import { Api } from '.';
-import { ApiListItemPut as ApiItemPut, ApiItem } from '../contracts';
+import { ApiItem, ApiListItemPut as ApiItemPut } from '../contracts';
 import { ApiItemPatch } from '../contracts/patch/ApiItemPatch';
 import { ApiListItemCreation } from '../contracts/post/ApiListItemCreation';
 
@@ -14,27 +14,28 @@ export class ListItemApi extends Api {
     return this.executePost(null, null, false);
   };
 
-  public Create = (
-    creation: ApiListItemCreation,
-    parentId: string
-  ): Promise<string> => {
-    this.setActionPath(`${parentId}`);
+  // public Create = (
+  //   creation: ApiListItemCreation,
+  //   headerId: string,
+  //   parentId?: string
+  // ): Promise<string> => {
+  //   this.setActionPath(`${headerId}`);
 
-    return this.executePost(creation);
+  //   return this.executePost(creation);
+  // };
+
+  public Delete = (itemId: string): Promise<void> => {
+    return this.executeDelete(itemId);
   };
 
-  public Delete = (listItemId: string): Promise<void> => {
-    return this.executeDelete(listItemId);
-  };
-
-  public GetById = (listItemId: string): Promise<ApiItem> => {
-    this.setActionPath(`${listItemId}`);
+  public GetById = (itemId: string): Promise<ApiItem> => {
+    this.setActionPath(`${itemId}`);
 
     return this.executeGet();
   };
 
   public Patch = (
-    listItemId: string,
+    itemId: string,
     patch: ApiItemPatch,
     recursive?: boolean
   ): Promise<void> => {
@@ -42,11 +43,11 @@ export class ListItemApi extends Api {
       this.setQueryParameters({ recursive });
     }
 
-    return this.executePatch(listItemId, patch);
+    return this.executePatch(itemId, patch);
   };
 
-  public Put = (listItemId: string, put: ApiItemPut): Promise<void> => {
-    return this.executePut(put, listItemId);
+  public Put = (itemId: string, put: ApiItemPut): Promise<void> => {
+    return this.executePut(put, itemId);
   };
 
   public Relocate = (

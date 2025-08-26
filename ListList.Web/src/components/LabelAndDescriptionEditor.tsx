@@ -81,6 +81,7 @@ export const LabelAndDescriptionEditor: React.FC<
         className="label"
         name={`${props.name}-label`}
         label={isNil(state?.pendingLabel) ? props.label : state.pendingLabel}
+        placeholder="New Item"
         onFocus={handleBeginUpdateLabel}
         onBlur={handleEndUpdateLabel}
         onChange={(update: string) =>

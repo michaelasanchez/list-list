@@ -19,20 +19,20 @@ import {
   Square,
   SquareCheckBig,
   Sun,
-  Trash,
   X,
 } from 'lucide-react';
 
 const icons = {
   backward: ArrowLeft,
+  cancel: X,
   check: Check,
   checked: SquareCheckBig,
   close: X,
   collapsed: ChevronUp,
+  confirm: Check,
   copy: Copy,
   create: Plus,
   createOutline: PlusSquare,
-  delete: Trash,
   dark: Moon,
   expanded: ChevronDown,
   forward: ArrowRight,
@@ -43,6 +43,7 @@ const icons = {
   question: CircleQuestionMark,
   settings: Settings,
   share: Share2,
+  remove: X,
   unchecked: Square,
 };
 

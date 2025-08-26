@@ -12,7 +12,16 @@ export class ListHeaderApi extends Api {
     super('header', token);
   }
 
-  public Create = (creation: ApiListItemCreation): Promise<string> => {
+  public CreateHeader = (creation: ApiListItemCreation): Promise<string> => {
+    return this.executePost(creation);
+  };
+
+  public CreateItem = (
+    headerId: string,
+    creation: ApiListItemCreation
+  ): Promise<string> => {
+    this.setActionPath(`${headerId}`);
+
     return this.executePost(creation);
   };
 

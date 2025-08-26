@@ -1,6 +1,6 @@
 import { findIndex } from 'lodash';
 import * as React from 'react';
-import { useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
@@ -9,7 +9,6 @@ import {
   SortableTreeHooks as Hooks,
   SortableTree,
 } from '../../components/tree/SortableTree';
-import { ApiListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
   useAuth,
@@ -17,14 +16,13 @@ import {
   useTheme,
 } from '../../hooks';
 import { Temp } from '../../mappers/TreeItemMapper';
-import { ListHeaderApi, ListItemApi, ShareApi } from '../../network';
+import { ListHeaderApi, ListItemApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
+import { FloatingUi } from '../ui';
 
 const themeKey = 'll-them';
 const cacheKey = 'll-data';
-
-export type Succeeded = boolean;
 
 const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   const defaultState = localStorage.exists()
@@ -93,7 +91,7 @@ export const App: React.FC = () => {
       syncing: false,
     });
 
-  const apis = React.useMemo(
+  const apis = useMemo(
     () => ({
       headerApi: new ListHeaderApi(authState.token),
       itemApi: new ListItemApi(authState.token),
@@ -102,56 +100,95 @@ export const App: React.FC = () => {
     [authState]
   );
 
-  const loadHeaders = () => {
+  const loadHeaders = useCallback(async (): Promise<Succeeded> => {
     dispatch({ type: ActionType.SetLoading, loading: true });
 
-    apis.headerApi.GetAll().then((headers) => {
+    try {
+      const headers = await apis.headerApi.GetAll();
+
       dispatch({ type: ActionType.SetLoading, loading: false });
       dispatch({ type: ActionType.SetHeaders, headers });
 
+      return true;
+    } catch {
+      return false;
+    } finally {
       finishSyncing();
-    });
-  };
+    }
+  }, [apis]);
 
-  const loadHeader = (token: string) => {
-    dispatch({ type: ActionType.SetLoading, loading: true });
+  const loadHeader = useCallback(
+    async (token: string): Promise<Succeeded> => {
+      dispatch({ type: ActionType.SetLoading, loading: true });
 
-    apis.headerApi.Get(token).then((header) => {
-      dispatch({ type: ActionType.SetLoading, loading: false });
-      dispatch({ type: ActionType.SetHeader, header });
+      try {
+        const header = await apis.headerApi.Get(token);
 
-      finishSyncing();
-    });
-  };
+        dispatch({ type: ActionType.SetLoading, loading: false });
+        dispatch({ type: ActionType.SetHeader, header });
 
-  const loadItem = (itemId: string): Promise<Succeeded> => {
-    dispatch({ type: ActionType.SetLoading, loading: true });
+        return true;
+      } catch {
+        return false;
+      } finally {
+        finishSyncing();
+      }
+    },
+    [apis]
+  );
 
-    return apis.itemApi
-      .GetById(itemId)
-      .then((item) => {
+  const loadItem = useCallback(
+    async (itemId: string): Promise<Succeeded> => {
+      dispatch({ type: ActionType.SetLoading, loading: true });
+
+      try {
+        const item = await apis.itemApi.GetById(itemId);
+
         dispatch({ type: ActionType.SetLoading, loading: false });
         dispatch({ type: ActionType.SetItem, item });
 
         return true;
-      })
-      .catch(() => false);
-  };
+      } catch {
+        return false;
+      }
+    },
+    [apis]
+  );
 
-  const handleCreateHeader = (listItem: ApiListItemCreation) => {
-    if (listItem.label.trim().length > 0) {
-      const headerCreation = { ...listItem, label: listItem.label.trim() };
+  const handleCreateItem = useCallback(
+    async (
+      headerId: string,
+      label: string,
+      description: string
+    ): Promise<Succeeded> => {
+      if (label?.trim().length > 0 || description?.trim().length > 0) {
+        const headerCreation = {
+          label: label?.trim(),
+          description: description?.trim(),
+        };
 
-      new ListHeaderApi(authState.token)
-        .Create(headerCreation)
-        .then((id: string) => {
+        dispatch({ type: ActionType.SetLoading, loading: true });
+
+        try {
+          await apis.headerApi.CreateItem(headerId, headerCreation);
+
           dispatch({ type: ActionType.FinalizeHeaderCreate });
-          loadHeaders();
-        });
-    } else {
-      dispatch({ type: ActionType.CancelHeaderCreate });
-    }
-  };
+          dispatch({ type: ActionType.SetLoading, loading: true });
+
+          loadHeader(headerId);
+
+          return true;
+        } catch {
+          return false;
+        }
+      } else {
+        dispatch({ type: ActionType.CancelHeaderCreate });
+
+        return false;
+      }
+    },
+    [apis]
+  );
 
   const selectedHeader = React.useMemo(() => {
     const index = !token
@@ -221,9 +258,7 @@ export const App: React.FC = () => {
       selectedHeader
         ? {
             onCheck: (itemId: string) =>
-              apis.itemApi
-                .Complete(itemId)
-                .then(() => loadItem(itemId)),
+              apis.itemApi.Complete(itemId).then(() => loadItem(itemId)),
             onClick: (itemId: string) => {
               dispatch({
                 type: ActionType.ToggleExpanded,
@@ -231,6 +266,10 @@ export const App: React.FC = () => {
                 itemId,
               });
             },
+            onCreate: (label, description) =>
+              handleCreateItem(selectedHeader.id, label, description),
+            onDelete: (id: string) =>
+              apis.itemApi.Delete(id).then(() => loadHeader(selectedHeader.id)),
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
               apis.itemApi
                 .Relocate(activeId, overId, parentId)
@@ -254,6 +293,8 @@ export const App: React.FC = () => {
     [selectedHeader]
   );
 
+  const showListView = Boolean(selectedHeader);
+
   return (
     <Router>
       <Navbar
@@ -263,17 +304,17 @@ export const App: React.FC = () => {
         onSetTheme={themeState.setTheme}
       />
       <main>
-        <div className={`header-view${!selectedHeader ? ' show' : ''}`}>
+        <div className={`header-view${!showListView ? ' show' : ''}`}>
           <Container className="list-container">
             <SortableTree
-              listeners={headersListHooks}
+              hooks={headersListHooks}
               defaultItems={Temp.buildTreeFromHeaders(
                 state.headers.filter((h) => !h.isNotOwned)
               )}
             />
           </Container>
         </div>
-        <div className={`list-view${!!selectedHeader ? ' show' : ''}`}>
+        <div className={`list-view${showListView ? ' show' : ''}`}>
           <Container className="list-container">
             {displayHeader && (
               <>
@@ -297,13 +338,14 @@ export const App: React.FC = () => {
                     displayHeader.items,
                     state.expanded
                   )}
-                  listeners={selectedListHooks}
+                  hooks={selectedListHooks}
                 />
               </>
             )}
           </Container>
         </div>
       </main>
+      <FloatingUi selectedHeader={selectedHeader} dispatch={dispatch} />
     </Router>
   );
 };

@@ -11,7 +11,6 @@ export * from './LabelAndDescriptionEditor';
 export * from './LabelEditor';
 export * from './ListHeaderDisplay';
 export * from './ListNodeCreation';
-export * from './ListNodeDisplay';
 export * from './modal';
 export * from './selected-header';
 export * from './share-modal';

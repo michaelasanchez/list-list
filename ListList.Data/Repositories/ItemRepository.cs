@@ -25,11 +25,16 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         }
     }
 
-    public async Task CreateListItem(ItemEntity creation, Guid parentId)
+    public async Task CreateListItem(ItemEntity creation, Guid headerId)
     {
-        await InsertItem([creation], parentId);
+        creation.HeaderId = headerId;
+        creation.Left = 1;
+        creation.Right = 2;
+
+        await InsertItem([creation], null);
 
         await _context.ListItems.AddAsync(creation);
+        await _context.SaveChangesAsync();
     }
 
     public async Task InsertItem(List<ItemEntity> active, Guid? parentId, Guid? overId = null)
@@ -238,6 +243,8 @@ public class ItemRepository(ListListContext _context) : IItemRepository
             .OrderByDescending(z => z.Right)
             .Select(z => (int?)z.Right)
             .FirstOrDefaultAsync();
+
+        var all = await _context.ListItems.Where(z => z.HeaderId == listHeaderId && !z.Deleted).ToListAsync();
 
         var partOfTheMess = maxRight is null ? 0 : maxRight.Value + 1;
 

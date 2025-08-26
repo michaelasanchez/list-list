@@ -6,10 +6,11 @@ import { ListItemMapper } from '../../mappers';
 export enum AppStateActionType {
   // AddHeader,
   CancelHeaderCreate,
-  CancelNodeDelete,
+  CancelItemDelete,
   // DeselectHeader,
   FinalizeHeaderCreate,
-  FinalizeNodeDelete,
+  FinalizeItemDelete,
+  InitiateItemCreate,
   // SelectHeader,
   SetHeader,
   SetHeaders,
@@ -45,7 +46,7 @@ export const AppStateReducer = (
 
       return rest;
     }
-    case AppStateActionType.CancelNodeDelete: {
+    case AppStateActionType.CancelItemDelete: {
       const { headerCreation, ...rest } = state;
 
       return { ...rest };
@@ -55,7 +56,7 @@ export const AppStateReducer = (
 
       return rest;
     }
-    case AppStateActionType.FinalizeNodeDelete: {
+    case AppStateActionType.FinalizeItemDelete: {
       const updatedHeaders = filter(
         state.headers,
         (h) => h.id !== action.headerId
@@ -64,6 +65,39 @@ export const AppStateReducer = (
       return {
         ...state,
         headers: updatedHeaders,
+      };
+    }
+    case AppStateActionType.InitiateItemCreate: {
+      const pendingCreation = {
+        id: 'newwwwwwwwwwwwwwwewewewe',
+        label: '',
+        description: '',
+        complete: false,
+        completedOn: null,
+        left: 0,
+        right: 0,
+        depth: 0,
+        headerId: action.headerId,
+        isParent: false,
+        childCount: 0,
+        descendantCount: 0,
+        expanded: false,
+        pending: true,
+      };
+
+      const activeHeader = state.headers.find((h) => h.id == action.headerId);
+
+      const expanded = activeHeader.items.filter((i) => i.expanded);
+
+      const index = expanded.length == 0 ? activeHeader.items.length : 0;
+
+      activeHeader.items.splice(index, 0, pendingCreation);
+
+      return {
+        ...state,
+        headers: state.headers.map((h) =>
+          h.id == action.headerId ? { ...h, items: [...activeHeader.items] } : h
+        ),
       };
     }
     case AppStateActionType.SetHeader: {
@@ -142,6 +176,8 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.SetLoading: {
+      if (action.loading == state.loading) return state;
+
       return {
         ...state,
         loading: action.loading ?? state.loading,
@@ -156,7 +192,7 @@ export const AppStateReducer = (
     case AppStateActionType.ToggleExpanded: {
       if (!action.headerId || !action.itemId) return state;
 
-      const after = {
+      return {
         ...state,
         headers: state.headers.map((h) =>
           h.id == action.headerId
@@ -172,8 +208,6 @@ export const AppStateReducer = (
           ? filter(state.expanded, (i) => i != action.itemId)
           : [...state.expanded, action.itemId],
       };
-
-      return after;
     }
     case AppStateActionType.UpdateHeaderCreation: {
       return {

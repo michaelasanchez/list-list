@@ -1,0 +1,27 @@
+.FloatingUi {
+  position: absolute;
+  overflow: hidden;
+  inset: 0 0 0 0;
+
+  pointer-events: none;
+}
+
+.Layer {
+  --hidden-translate-y: 100px;
+
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+
+  pointer-events: painted;
+
+  transition: transform ease-in-out 100ms;
+  transform: translateY(var(--hidden-translate-y));
+
+  display: flex;
+  gap: 0.5rem;
+
+  &.Active {
+    transform: translateY(0);
+  }
+}

@@ -20,7 +20,7 @@ public class HeaderService(
 {
     private readonly IHeaderRepository _listHeaderRepository = _unitOfWork.HeaderRepository;
 
-    public async Task<Guid> CreateListHeader(ListHeaderCreation listHeader)
+    public async Task<Guid> CreateHeader(ListHeaderCreation listHeader)
     {
         var userId = await _userService.GetUserIdAsync();
 
@@ -38,7 +38,20 @@ public class HeaderService(
         return creation.Id;
     }
 
-    public async Task<Header> GetListHeader(string token)
+    public async Task<Guid> CreateItem(Guid headerId, ListItemCreation itemCreation)
+    {
+        var userId = await _userService.GetUserIdAsync();
+
+        await InvokeGuard(() => _guard.AgainstInvalidListItemCreationAsync(userId, headerId));
+
+        var creation = _mapper.Map<ItemEntity>(itemCreation);
+
+        await _unitOfWork.ItemRepository.CreateListItem(creation, headerId);
+
+        return creation.Id;
+    }
+
+    public async Task<Header> GetHeader(string token)
     {
         var userId = await _userService.GetUserIdAsync();
 
@@ -60,7 +73,7 @@ public class HeaderService(
         throw new NotImplementedException();
     }
 
-    public async Task<IEnumerable<Header>> GetListHeaders()
+    public async Task<IEnumerable<Header>> GetHeaders()
     {
         var userId = await _userService.GetUserIdAsync();
 
@@ -87,7 +100,7 @@ public class HeaderService(
         await _listHeaderRepository.PutHeader(listHeaderId, entityUpdate);
     }
 
-    public async Task RelocateListHeader(Guid listHeaderId, int index)
+    public async Task RelocateHeader(Guid listHeaderId, int index)
     {
         var userId = await _userService.GetUserIdAsync();
 

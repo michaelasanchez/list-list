@@ -8,6 +8,7 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
       index,
       collapsed: true,
       children: [],
+      pending: false,
       data: {
         label: header.label,
         description: header.description,
@@ -32,6 +33,7 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
       collapsed: !expanded?.includes(i.id),
       children: [],
       parentId: i.parentId,
+      pending: i.pending,
       data: {
         label: i.label,
         description: i.description,

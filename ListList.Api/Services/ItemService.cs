@@ -37,8 +37,6 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
         await _listItemRepository.CreateListItem(creation, parentId);
 
-        await _unitOfWork.SaveChangesAsync();
-
         return creation.Id;
     }
 

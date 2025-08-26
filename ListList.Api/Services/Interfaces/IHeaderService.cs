@@ -7,10 +7,11 @@ namespace ListList.Api.Services.Interfaces;
 
 public interface IHeaderService
 {
-    Task<Guid> CreateListHeader(ListHeaderCreation listHeader);
-    Task<IEnumerable<Header>> GetListHeaders();
-    Task<Header> GetListHeader(string headerId);
-    Task RelocateListHeader(Guid headerId, int order);
+    Task<Guid> CreateHeader(ListHeaderCreation listHeader);
+    Task<Guid> CreateItem(Guid headerId, ListItemCreation itemCreation);
+    Task<IEnumerable<Header>> GetHeaders();
+    Task<Header> GetHeader(string headerId);
+    Task RelocateHeader(Guid headerId, int order);
     Task PatchHeader(Guid headerId, HeaderPatch headerPatch);
     Task PutHeader(Guid headerId, HeaderPut headerPut);
 }

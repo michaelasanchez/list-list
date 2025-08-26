@@ -14,15 +14,6 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid? userId, Guid parentId)
-    {
-        var result = new ValidationResult();
-
-        await _itemValidator.ListItemIsOwnedByUserAsync(userId, parentId, result);
-
-        return result;
-    }
-
     public async Task<ValidationResult> AgainstInvalidListItemDeleteAsync(Guid? userId, Guid itemId)
     {
         var result = new ValidationResult();

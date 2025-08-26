@@ -12,13 +12,30 @@ namespace ListList.Api.Controllers;
 public class HeaderController(IHeaderService _service) : Controller
 {
     [HttpPost]
-    public async Task<ActionResult<Guid>> CreateListHeaderAsync(ListHeaderCreation creation)
+    public async Task<ActionResult<Guid>> CreateHeader(ListHeaderCreation headerCreation)
     {
         Guid id;
 
         try
         {
-            id = await _service.CreateListHeader(creation);
+            id = await _service.CreateHeader(headerCreation);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok(id);
+    }
+
+    [HttpPost("{headerId}")]
+    public async Task<ActionResult<Guid>> CreateItem(Guid headerId, ListItemCreation itemCreation)
+    {
+        Guid id;
+
+        try
+        {
+            id = await _service.CreateItem(headerId, itemCreation);
         }
         catch (Exception ex)
         {
@@ -35,7 +52,7 @@ public class HeaderController(IHeaderService _service) : Controller
 
         try
         {
-            listHeader = await _service.GetListHeader(headerId);
+            listHeader = await _service.GetHeader(headerId);
         }
         catch (Exception ex)
         {
@@ -52,7 +69,7 @@ public class HeaderController(IHeaderService _service) : Controller
 
         try
         {
-            listHeaders = await _service.GetListHeaders();
+            listHeaders = await _service.GetHeaders();
         }
         catch (Exception ex)
         {
@@ -97,7 +114,7 @@ public class HeaderController(IHeaderService _service) : Controller
     {
         try
         {
-            await _service.RelocateListHeader(headerId, listHeaderRelocation.Order);
+            await _service.RelocateHeader(headerId, listHeaderRelocation.Order);
         }
         catch (Exception ex)
         {

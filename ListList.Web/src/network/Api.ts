@@ -12,6 +12,8 @@ const formApiRequestPath = (
 
 export type QueryParameters = { [key: string]: any };
 
+export type Succeeded = boolean;
+
 export class Api {
   private _token: string;
 

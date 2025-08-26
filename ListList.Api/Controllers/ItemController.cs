@@ -11,14 +11,14 @@ namespace ListList.Api.Controllers;
 [Route("api/item")]
 public class ItemController(IItemService _service) : Controller
 {
-    [HttpPost("{parentId}")]
-    public async Task<ActionResult<Guid>> CreateListItemAsync([FromRoute] Guid parentId, ListItemCreation creation)
+    [HttpPost("{headerId}")]
+    public async Task<ActionResult<Guid>> CreateListItemAsync([FromRoute] Guid headerId, ListItemCreation creation)
     {
         Guid id;
 
         try
         {
-            id = await _service.CreateListItemAsync(creation, parentId);
+            id = await _service.CreateListItemAsync(creation, headerId);
         }
         catch (Exception ex)
         {

@@ -31,7 +31,9 @@ main {
 
   --item-gap: 1em;
 
-  padding: var(--item-gap) 0;
+  // TODO: this makes a gap between the navbar & selected-header
+  //  which allows you to see scrolling lists
+  // padding: var(--item-gap) 0;
 
   &.show {
     overflow: auto;

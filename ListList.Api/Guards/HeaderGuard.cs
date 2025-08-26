@@ -13,6 +13,15 @@ public partial class Guard : IGuard
         return Task.FromResult(result);
     }
 
+    public async Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid? userId, Guid headerId)
+    {
+        var result = new ValidationResult();
+
+        await _headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
+
+        return result;
+    }
+
     public async Task<ValidationResult> AgainstInvalidListHeaderGetAsync(Guid? userId, Guid listHeaderId)
     {
         var result = new ValidationResult();

@@ -107,6 +107,7 @@ export function buildTree(flattenedItems: FlattenedItem[]): TreeItems {
   const root: TreeItem = {
     id: 'root',
     children: [],
+    pending: false,
     data: null,
   };
   const nodes: Record<string, TreeItem> = { [root.id]: root };
@@ -116,11 +117,11 @@ export function buildTree(flattenedItems: FlattenedItem[]): TreeItems {
   }));
 
   for (const item of items) {
-    const { id, children, data } = item;
+    const { id, children, pending, data } = item;
     const parentId = item.parentId ?? root.id;
     const parent = nodes[parentId] ?? findItem(items, parentId);
 
-    nodes[id] = { id, children, data };
+    nodes[id] = { id, children, pending, data };
     parent.children.push(item);
   }
 

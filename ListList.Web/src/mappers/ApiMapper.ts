@@ -6,6 +6,7 @@ const mapItem = (item: ApiItem, expanded: string[] = null): Item => ({
   ...item,
   completedOn: !!item.completedOn ? new Date(item.completedOn) : null,
   expanded: !expanded ? expanded.includes(item.id) : false,
+  pending: false,
 });
 
 const mapItems = (items: ApiItem[], expanded: string[]): Item[] =>
