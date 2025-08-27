@@ -103,7 +103,6 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               name={name}
               label={data.label}
               description={data.description}
-              
               onSaveDescription={listeners?.onSaveDescription}
               onSaveLabel={listeners?.onSaveLabel}
             />
@@ -145,7 +144,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
                 <Icon type="collapsed" size={20} />
               </Action>
             ) : (
-              <Remove onClick={onRemove} />
+              onRemove && <Remove onClick={onRemove} />
             )}
           </div>
           {clone && childCount && childCount > 1 ? (

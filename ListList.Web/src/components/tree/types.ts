@@ -10,7 +10,7 @@ export interface TreeItem {
   id: UniqueIdentifier;
   children: TreeItem[];
   collapsed?: boolean;
-  pending: boolean;
+  pending?: boolean;
   data: TreeItemData;
 }
 

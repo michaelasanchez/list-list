@@ -16,6 +16,7 @@ export enum AppStateActionType {
   SetHeaders,
   SetItem,
   SetLoading,
+  SetPreviousHeaderId,
   SetSyncing,
   // SetItem,
   ToggleExpanded,
@@ -181,6 +182,12 @@ export const AppStateReducer = (
       return {
         ...state,
         loading: action.loading ?? state.loading,
+      };
+    }
+    case AppStateActionType.SetPreviousHeaderId: {
+      return {
+        ...state,
+        previousHeaderId: action.headerId ?? state.previousHeaderId,
       };
     }
     case AppStateActionType.SetSyncing: {

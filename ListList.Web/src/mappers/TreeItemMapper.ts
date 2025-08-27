@@ -7,8 +7,15 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
       id: header.id,
       index,
       collapsed: true,
-      children: [],
-      pending: false,
+      // children: [],
+      children: [
+        {
+          id: '',
+          children: [],
+          data: { label: '', description: '' },
+          pending: false,
+        },
+      ],
       data: {
         label: header.label,
         description: header.description,

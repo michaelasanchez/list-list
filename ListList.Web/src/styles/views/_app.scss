@@ -4,8 +4,6 @@ body,
   height: 100%;
 }
 
-
-
 #app {
   display: flex;
   flex-direction: column;
@@ -31,9 +29,9 @@ main {
 
   --item-gap: 1em;
 
-  // TODO: this makes a gap between the navbar & selected-header
-  //  which allows you to see scrolling lists
-  // padding: var(--item-gap) 0;
+  .list-container {
+    padding-top: var(--item-gap);
+  }
 
   &.show {
     overflow: auto;

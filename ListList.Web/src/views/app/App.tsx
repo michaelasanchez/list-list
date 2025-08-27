@@ -198,7 +198,16 @@ export const App: React.FC = () => {
           (h) => h.id == token || h.tokens?.includes(token)
         );
 
-    return index >= 0 ? state.headers[index] : null;
+    const selected = index >= 0 ? state.headers[index] : null;
+
+    if (Boolean(selected)) {
+      dispatch({
+        type: ActionType.SetPreviousHeaderId,
+        headerId: selected.id,
+      });
+    }
+
+    return selected;
   }, [token, state.headers, state.expanded]);
 
   // Load header if not found from initial load
@@ -218,10 +227,8 @@ export const App: React.FC = () => {
       (h) => h.id == state.previousHeaderId
     );
 
-    const d = index >= 0 ? state.headers[index] : null;
-
-    return d;
-  }, [selectedHeader]);
+    return index >= 0 ? state.headers[index] : null;
+  }, [selectedHeader, state.previousHeaderId]);
 
   const headersListHooks = React.useMemo<Hooks>(
     (): Hooks | null => ({

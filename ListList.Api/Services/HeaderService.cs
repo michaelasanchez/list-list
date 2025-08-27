@@ -24,12 +24,7 @@ public class HeaderService(
     {
         var userId = await _userService.GetUserIdAsync();
 
-        var result = await _guard.AgainstInvalidListHeaderCreation(userId);
-
-        if (result.IsInvalid)
-        {
-            throw new Exception(result.Message);
-        }
+        await InvokeGuard(() => _guard.AgainstInvalidListHeaderCreation(userId));
 
         var creation = _mapper.Map<HeaderEntity>(listHeader);
 
