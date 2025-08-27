@@ -7,7 +7,7 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
       id: header.id,
       index,
       collapsed: true,
-      // children: [],
+      // TODO: need this to force parent class
       children: [
         {
           id: '',

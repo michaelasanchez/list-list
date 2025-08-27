@@ -1,6 +1,10 @@
 import React from 'react';
-import { Dropdown } from 'react-bootstrap';
-import { Icon, IconButton, LabelAndDescriptionEditor, ShareModal } from '..';
+import {
+  ActionDropdown,
+  IconButton,
+  LabelAndDescriptionEditor,
+  ShareModal,
+} from '..';
 import {
   ApiHeaderPatch,
   ApiListHeaderShare,
@@ -39,7 +43,21 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
             variant="outline-secondary"
             onClick={() => setState((s) => ({ ...s, show: true }))}
           />
-          <Dropdown className="menu">
+          <ActionDropdown
+            size="sm"
+            actions={[
+              {
+                icon: props.header.isChecklist ? 'check' : null,
+                label: 'Checklist',
+                action: (e) => {
+                  e.stopPropagation();
+                  
+                  props.onPatch?.({ checklist: !props.header.isChecklist });
+                },
+              },
+            ]}
+          />
+          {/* <Dropdown className="menu">
             <Dropdown.Toggle size="sm" variant="outline-secondary">
               <Icon type="kebab" />
             </Dropdown.Toggle>
@@ -53,7 +71,7 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
                 {props.header.isChecklist && <Icon type="check" />}
               </Dropdown.Item>
             </Dropdown.Menu>
-          </Dropdown>
+          </Dropdown> */}
           <IconButton
             iconType="backward"
             variant="secondary"

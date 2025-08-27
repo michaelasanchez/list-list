@@ -14,10 +14,6 @@
 
     background: var(--bs-body-bg);
 
-    .dropdown.menu .dropdown-toggle::after {
-      display: none;
-    }
-
     .content {
       .label-editor {
         &.label {

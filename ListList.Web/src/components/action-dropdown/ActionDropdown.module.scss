@@ -1,0 +1,13 @@
+.ActionDropdown {
+  .Toggle {
+    &::after {
+      display: none;
+    }
+  }
+}
+
+.ActionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}

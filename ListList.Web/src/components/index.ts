@@ -18,3 +18,4 @@ export * from './tree/components';
 export * from './tree/components/TreeItem';
 export * from './tree/keyboardCoordinates';
 export * from './tree/utilities';
+export * from './action-dropdown'
