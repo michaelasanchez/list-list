@@ -26,6 +26,8 @@ export class ListHeaderApi extends Api {
   };
 
   public GetAll = (): Promise<ApiHeader[]> => {
+    this.setActionPath();
+
     return this.executeGet();
   };
 
@@ -43,7 +45,10 @@ export class ListHeaderApi extends Api {
     return this.executePut(put, id);
   };
 
-  public Relocate = (headerId: string, relocation: ApiListHeaderRelocation) => {
+  public Relocate = (
+    headerId: string,
+    relocation: ApiListHeaderRelocation
+  ): Promise<void> => {
     this.setActionPath(`${headerId}/relocate`);
 
     return this.executePost(relocation, null, false);

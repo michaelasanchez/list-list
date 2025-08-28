@@ -18,6 +18,7 @@ export interface SelectedHeaderProps {
   listeners?: SortableTreeHooks;
   onBack?: () => void;
   onPatch?: (patch: ApiHeaderPatch) => void;
+  onShare?: (url: string) => void;
 }
 
 interface State {
@@ -51,27 +52,12 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
                 label: 'Checklist',
                 action: (e) => {
                   e.stopPropagation();
-                  
+
                   props.onPatch?.({ checklist: !props.header.isChecklist });
                 },
               },
             ]}
           />
-          {/* <Dropdown className="menu">
-            <Dropdown.Toggle size="sm" variant="outline-secondary">
-              <Icon type="kebab" />
-            </Dropdown.Toggle>
-            <Dropdown.Menu>
-              <Dropdown.Item
-                onClick={() =>
-                  props.onPatch?.({ checklist: !props.header.isChecklist })
-                }
-              >
-                Checklist
-                {props.header.isChecklist && <Icon type="check" />}
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown> */}
           <IconButton
             iconType="backward"
             variant="secondary"
@@ -79,7 +65,13 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
           />
         </>
       ),
-    [props.onBack]
+    [
+      props.header,
+      /* TODO: these are recreated every render,
+          but probably shouldn't be:
+            props.onBack,
+            props.onPatch */
+    ]
   );
 
   return (
@@ -102,6 +94,7 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
         show={state.show}
         shareLinks={props.header.shareLinks}
         onClose={() => setState((s) => ({ ...s, show: false }))}
+        onShare={props.onShare}
       />
     </div>
   );

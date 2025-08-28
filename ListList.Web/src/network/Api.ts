@@ -141,7 +141,7 @@ export class Api {
     );
   }
 
-  protected setActionPath = (path: string) => {
+  protected setActionPath = (path?: string) => {
     this._actionPath = path;
   };
 

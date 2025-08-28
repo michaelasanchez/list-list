@@ -30,10 +30,49 @@
 .ShareLink {
   border: none !important;
 
+  &.pending {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: none;
+  }
+
+  code {
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5em;
+    color: gray;
+
+    padding: 0.5em;
+  }
+
+  .Actions,
+  .Content {
+    display: flex;
+  }
+
+  .Actions {
+    gap: 0.5rem;
+  }
+
+  .Content {
+    align-items: center;
+    flex-grow: 1;
+    gap: 1rem;
+
+    .formgroup {
+      display: flex;
+      flex-direction: column;
+
+      &.url {
+        flex-grow: 1;
+      }
+    }
+  }
+
   :global(.card-body) {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
+    gap: 1rem;
 
     :global(.label-editor) {
       font-size: 0.875rem;
@@ -58,29 +97,12 @@
         var(--badge-opacity)
       ) !important;
     }
-    
+
     :global(.bg-warning) {
       background-color: rgba(
         var(--bs-warning-rgb),
         var(--badge-opacity)
       ) !important;
-    }
-    
-    .Content {
-      code {
-        color: gray;
-
-        // border: 1px solid gray;
-        // border-radius: 4px;
-
-        // padding: 0.125rem 0.25rem;
-      }
-    }
-
-    .Content,
-    .Actions {
-      display: flex;
-      gap: 1rem;
     }
   }
 }

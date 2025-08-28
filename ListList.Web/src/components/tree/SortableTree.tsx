@@ -79,7 +79,7 @@ export interface SortableTreeHooks {
     id: UniqueIdentifier,
     overId: UniqueIdentifier,
     parentId: UniqueIdentifier
-  ) => void;
+  ) => Promise<Succeeded>;
   onSaveDescription?: (id: UniqueIdentifier, description: string) => void;
   onSaveLabel?: (id: UniqueIdentifier, label: string) => void;
 }
@@ -303,8 +303,6 @@ export function SortableTree({
       const { depth, parentId } = projected;
 
       dragEndLocal(active.id, over.id, depth, parentId);
-
-      const flattened = flattenTree(items);
 
       hooks?.onDragEnd(active.id, over.id, parentId);
     }

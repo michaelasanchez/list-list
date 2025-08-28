@@ -8,14 +8,13 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
       index,
       collapsed: true,
       // TODO: need this to force parent class
-      children: [
-        {
-          id: '',
-          children: [],
-          data: { label: '', description: '' },
-          pending: false,
-        },
-      ],
+      //  & child count badge when dragging
+      children: header.items.map((i) => ({
+        id: i.id,
+        children: [],
+        data: { label: i.label, description: i.description },
+        pending: false,
+      })),
       data: {
         label: header.label,
         description: header.description,
@@ -45,6 +44,7 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
         label: i.label,
         description: i.description,
         complete: i.complete,
+        completedOn: i.completedOn
       },
     });
   });

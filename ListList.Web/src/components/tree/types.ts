@@ -4,6 +4,7 @@ export interface TreeItemData {
   label: string;
   description: string;
   complete?: boolean;
+  completedOn?: Date;
 }
 
 export interface TreeItem {

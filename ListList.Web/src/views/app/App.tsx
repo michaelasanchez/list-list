@@ -235,12 +235,12 @@ export const App: React.FC = () => {
       onClick: (headerId: string) => {
         navigate(headerId);
       },
-      onDragEnd: (headerId: string, destinationId: string) => {
+      onDragEnd: async (headerId: string, destinationId: string) => {
         const order = state.headers.findIndex((h) => h.id == destinationId);
 
-        new ListHeaderApi(authState.token)
-          .Relocate(headerId, { order })
-          .then(() => loadHeaders());
+        await apis.headerApi.Relocate(headerId, { order });
+
+        return loadHeaders();
       },
       onSaveDescription: (id: string, description: string) =>
         apis.headerApi
@@ -334,6 +334,7 @@ export const App: React.FC = () => {
                       .Patch(displayHeader.id, patch)
                       .then(() => loadHeader(displayHeader.id))
                   }
+                  onShare={(url) => console.log('URL', url)}
                 />
                 <SortableTree
                   collapsible
