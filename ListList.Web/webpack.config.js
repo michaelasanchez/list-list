@@ -22,6 +22,7 @@ module.exports = (_, argv) => {
       path: path.resolve(__dirname, 'dist'),
       filename: isProd ? '[name].[contenthash].js' : 'bundle.js',
       clean: true,
+      publicPath: '/',
     },
     mode: isProd ? 'production' : 'development',
     devtool: isProd ? false : 'source-map',

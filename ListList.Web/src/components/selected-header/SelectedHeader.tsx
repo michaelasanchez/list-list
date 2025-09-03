@@ -1,13 +1,8 @@
 import React from 'react';
-import {
-  ActionDropdown,
-  IconButton,
-  LabelAndDescriptionEditor,
-  ShareModal,
-} from '..';
+import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
 import {
   ApiHeaderPatch,
-  ApiListHeaderShare,
+  ApiHeaderShare,
   SharedPermission,
 } from '../../contracts';
 import { Header } from '../../models';
@@ -17,13 +12,13 @@ export interface SelectedHeaderProps {
   header: Header;
   listeners?: SortableTreeHooks;
   onBack?: () => void;
+  onShare?: () => void;
   onPatch?: (patch: ApiHeaderPatch) => void;
-  onShare?: (url: string) => void;
 }
 
 interface State {
   show: boolean;
-  pendingShare?: ApiListHeaderShare;
+  pendingShare?: ApiHeaderShare;
 }
 
 export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
@@ -42,7 +37,7 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
             iconType="share"
             size="sm"
             variant="outline-secondary"
-            onClick={() => setState((s) => ({ ...s, show: true }))}
+            onClick={() => props.onShare?.()}
           />
           <ActionDropdown
             size="sm"
@@ -66,11 +61,7 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
         </>
       ),
     [
-      props.header,
-      /* TODO: these are recreated every render,
-          but probably shouldn't be:
-            props.onBack,
-            props.onPatch */
+      props.header
     ]
   );
 
@@ -90,12 +81,6 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
         />
       </div>
       <div className="actions">{headerActions}</div>
-      <ShareModal
-        show={state.show}
-        shareLinks={props.header.shareLinks}
-        onClose={() => setState((s) => ({ ...s, show: false }))}
-        onShare={props.onShare}
-      />
     </div>
   );
 };

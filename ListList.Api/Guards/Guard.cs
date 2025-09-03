@@ -3,6 +3,9 @@ using ListList.Data.Validators.Interfaces;
 
 namespace ListList.Api.Guards;
 
-public partial class Guard(IHeaderValidator _headerValidator, IItemValidator _itemValidator) : IGuard
+public partial class Guard(
+    IHeaderValidator headerValidator,
+    IItemValidator itemValidator,
+    IShareValidator shareValidator) : IGuard
 {
 }

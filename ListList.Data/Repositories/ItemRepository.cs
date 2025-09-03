@@ -11,7 +11,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 {
     public async Task CompleteListItem(Guid listItemId)
     {
-        var listItem = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
+        var listItem = await _context.Items.SingleAsync(z => z.Id == listItemId);
 
         listItem.Complete = !listItem.Complete;
 
@@ -33,7 +33,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
         await InsertItem([creation], null);
 
-        await _context.ListItems.AddAsync(creation);
+        await _context.Items.AddAsync(creation);
         await _context.SaveChangesAsync();
     }
 
@@ -62,7 +62,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
     public async Task DeleteListItem(Guid itemId)
     {
-        var activeItem = await _context.ListItems.SingleAsync(z => z.Id == itemId);
+        var activeItem = await _context.Items.SingleAsync(z => z.Id == itemId);
 
         var removed = await RemoveNode(activeItem);
 
@@ -77,12 +77,12 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
     public async Task<ItemResource> GetItemById(Guid listItemId)
     {
-        var entity = await _context.ListItems
+        var entity = await _context.Items
             .Where(z => z.Id == listItemId)
             .SingleAsync();
 
         var ancestorIds = entity.Left > 1
-            ? await _context.ListItems
+            ? await _context.Items
                 .Where(z =>
                     z.HeaderId == entity.HeaderId &&
                     z.Left < entity.Left &&
@@ -94,7 +94,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
             : [];
 
         var descendantIds = entity.IsParent()
-            ? await _context.ListItems
+            ? await _context.Items
                 .Where(z =>
                     z.HeaderId == entity.HeaderId &&
                     z.Left > entity.Left &&
@@ -128,13 +128,13 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
     public async Task PatchListItem(Guid listItemId, ItemResource resource, bool? recursive)
     {
-        var active = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
+        var active = await _context.Items.SingleAsync(z => z.Id == listItemId);
 
         var entities = new List<ItemEntity> { active };
 
         if (recursive is true && active.IsParent())
         {
-            var query = _context.ListItems
+            var query = _context.Items
                 .Where(z => z.Left > resource.Left && z.Right <= resource.Right && !z.Deleted);
 
             var descendants = await query.ToListAsync();
@@ -170,7 +170,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
     public async Task PutListItem(Guid listItemId, ItemEntity entityPut)
     {
-        var entity = await _context.ListItems.SingleAsync(z => z.Id == listItemId);
+        var entity = await _context.Items.SingleAsync(z => z.Id == listItemId);
 
         entity.Label = entityPut.Label;
         entity.Description = entityPut.Description;
@@ -180,15 +180,15 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
     public async Task RelocateListItem(Guid activeId, Guid overId, Guid? parentId)
     {
-        var active = await _context.ListItems
+        var active = await _context.Items
             .SingleAsync(z => z.Id == activeId);
 
-        var over = await _context.ListItems
+        var over = await _context.Items
             .SingleAsync(z => z.Id == overId);
 
         var useNext = active.Left < over.Left;
 
-        var nextId = await _context.ListItems
+        var nextId = await _context.Items
             .Where(z =>
                 z.HeaderId == active.HeaderId &&
                 z.Left > (useNext ? over.Right : active.Right) &&
@@ -207,14 +207,14 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
         await InsertItem(relocating, parentId, activeId == overId || useNext ? nextId : over.Id);
 
-        _context.ListItems.AddRange(relocating);
+        _context.Items.AddRange(relocating);
 
         await _context.SaveChangesAsync();
     }
 
     private async Task<List<ItemEntity>> GetDescendants(ItemEntity parent)
     {
-        return await _context.ListItems
+        return await _context.Items
             .Where(z =>
                 z.HeaderId == parent.HeaderId &&
                 z.Left > parent.Left &&
@@ -226,25 +226,25 @@ public class ItemRepository(ListListContext _context) : IItemRepository
     private async Task<int> GetInsertionPoint(Guid listHeaderId, Guid? parentId, Guid? overId)
     {
         var over = overId is null ? null :
-            await _context.ListItems
+            await _context.Items
                 .AsNoTracking()
                 .Where(z => z.Id == overId)
                 .SingleOrDefaultAsync();
 
         var parent = parentId is null ? null :
-            await _context.ListItems
+            await _context.Items
                 .AsNoTracking()
                 .Where(z => z.Id == parentId)
                 .SingleOrDefaultAsync();
 
-        var maxRight = await _context.ListItems
+        var maxRight = await _context.Items
             .AsNoTracking()
             .Where(z => z.HeaderId == listHeaderId && !z.Deleted)
             .OrderByDescending(z => z.Right)
             .Select(z => (int?)z.Right)
             .FirstOrDefaultAsync();
 
-        var all = await _context.ListItems.Where(z => z.HeaderId == listHeaderId && !z.Deleted).ToListAsync();
+        var all = await _context.Items.Where(z => z.HeaderId == listHeaderId && !z.Deleted).ToListAsync();
 
         var partOfTheMess = maxRight is null ? 0 : maxRight.Value + 1;
 
@@ -268,7 +268,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
         var descendants = await GetDescendants(active);
 
-        var subsequent = await _context.ListItems
+        var subsequent = await _context.Items
             .Where(z =>
                 z.Id != active.Id &&
                 z.HeaderId == active.HeaderId &&
@@ -291,7 +291,7 @@ public class ItemRepository(ListListContext _context) : IItemRepository
 
     private async Task ShiftExistingNodes(Guid listHeaderId, int insertionPoint, int spaceNeeded)
     {
-        var items = await _context.ListItems
+        var items = await _context.Items
             .Where(z =>
                 z.HeaderId == listHeaderId &&
                 z.Right >= insertionPoint &&

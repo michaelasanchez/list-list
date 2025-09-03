@@ -3,7 +3,7 @@ using FluentAssertions;
 
 namespace ListList.Data.Test.Repositories.ItemRepositoryTests;
 
-public class DeteItemTests : BaseItemRepositoryTest
+public class DeleteItemTests : BaseItemRepositoryTest
 {
     [Theory]
     [InlineData(4, 10, 2, 9, 3, 8, 4, 7, 5, 6, 0, 0)]

@@ -320,7 +320,7 @@ public class RelocateItemTests : BaseItemRepositoryTest
         pond.Left.Should().Be(20);
         pond.Right.Should().Be(21);
 
-        var yesCheck = _context.ListItems.SingleOrDefaultAsync(z => z.Id == yes.Id);
+        var yesCheck = _context.Items.SingleOrDefaultAsync(z => z.Id == yes.Id);
 
         yesCheck.Should().NotBeNull();
     }

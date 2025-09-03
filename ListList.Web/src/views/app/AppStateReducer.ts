@@ -25,6 +25,8 @@ export enum AppStateActionType {
 
 export type NodePath = number[];
 
+const newNodeId = 'new-node-id';
+
 export interface AppStateAction {
   type: AppStateActionType;
   creation?: ApiListItemCreation;
@@ -69,8 +71,14 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.InitiateItemCreate: {
+      const activeHeader = state.headers.find((h) => h.id == action.headerId);
+
+      if (activeHeader.items.some((i) => i.id == newNodeId)) {
+        return state;
+      }
+
       const pendingCreation = {
-        id: 'newwwwwwwwwwwwwwwewewewe',
+        id: newNodeId,
         label: '',
         description: '',
         complete: false,
@@ -86,13 +94,7 @@ export const AppStateReducer = (
         pending: true,
       };
 
-      const activeHeader = state.headers.find((h) => h.id == action.headerId);
-
-      const expanded = activeHeader.items.filter((i) => i.expanded);
-
-      const index = expanded.length == 0 ? activeHeader.items.length : 0;
-
-      activeHeader.items.splice(index, 0, pendingCreation);
+      activeHeader.items.splice(activeHeader.items.length, 0, pendingCreation);
 
       return {
         ...state,
@@ -129,25 +131,6 @@ export const AppStateReducer = (
             ? map(state.headers, (h) => (h.id == action.header.id ? mapped : h))
             : [...state.headers, mapped],
       };
-
-      return state;
-
-      // if (existingIndex >= 0) {
-      // }
-
-      // const mapped = ListItemMapper.mapHeader(action.header, state.expanded);
-
-      // const headers =
-      //   existingIndex >= 0
-      //     ? map(state.headers, (h) => (h.id == action.header.id ? mapped : h))
-      //     : [...(state.headers ?? []), { ...mapped, isNotOwned: true }].sort(
-      //         (a, b) => a.order - b.order
-      //       );
-
-      // return {
-      //   ...state,
-      //   headers,
-      // };
     }
     case AppStateActionType.SetHeaders: {
       return {

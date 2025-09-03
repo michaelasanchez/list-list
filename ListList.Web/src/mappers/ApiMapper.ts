@@ -12,11 +12,7 @@ const mapItem = (item: ApiItem, expanded: string[] = null): Item => ({
 const mapItems = (items: ApiItem[], expanded: string[]): Item[] =>
   items?.map((i) => mapItem(i, expanded)) ?? [];
 
-const mapShareLinks = (links: ApiShareLink[]): ShareLink[] =>
-  links?.map((l) => ({
-    ...l,
-    expiresOn: l.expiresOn ? new Date(l.expiresOn) : null,
-  })) ?? [];
+const mapShareLinks = (links: ApiShareLink[]): ShareLink[] => links ?? [];
 
 const mapHeader = (header: ApiHeader, expanded: string[]): Header => ({
   id: header.id,

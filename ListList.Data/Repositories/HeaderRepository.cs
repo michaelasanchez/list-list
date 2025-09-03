@@ -11,13 +11,13 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
 {
     public async Task CreateHeader(Guid ownerId, HeaderEntity creation)
     {
-        var nextOrder = await _context.ListHeaders.CountAsync() + 1;
+        var nextOrder = await _context.Headers.CountAsync() + 1;
 
         creation.OwnerId = ownerId;
         creation.Order = nextOrder;
         creation.Nodes = [];
 
-        await _context.ListHeaders.AddAsync(creation);
+        await _context.Headers.AddAsync(creation);
         await _context.SaveChangesAsync();
     }
 
@@ -56,7 +56,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
 
     public async Task PatchHeader(Guid headerId, HeaderResource resource)
     {
-        var entity = await _context.ListHeaders
+        var entity = await _context.Headers
             .SingleAsync(z => z.Id == headerId);
 
         var updateChecklist = resource.Checklist is not null && resource.Checklist.Value != entity.Checklist;
@@ -86,7 +86,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
 
     public async Task PutHeader(Guid listHeaderId, HeaderEntity listHeaderPut)
     {
-        var existing = await _context.ListHeaders
+        var existing = await _context.Headers
             .SingleOrDefaultAsync(z => z.Id == listHeaderId);
 
         if (existing != null)
@@ -100,7 +100,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
 
     public async Task RelocateHeader(Guid ownerId, Guid listHeaderId, int destinationIndex)
     {
-        var listHeaders = await _context.ListHeaders
+        var listHeaders = await _context.Headers
             .Where(z => z.OwnerId == ownerId && !z.Deleted)
             .OrderBy(z => z.Order)
             .ToListAsync();
@@ -122,7 +122,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
 
     private IQueryable<HeaderEntity> GetQuery(Guid? ownerId = null)
     {
-        var query = _context.ListHeaders
+        var query = _context.Headers
             .Include(z => z.Nodes.Where(y => !y.Deleted))
             .Include(z => z.ShareLinks)
             .OrderBy(z => z.Order);

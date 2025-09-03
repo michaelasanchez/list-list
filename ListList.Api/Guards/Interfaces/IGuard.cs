@@ -1,5 +1,6 @@
 ﻿using ListList.Api.Contracts.Patch;
 using ListList.Api.Contracts.Post;
+using ListList.Api.Contracts.Put;
 using ListList.Data.Models;
 
 namespace ListList.Api.Guards.Interfaces;
@@ -19,5 +20,7 @@ public interface IGuard
     Task<ValidationResult> AgainstInvalidListItemPutAsync(Guid? userId, Guid listItemId);
     Task<ValidationResult> AgainstInvalidListItemRelocation(Guid? userId, Guid listItemId, Guid? parentId);
 
+    Task<ValidationResult> AgainstInvalidShareLinkDelete(Guid? userId, Guid listHeaderId);
+    Task<ValidationResult> AgainstInvalidShareLinkPatch(Guid? userId, Guid listHeaderId, ShareLinkPut shareLinkPatch);
     Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, ListHeaderShare listHeaderShare);
 }

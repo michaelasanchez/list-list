@@ -1,12 +1,12 @@
 ﻿using ListList.Data.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace ListList.Data.Models.Interfaces
+namespace ListList.Data.Models.Interfaces;
+
+public interface IListListContext
 {
-    public interface IListListContext
-    {
-        DbSet<HeaderEntity> ListHeaders { get; set; }
-        DbSet<ItemEntity> ListItems { get; set; }
-        DbSet<UserEntity> Users { get; set; }
-    }
+    DbSet<HeaderEntity> Headers { get; set; }
+    DbSet<ItemEntity> Items { get; set; }
+    DbSet<ShareLinkEntity> ShareLinks { get; set; }
+    DbSet<UserEntity> Users { get; set; }
 }

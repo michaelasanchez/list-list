@@ -9,7 +9,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
+        await itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
 
         return result;
     }
@@ -18,9 +18,9 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
+        await itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
 
-        await _itemValidator.ListItemIsEmptyAsync(itemId, result);
+        await itemValidator.ListItemIsEmptyAsync(itemId, result);
 
         return result;
     }
@@ -29,7 +29,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
+        await itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
 
         return result;
     }
@@ -38,7 +38,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
+        await itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
 
         return result;
     }
@@ -47,7 +47,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
+        await itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
 
         return result;
     }
@@ -56,11 +56,11 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
+        await itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
 
-        await _itemValidator.ListItemIsNotDeletedAsync(parentId, result);
+        await itemValidator.ListItemIsNotDeletedAsync(parentId, result);
 
-        //await _itemValidator.ListItemRelativeIndexIsValidAsync(destinationParentId, relativeIndex, result);
+        //await itemValidator.ListItemRelativeIndexIsValidAsync(destinationParentId, relativeIndex, result);
 
         return result;
     }

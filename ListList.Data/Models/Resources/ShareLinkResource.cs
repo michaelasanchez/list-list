@@ -4,9 +4,9 @@ namespace ListList.Data.Models.Resources;
 
 public class ShareLinkResource
 {
-    public Guid Id { get; set; }
-    public string Token { get; set; } = string.Empty;
-    public SharedPermission Permission { get; set; } = SharedPermission.View;
+    public Guid? Id { get; set; }
+    public string? Token { get; set; }
+    public SharedPermission Permission { get; set; }
     public DateTimeOffset? ExpiresOn { get; set; }
-    public bool IsActive { get; set; } = true;
+    public bool? IsActive { get; set; }
 }

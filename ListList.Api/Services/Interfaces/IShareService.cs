@@ -1,9 +1,11 @@
-﻿
-using ListList.Api.Contracts.Post;
+﻿using ListList.Api.Contracts.Post;
+using ListList.Api.Contracts.Put;
 
 namespace ListList.Api.Services.Interfaces;
 
 public interface IShareService
 {
-    Task<string> ShareList(Guid listHeaderId, ListHeaderShare listHeaderShare);
+    Task DeleteLink(Guid shareLinkId);
+    Task PutLink(Guid shareLinkId, ShareLinkPut patch);
+    Task<string> ShareHeader(Guid listHeaderId, ListHeaderShare listHeaderShare);
 }

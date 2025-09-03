@@ -6,8 +6,8 @@ namespace ListList.Data.Models;
 
 public class ListListContext(DbContextOptions<ListListContext> options) : DbContext(options), IListListContext
 {
-    public DbSet<HeaderEntity> ListHeaders { get; set; }
-    public DbSet<ItemEntity> ListItems { get; set; }
+    public DbSet<HeaderEntity> Headers { get; set; }
+    public DbSet<ItemEntity> Items { get; set; }
     public DbSet<SharedAccessEntity> SharedAccess { get; set; }
     public DbSet<ShareLinkEntity> ShareLinks { get; set; }
     public DbSet<UserEntity> Users { get; set; }
@@ -31,7 +31,7 @@ public class ListListContext(DbContextOptions<ListListContext> options) : DbCont
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(p => p.ShareLinks)
-                .WithOne()
+                .WithOne(d => d.Header)
                 .HasForeignKey(d => d.HeaderId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

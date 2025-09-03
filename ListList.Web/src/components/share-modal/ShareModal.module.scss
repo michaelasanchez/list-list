@@ -1,24 +1,21 @@
-.ShareModal {
-}
-
 .Inset {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.5em;
 
   background: rgba(0, 0, 0, 0.15);
   border-radius: 8px;
-  padding: 1rem 0.5rem;
+  padding: 0.5em;
 
   & + .Heading {
-    margin-top: 1rem;
+    margin-top: 1em;
   }
 }
 
 .Heading {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
+  justify-content: flex-end;
 
   margin-bottom: 0.5em;
 }
@@ -28,9 +25,9 @@
 }
 
 .ShareLink {
-  border: none !important;
+  border: 1px solid transparent !important;
 
-  &.pending {
+  &.editing {
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     background: none;
   }
@@ -44,19 +41,27 @@
     padding: 0.5em;
   }
 
-  .Actions,
+  --disabled-background: rgba(var(--bs-secondary-bg-rgb), 0.1);
+  --disabled-border: rgba(255, 255, 255, 0.1);
+
+  .disabled {
+    background-color: var(--disabled-background);
+    border-color: var(--disabled-border);
+  }
+
   .Content {
     display: flex;
-  }
-
-  .Actions {
-    gap: 0.5rem;
-  }
-
-  .Content {
-    align-items: center;
     flex-grow: 1;
-    gap: 1rem;
+    gap: 1em;
+    align-items: center;
+
+    :global(.info) {
+      --bs-dropdown-link-active-bg: var(--bs-info);
+    }
+
+    :global(.warning) {
+      --bs-dropdown-link-active-bg: var(--bs-warning);
+    }
 
     .formgroup {
       display: flex;
@@ -68,18 +73,60 @@
     }
   }
 
+  .Actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+
+    .Layer {
+      display: flex;
+      gap: 0.5em;
+      justify-content: flex-end;
+
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+
+      opacity: 0;
+
+      &.Active {
+        z-index: 1;
+        opacity: 1;
+      }
+    }
+  }
+
+  :global(.form-control) {
+    transition: color 100ms;
+
+    &:disabled {
+      background-color: var(--disabled-background);
+      border-color: var(--disabled-border);
+    }
+
+    &.dateEmpty::-webkit-datetime-edit {
+      color: rgba(255, 255, 255, 0.25);
+    }
+  }
+
+  :global(.dropdown-toggle) {
+    &:disabled::after {
+      display: none;
+    }
+  }
+
   :global(.card-body) {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 1em;
+    padding: 0.5em;
 
     :global(.label-editor) {
-      font-size: 0.875rem;
+      font-size: 0.875em;
     }
 
     :global(.badge) {
-      font-size: 0.75rem;
+      font-size: 0.75em;
     }
 
     --badge-opacity: 0.4;

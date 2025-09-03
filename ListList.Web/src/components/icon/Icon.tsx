@@ -8,6 +8,7 @@ import {
   ChevronUp,
   CircleQuestionMark,
   Copy,
+  Edit,
   EllipsisVertical,
   ExternalLink,
   GripVertical,
@@ -19,6 +20,7 @@ import {
   Square,
   SquareCheckBig,
   Sun,
+  Trash,
   X,
 } from 'lucide-react';
 
@@ -34,6 +36,8 @@ const icons = {
   create: Plus,
   createOutline: PlusSquare,
   dark: Moon,
+  delete: Trash,
+  edit: Edit,
   expanded: ChevronDown,
   forward: ArrowRight,
   handle: GripVertical,

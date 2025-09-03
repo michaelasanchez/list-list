@@ -32,7 +32,7 @@ public class BaseItemRepositoryTest : BaseRepositoryTest
             .Without(x => x.Header)
             .Create();
 
-        await _context.ListItems.AddAsync(item);
+        await _context.Items.AddAsync(item);
         await _context.SaveChangesAsync();
 
         return item;

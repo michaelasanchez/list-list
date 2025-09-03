@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import { SelectedHeader } from '../../components';
+import { MinimumLink, SelectedHeader, ShareModal } from '../../components';
 import {
   SortableTreeHooks as Hooks,
   SortableTree,
@@ -38,7 +38,7 @@ const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   };
 };
 
-export type RouteParams = { token: string };
+export type RouteParams = { token: string; action?: string };
 
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
@@ -46,7 +46,7 @@ export const App: React.FC = () => {
 
   const [location, navigate] = useLocation();
 
-  const [match, params] = useRoute<RouteParams>('/:token');
+  const [match, params] = useRoute<RouteParams>('/:token/:action?');
 
   const { token } = match ? params : {};
 
@@ -334,7 +334,7 @@ export const App: React.FC = () => {
                       .Patch(displayHeader.id, patch)
                       .then(() => loadHeader(displayHeader.id))
                   }
-                  onShare={(url) => console.log('URL', url)}
+                  onShare={() => navigate(`/${token}/share`)}
                 />
                 <SortableTree
                   collapsible
@@ -354,6 +354,25 @@ export const App: React.FC = () => {
         </div>
       </main>
       <FloatingUi selectedHeader={selectedHeader} dispatch={dispatch} />
+
+      <ShareModal
+        show={params?.action == 'share'}
+        shareLinks={selectedHeader?.shareLinks}
+        onClose={() => navigate(`/${selectedHeader?.id}`)}
+        onDelete={(id: string) =>
+          apis.shareApi.Delete(id).then(() => loadHeader(selectedHeader?.id))
+        }
+        onShare={(share) =>
+          apis.shareApi
+            .Share(selectedHeader?.id, share)
+            .then(() => loadHeader(selectedHeader?.id))
+        }
+        onUpdate={(id: string, put: MinimumLink) =>
+          apis.shareApi
+            .Put(id, { token: put.token ?? '', ...put })
+            .then(() => loadHeader(selectedHeader?.id))
+        }
+      />
     </Router>
   );
 };

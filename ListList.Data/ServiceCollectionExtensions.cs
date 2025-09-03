@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IHeaderValidator, HeaderValidator>();
         services.AddScoped<IItemValidator, ItemValidator>();
+        services.AddScoped<IShareValidator, ShareValidator>();
         services.AddScoped<IUserValidator, UserValidator>();
     }
 }

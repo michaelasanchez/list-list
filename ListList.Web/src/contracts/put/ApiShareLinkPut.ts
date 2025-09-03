@@ -1,7 +1,8 @@
 import { SharedPermission } from '../enum';
 
-export interface ApiHeaderShare {
-  token?: string;
+export interface ApiShareLinkPut {
+  token: string;
   permission: SharedPermission;
   expiresOn?: string;
+  // isActive: boolean;
 }

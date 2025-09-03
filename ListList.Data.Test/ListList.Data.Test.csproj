@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="Repositories\ItemRepositoryTests\DeteItemTests.cs" />
+    <None Include="Repositories\ItemRepositoryTests\DeleteItemTests.cs" />
   </ItemGroup>
 
   <ItemGroup>

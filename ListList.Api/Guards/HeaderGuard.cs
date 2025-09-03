@@ -17,7 +17,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
+        await headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
 
         return result;
     }
@@ -26,7 +26,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
+        await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
 
         return result;
     }
@@ -35,7 +35,7 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
+        await headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
 
         return result;
     }
@@ -44,9 +44,9 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await _headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
+        await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
 
-        await _headerValidator.IsValidHeaderIndexAsync(userId, index, result);
+        await headerValidator.IsValidHeaderIndexAsync(userId, index, result);
 
         return result;
     }

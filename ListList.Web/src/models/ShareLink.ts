@@ -5,5 +5,5 @@ export interface ShareLink {
   token: string;
   permission: SharedPermission;
   isActive: boolean;
-  expiresOn?: Date;
+  expiresOn?: string;
 }

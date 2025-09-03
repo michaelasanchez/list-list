@@ -11,6 +11,7 @@ namespace ListList.Api.Controllers;
 [Route("api/item")]
 public class ItemController(IItemService _service) : Controller
 {
+    // TODO: deprecate (on header api)
     [HttpPost("{headerId}")]
     public async Task<ActionResult<Guid>> CreateListItemAsync([FromRoute] Guid headerId, ListItemCreation creation)
     {
