@@ -7,6 +7,7 @@ interface LabelAndDescriptionEditorProps {
   name: string;
   label: string;
   description: string;
+  autoFocus?: boolean;
   onEditingChange?: (editing: boolean) => void;
   onSaveDescription?: (description: string) => void;
   onSaveLabel?: (label: string) => void;
@@ -78,15 +79,16 @@ export const LabelAndDescriptionEditor: React.FC<
   return (
     <>
       <LabelEditor
+        autoFocus={props.autoFocus}
         className="label"
         name={`${props.name}-label`}
         label={isNil(state?.pendingLabel) ? props.label : state.pendingLabel}
         placeholder="New Item"
-        onFocus={handleBeginUpdateLabel}
         onBlur={handleEndUpdateLabel}
         onChange={(update: string) =>
           setState({ ...state, pendingLabel: update })
         }
+        onFocus={handleBeginUpdateLabel}
       />
       <Collapse
         in={

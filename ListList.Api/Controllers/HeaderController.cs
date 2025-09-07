@@ -45,6 +45,21 @@ public class HeaderController(IHeaderService _service) : Controller
         return Ok(id);
     }
 
+    [HttpDelete("{headerId}")]
+    public async Task<ActionResult> DeleteHeader(Guid headerId)
+    {
+        try
+        {
+            await _service.DeleteHeader(headerId);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
+    }
+
     [HttpGet("{headerId}")]
     public async Task<ActionResult<Header>> GetListHeaderAsync(string headerId)
     {

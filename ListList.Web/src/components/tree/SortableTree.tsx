@@ -218,11 +218,7 @@ export function SortableTree({
                     hooks?.onSaveDescription(id, description),
                   onSaveLabel: (label: string) => hooks?.onSaveLabel(id, label),
                 };
-
-            if (!id) {
-              console.log(id, data);
-            }
-
+                
             return (
               <SortableTreeItem
                 key={id}

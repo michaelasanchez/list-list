@@ -6,7 +6,7 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
-    public Task<ValidationResult> AgainstInvalidListHeaderCreation(Guid? userId)
+    public Task<ValidationResult> AgainstInvalidHeaderCreation(Guid? userId)
     {
         var result = new ValidationResult();
 
@@ -22,7 +22,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListHeaderGetAsync(Guid? userId, Guid listHeaderId)
+    public async Task<ValidationResult> AgainstInvalidHeaderDelete(Guid? userId, Guid listHeaderId)
     {
         var result = new ValidationResult();
 
@@ -31,7 +31,16 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch)
+    public async Task<ValidationResult> AgainstInvalidHeaderGet(Guid? userId, Guid listHeaderId)
+    {
+        var result = new ValidationResult();
+
+        await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
+
+        return result;
+    }
+
+    public async Task<ValidationResult> AgainstInvalidHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch)
     {
         var result = new ValidationResult();
 
@@ -40,7 +49,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListHeaderRelocationAsync(Guid? userId, Guid listHeaderId, int index)
+    public async Task<ValidationResult> AgainstInvalidHeaderRelocation(Guid? userId, Guid listHeaderId, int index)
     {
         var result = new ValidationResult();
 

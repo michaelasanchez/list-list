@@ -5,6 +5,7 @@ import { useClickOutside } from '../hooks';
 export interface LabelEditorProps {
   name: string;
   label: string;
+  autoFocus?: boolean;
   className?: string;
   placeholder?: string;
   onBlur?: () => void;
@@ -57,14 +58,15 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
       <span>{props.label || props.placeholder || ''}</span>
       <Form.Control
         as="textarea"
+        autoFocus={props.autoFocus}
         name={`${props.name}-label-editor`}
-        ref={inputRef}
-        onClick={handleOnClick}
         plaintext={!editing}
         placeholder={props.placeholder}
+        ref={inputRef}
         value={props.label || ''}
-        onChange={(e) => props.onChange(e.target.value)}
         onBlur={handleBlur}
+        onChange={(e) => props.onChange(e.target.value)}
+        onClick={handleOnClick}
         onFocus={props.onFocus}
         onKeyDown={handleKeyDown}
       />

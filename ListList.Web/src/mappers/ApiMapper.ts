@@ -23,6 +23,7 @@ const mapHeader = (header: ApiHeader, expanded: string[]): Header => ({
   description: header.description,
   order: header.order,
   items: mapItems(header.items, expanded),
+  pending: false,
   shareLinks: mapShareLinks(header.shareLinks),
 });
 

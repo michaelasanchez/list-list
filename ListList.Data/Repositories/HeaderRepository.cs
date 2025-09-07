@@ -21,6 +21,17 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
+    public async Task DeleteHeader(Guid headerId)
+    {
+        var entity = await _context.Headers
+            .SingleAsync(z => z.Id == headerId);
+
+        entity.Deleted = true;
+        entity.DeletedOn = DateTimeOffset.UtcNow;
+
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<HeaderResource> GetHeaderById(Guid? ownerId, Guid listHeaderId)
     {
         var entity = await GetQuery(ownerId)

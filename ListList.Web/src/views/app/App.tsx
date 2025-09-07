@@ -235,6 +235,20 @@ export const App: React.FC = () => {
       onClick: (headerId: string) => {
         navigate(headerId);
       },
+      onCreate: async (label: string, description: string) => {
+        const id = await apis.headerApi.CreateHeader({ label, description });
+
+        dispatch({ type: ActionType.FinalizeHeaderCreate });
+
+        return loadHeader(id);
+      },
+      onDelete: async (headerId: string) => {
+        await apis.headerApi.Delete(headerId);
+
+        dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
+
+        return true;
+      },
       onDragEnd: async (headerId: string, destinationId: string) => {
         const order = state.headers.findIndex((h) => h.id == destinationId);
 
@@ -358,7 +372,7 @@ export const App: React.FC = () => {
       <ShareModal
         show={params?.action == 'share'}
         shareLinks={selectedHeader?.shareLinks}
-        onClose={() => navigate(`/${selectedHeader?.id}`)}
+        onClose={() => navigate(`/${token ?? selectedHeader?.id}`)}
         onDelete={(id: string) =>
           apis.shareApi.Delete(id).then(() => loadHeader(selectedHeader?.id))
         }

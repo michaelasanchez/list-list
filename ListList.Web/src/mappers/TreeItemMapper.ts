@@ -13,12 +13,12 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
         id: i.id,
         children: [],
         data: { label: i.label, description: i.description },
-        pending: false,
       })),
       data: {
         label: header.label,
         description: header.description,
       },
+      pending: header.pending,
     })) ?? []
   );
 }
@@ -44,7 +44,7 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
         label: i.label,
         description: i.description,
         complete: i.complete,
-        completedOn: i.completedOn
+        completedOn: i.completedOn,
       },
     });
   });

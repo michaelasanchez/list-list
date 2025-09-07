@@ -13,7 +13,7 @@ public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache
     private readonly MemoryCacheEntryOptions _cacheOptions = new MemoryCacheEntryOptions()
         .SetSlidingExpiration(TimeSpan.FromDays(7));
 
-    public async Task<Guid?> GetUserIdAsync()
+    public async Task<Guid?> GetUserId()
     {
         if (_httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated is false)
         {

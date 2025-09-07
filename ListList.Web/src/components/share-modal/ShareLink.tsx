@@ -11,7 +11,7 @@ import { ButtonVariant } from 'react-bootstrap/esm/types';
 import { formatDate, today } from '.';
 import { ApiHeaderShare, SharedPermission } from '../../contracts';
 import { IconButton } from '../button';
-import * as styles from './ShareModal.module.scss';
+import * as styles from './ShareLink.module.scss';
 
 export interface MinimumLink extends ApiHeaderShare {
   id?: string;
@@ -41,7 +41,7 @@ export const ShareLink: React.FC<ShareLinkProps> = (props) => {
             {showLabels && <Form.Label as="small">Url</Form.Label>}
 
             <InputGroup size="sm">
-              <InputGroup.Text className={styles.disabled}>/</InputGroup.Text>
+              <InputGroup.Text>/</InputGroup.Text>
               <Form.Control
                 className="code"
                 autoFocus={editing}

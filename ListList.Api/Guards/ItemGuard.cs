@@ -5,7 +5,7 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
-    public async Task<ValidationResult> AgainstInvalidListItemCompleteAsync(Guid? userId, Guid itemId)
+    public async Task<ValidationResult> AgainstInvalidItemComplete(Guid? userId, Guid itemId)
     {
         var result = new ValidationResult();
 

@@ -7,11 +7,12 @@ namespace ListList.Api.Guards.Interfaces;
 
 public interface IGuard
 {
-    Task<ValidationResult> AgainstInvalidListItemCompleteAsync(Guid? userId, Guid listItemId);
-    Task<ValidationResult> AgainstInvalidListHeaderCreation(Guid? userId);
-    Task<ValidationResult> AgainstInvalidListHeaderGetAsync(Guid? userId, Guid listHeaderId);
-    Task<ValidationResult> AgainstInvalidListHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch);
-    Task<ValidationResult> AgainstInvalidListHeaderRelocationAsync(Guid? userId, Guid listHeaderId, int index);
+    Task<ValidationResult> AgainstInvalidItemComplete(Guid? userId, Guid listItemId);
+    Task<ValidationResult> AgainstInvalidHeaderCreation(Guid? userId);
+    Task<ValidationResult> AgainstInvalidHeaderDelete(Guid? userId, Guid listHeaderId);
+    Task<ValidationResult> AgainstInvalidHeaderGet(Guid? userId, Guid listHeaderId);
+    Task<ValidationResult> AgainstInvalidHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch);
+    Task<ValidationResult> AgainstInvalidHeaderRelocation(Guid? userId, Guid listHeaderId, int index);
 
     Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid? userId, Guid parentId);
     Task<ValidationResult> AgainstInvalidListItemDeleteAsync(Guid? userId, Guid listItemId);

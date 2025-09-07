@@ -8,5 +8,6 @@ export interface Header
   isNotOwned?: boolean;
   isReadonly: boolean;
   items: Item[];
+  pending: boolean;
   shareLinks: ShareLink[];
 }

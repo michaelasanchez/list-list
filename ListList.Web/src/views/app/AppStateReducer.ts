@@ -9,7 +9,9 @@ export enum AppStateActionType {
   CancelItemDelete,
   // DeselectHeader,
   FinalizeHeaderCreate,
+  FinalizeHeaderDelete,
   FinalizeItemDelete,
+  InitiateHeaderCreate,
   InitiateItemCreate,
   // SelectHeader,
   SetHeader,
@@ -55,9 +57,7 @@ export const AppStateReducer = (
       return { ...rest };
     }
     case AppStateActionType.FinalizeHeaderCreate: {
-      const { headerCreation, ...rest } = state;
-
-      return rest;
+      return { ...state, headers: state.headers.filter((h) => !h.pending) };
     }
     case AppStateActionType.FinalizeItemDelete: {
       const updatedHeaders = filter(
@@ -70,6 +70,34 @@ export const AppStateReducer = (
         headers: updatedHeaders,
       };
     }
+    case AppStateActionType.InitiateHeaderCreate: {
+      if (state.headers.some((h) => h.id == newNodeId)) {
+        return state;
+      }
+
+      const pendingHeader = {
+        id: newNodeId,
+        order: state.headers.length,
+        isChecklist: false,
+        isReadonly: false,
+        label: '',
+        description: '',
+        items: [],
+        shareLinks: [],
+        pending: true,
+      };
+
+      return {
+        ...state,
+        headers: [...state.headers, pendingHeader],
+      };
+    }
+    case AppStateActionType.FinalizeHeaderDelete: {
+      return {
+        ...state,
+        headers: state.headers.filter((h) => h.id != action.headerId),
+      };
+    }
     case AppStateActionType.InitiateItemCreate: {
       const activeHeader = state.headers.find((h) => h.id == action.headerId);
 
@@ -77,7 +105,7 @@ export const AppStateReducer = (
         return state;
       }
 
-      const pendingCreation = {
+      const pendingItem = {
         id: newNodeId,
         label: '',
         description: '',
@@ -94,7 +122,7 @@ export const AppStateReducer = (
         pending: true,
       };
 
-      activeHeader.items.splice(activeHeader.items.length, 0, pendingCreation);
+      activeHeader.items.splice(activeHeader.items.length, 0, pendingItem);
 
       return {
         ...state,

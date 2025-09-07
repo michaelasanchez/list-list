@@ -6,7 +6,6 @@ import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
 import { Spinner } from 'react-bootstrap';
-import { useSwipe } from '../../../../hooks';
 import { Succeeded } from '../../../../network';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
 import { Icon } from '../../../icon';
@@ -70,11 +69,6 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
   ) => {
     const [checkLoading, setCheckLoading] = React.useState<boolean>(false);
 
-    const handlers = useSwipe(
-      () => console.log('Swiped left!'),
-      () => console.log('Swiped right!')
-    );
-
     return (
       <li
         className={classNames(
@@ -94,12 +88,12 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
           } as React.CSSProperties
         }
         {...props}
-        {...handlers}
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
           <div className={styles.Text}>
             <LabelAndDescriptionEditor
+              autoFocus={pending}
               name={name}
               label={data.label}
               description={data.description}

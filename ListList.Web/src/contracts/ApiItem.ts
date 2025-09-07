@@ -3,12 +3,8 @@ export interface ApiItem {
   label: string;
   description: string;
 
-  // completable: boolean;
   complete: boolean;
   completedOn: string;
-
-  left: number;
-  right: number;
 
   depth: number;
 

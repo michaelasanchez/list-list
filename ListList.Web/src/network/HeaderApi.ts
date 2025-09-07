@@ -25,6 +25,9 @@ export class ListHeaderApi extends Api {
     return this.executePost(creation);
   };
 
+  public Delete = (headerId: string): Promise<void> =>
+    this.executeDelete(headerId);
+
   public GetAll = (): Promise<ApiHeader[]> => {
     this.setActionPath();
 

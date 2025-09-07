@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { ActionDispatch } from 'react';
 import { IconButton } from '../../components';
 import { Header } from '../../models';
-import { AppStateActionType as ActionType, AppStateAction } from '../app';
+import { AppStateAction, AppStateActionType as ActionType } from '../app';
 import * as styles from './FloatingUi.module.scss';
 
 export enum UiMode {
@@ -27,24 +27,27 @@ const calcUiMode = (props: FloatingUiProps): UiMode => {
 export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
   const mode = React.useMemo(() => calcUiMode(props), [props.selectedHeader]);
 
+  const handleCreate = () => {
+    if (props.selectedHeader) {
+      props.dispatch({
+        type: ActionType.InitiateItemCreate,
+        headerId: props.selectedHeader.id,
+      });
+    } else {
+      props.dispatch({
+        type: ActionType.InitiateHeaderCreate,
+      });
+    }
+  };
+
   return (
     <div className={styles.FloatingUi}>
-      <div
-        className={classNames(
-          styles.Layer,
-          mode == UiMode.Default && styles.Active
-        )}
-      >
+      <div className={classNames(styles.Layer, styles.Active)}>
         <IconButton
           iconType="create"
           size="lg"
           variant="success"
-          onClick={() =>
-            props.dispatch({
-              type: ActionType.InitiateItemCreate,
-              headerId: props.selectedHeader.id,
-            })
-          }
+          onClick={handleCreate}
         />
       </div>
       <div

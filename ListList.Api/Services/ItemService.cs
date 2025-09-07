@@ -18,9 +18,9 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
     public async Task CompleteListItemAsync(Guid listItemId)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListItemCompleteAsync(userId, listItemId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemComplete(userId, listItemId));
 
         await _listItemRepository.CompleteListItem(listItemId);
 
@@ -29,7 +29,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
     public async Task<Guid> CreateListItemAsync(ListItemCreation listItem, Guid parentId)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemCreationAsync(userId, parentId));
 
@@ -42,7 +42,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
     public async Task DeleteListItemAsync(Guid listItemId)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemDeleteAsync(userId, listItemId));
 
@@ -53,7 +53,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
     public async Task<Item> GetItemById(Guid listItemId)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidListGet(userId, listItemId));
 
@@ -64,7 +64,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
     public async Task PatchItemAsync(Guid listItemId, ItemPatch itemPatch, bool? recursive)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemPatchAsync(userId, listItemId));
 
@@ -75,7 +75,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
     public async Task PutListItemAsync(Guid listItemId, ItemPut listItemPut)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemPutAsync(userId, listItemId));
 
@@ -86,7 +86,7 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
 
     public async Task RelocateListItemAsync(Guid activeId, Guid overId, Guid? parentId)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemRelocation(userId, activeId, parentId));
 

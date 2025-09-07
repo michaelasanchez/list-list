@@ -19,7 +19,7 @@ public class ShareService(
 
     public async Task DeleteLink(Guid shareLinkId)
     {
-        var userId = _userService.GetUserIdAsync().Result;
+        var userId = _userService.GetUserId().Result;
 
         await InvokeGuard(() => _guard.AgainstInvalidShareLinkDelete(userId, shareLinkId));
 
@@ -28,7 +28,7 @@ public class ShareService(
 
     public async Task PutLink(Guid shareLinkId, ShareLinkPut patch)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidShareLinkPatch(userId, shareLinkId, patch));
 
@@ -39,7 +39,7 @@ public class ShareService(
 
     public async Task<string> ShareHeader(Guid listHeaderId, ListHeaderShare listHeaderShare)
     {
-        var userId = await _userService.GetUserIdAsync();
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidListShare(userId, listHeaderId, listHeaderShare));
 
