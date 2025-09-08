@@ -27,6 +27,7 @@ import { createPortal } from 'react-dom';
 
 import { CSS } from '@dnd-kit/utilities';
 import React from 'react';
+import { DropdownAction } from '..';
 import { Succeeded } from '../../network';
 import { SortableTreeItem } from './components';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
@@ -70,7 +71,12 @@ const dropAnimationConfig: DropAnimation = {
   },
 };
 
+interface ItemAction extends Omit<DropdownAction, 'action'> {
+  action: (id: UniqueIdentifier) => void;
+}
+
 export interface SortableTreeHooks {
+  actions?: ItemAction[];
   onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
   onClick?: (id: UniqueIdentifier) => void;
   onCreate?: (label: string, description: string) => Promise<Succeeded>;
@@ -207,18 +213,24 @@ export function SortableTree({
       <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
         {flattenedItems.map(
           ({ id, children, collapsed, depth, pending, data }) => {
-            const treeItemListeners = pending
+            const itemHooks = pending
               ? {
                   onSaveDescription: (description: string) =>
                     hooks?.onCreate('', description),
                   onSaveLabel: (label: string) => hooks?.onCreate(label, ''),
                 }
               : {
+                  actions: hooks?.actions?.map((a) => ({
+                    ...a,
+                    action: (e: React.MouseEvent) => {
+                      a.action(id);
+                    },
+                  })),
                   onSaveDescription: (description: string) =>
                     hooks?.onSaveDescription(id, description),
                   onSaveLabel: (label: string) => hooks?.onSaveLabel(id, label),
                 };
-                
+
             return (
               <SortableTreeItem
                 key={id}
@@ -231,7 +243,7 @@ export function SortableTree({
                 depth={id === activeId && projected ? projected.depth : depth}
                 indentationWidth={indentationWidth}
                 indicator={indicator}
-                listeners={treeItemListeners}
+                hooks={itemHooks}
                 pending={pending}
                 onCheck={() => hooks?.onCheck(id)}
                 onClick={() =>

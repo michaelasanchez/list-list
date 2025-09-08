@@ -26,8 +26,16 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         var entity = await _context.Headers
             .SingleAsync(z => z.Id == headerId);
 
+        var after = await _context.Headers
+            .Where(z => z.Order > entity.Order)
+            .ToListAsync();
+
+        entity.Order = 0;
         entity.Deleted = true;
         entity.DeletedOn = DateTimeOffset.UtcNow;
+
+        foreach (var item in after)
+            item.Order--;
 
         await _context.SaveChangesAsync();
     }

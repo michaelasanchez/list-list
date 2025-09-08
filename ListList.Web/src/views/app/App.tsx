@@ -232,6 +232,19 @@ export const App: React.FC = () => {
 
   const headersListHooks = React.useMemo<Hooks>(
     (): Hooks | null => ({
+      actions: [
+        {
+          label: 'Delete',
+          icon: 'delete',
+          action: async (headerId: string) => {
+            await apis.headerApi.Delete(headerId);
+
+            dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
+
+            return true;
+          },
+        },
+      ],
       onClick: (headerId: string) => {
         navigate(headerId);
       },
@@ -241,13 +254,6 @@ export const App: React.FC = () => {
         dispatch({ type: ActionType.FinalizeHeaderCreate });
 
         return loadHeader(id);
-      },
-      onDelete: async (headerId: string) => {
-        await apis.headerApi.Delete(headerId);
-
-        dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
-
-        return true;
       },
       onDragEnd: async (headerId: string, destinationId: string) => {
         const order = state.headers.findIndex((h) => h.id == destinationId);

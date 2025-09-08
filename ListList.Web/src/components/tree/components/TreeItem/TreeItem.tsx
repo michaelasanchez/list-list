@@ -8,10 +8,12 @@ import React from 'react';
 import { Spinner } from 'react-bootstrap';
 import { Succeeded } from '../../../../network';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
+import { ActionDropdown, DropdownAction } from '../../../action-dropdown';
 import { Icon } from '../../../icon';
 import { TreeItemData } from '../../types';
 
-export interface Listeners {
+export interface Hooks {
+  actions?: DropdownAction[];
   onSaveDescription?: (updated: string) => void;
   onSaveLabel?: (updated: string) => void;
 }
@@ -31,7 +33,7 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   //
   data: TreeItemData;
   name: string;
-  listeners?: Listeners;
+  hooks?: Hooks;
   pending?: boolean;
   onCheck?(): Promise<Succeeded>;
   onCollapse?(): void;
@@ -55,7 +57,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
       handleProps,
       indentationWidth,
       indicator,
-      listeners,
+      hooks,
       name,
       pending,
       style,
@@ -97,14 +99,14 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               name={name}
               label={data.label}
               description={data.description}
-              onSaveDescription={listeners?.onSaveDescription}
-              onSaveLabel={listeners?.onSaveLabel}
+              onSaveDescription={hooks?.onSaveDescription}
+              onSaveLabel={hooks?.onSaveLabel}
             />
           </div>
           <div className={styles.Actions}>
-            <Action>
-              <Icon type="kebab" />
-            </Action>
+            {hooks.actions?.length > 0 && (
+              <ActionDropdown actions={hooks.actions} variant="none" />
+            )}
             {checkbox && (
               <Action
                 onClick={(e) => {

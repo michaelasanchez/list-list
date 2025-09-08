@@ -28,7 +28,12 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = (props) => {
   } = props;
 
   return (
-    <Dropdown className={styles.ActionDropdown}>
+    <Dropdown
+      className={styles.ActionDropdown}
+      onToggle={(isOpen, event) => {
+        event?.originalEvent.stopPropagation();
+      }}
+    >
       <Dropdown.Toggle className={styles.Toggle} size={size} variant={variant}>
         <Icon type={iconType} />
       </Dropdown.Toggle>
