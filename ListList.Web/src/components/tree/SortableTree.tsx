@@ -71,12 +71,13 @@ const dropAnimationConfig: DropAnimation = {
   },
 };
 
-interface ItemAction extends Omit<DropdownAction, 'action'> {
-  action: (id: UniqueIdentifier) => void;
+export interface NotSureYet {
+  id: string;
+  checklist: boolean;
 }
 
 export interface SortableTreeHooks {
-  actions?: ItemAction[];
+  actions?: (thing: NotSureYet) => DropdownAction[];
   onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
   onClick?: (id: UniqueIdentifier) => void;
   onCreate?: (label: string, description: string) => Promise<Succeeded>;
@@ -211,56 +212,54 @@ export function SortableTree({
       onDragCancel={handleDragCancel}
     >
       <SortableContext items={sortedIds} strategy={verticalListSortingStrategy}>
-        {flattenedItems.map(
-          ({ id, children, collapsed, depth, pending, data }) => {
-            const itemHooks = pending
-              ? {
-                  onSaveDescription: (description: string) =>
-                    hooks?.onCreate('', description),
-                  onSaveLabel: (label: string) => hooks?.onCreate(label, ''),
-                }
-              : {
-                  actions: hooks?.actions?.map((a) => ({
-                    ...a,
-                    action: (e: React.MouseEvent) => {
-                      a.action(id);
-                    },
-                  })),
-                  onSaveDescription: (description: string) =>
-                    hooks?.onSaveDescription(id, description),
-                  onSaveLabel: (label: string) => hooks?.onSaveLabel(id, label),
-                };
+        {flattenedItems.map((item) => {
+          const { id, children, collapsed, depth, pending, data } = item;
 
-            return (
-              <SortableTreeItem
-                key={id}
-                id={id}
-                name={`${id}`}
-                checkbox={checklist}
-                childCount={children.length}
-                collapsed={Boolean(collapsed && children.length)}
-                data={data}
-                depth={id === activeId && projected ? projected.depth : depth}
-                indentationWidth={indentationWidth}
-                indicator={indicator}
-                hooks={itemHooks}
-                pending={pending}
-                onCheck={() => hooks?.onCheck(id)}
-                onClick={() =>
-                  hooks?.onClick
-                    ? hooks.onClick(id)
-                    : collapsible && handleCollapse(id)
-                }
-                onCollapse={
-                  collapsible && children.length
-                    ? () => handleCollapse(id)
-                    : undefined
-                }
-                onRemove={removable ? () => handleRemove(id) : undefined}
-              />
-            );
-          }
-        )}
+          const itemHooks = pending
+            ? {
+                onSaveDescription: (description: string) =>
+                  hooks?.onCreate('', description),
+                onSaveLabel: (label: string) => hooks?.onCreate(label, ''),
+              }
+            : {
+                actions: hooks?.actions?.({
+                  id: item.id as string,
+                  checklist: data.isChecklist,
+                }),
+                onSaveDescription: (description: string) =>
+                  hooks?.onSaveDescription(id, description),
+                onSaveLabel: (label: string) => hooks?.onSaveLabel(id, label),
+              };
+
+          return (
+            <SortableTreeItem
+              key={id}
+              id={id}
+              name={`${id}`}
+              checkbox={checklist}
+              childCount={children.length}
+              collapsed={Boolean(collapsed && children.length)}
+              data={data}
+              depth={id === activeId && projected ? projected.depth : depth}
+              indentationWidth={indentationWidth}
+              indicator={indicator}
+              hooks={itemHooks}
+              pending={pending}
+              onCheck={() => hooks?.onCheck(id)}
+              onClick={() =>
+                hooks?.onClick
+                  ? hooks.onClick(id)
+                  : collapsible && handleCollapse(id)
+              }
+              onCollapse={
+                collapsible && children.length
+                  ? () => handleCollapse(id)
+                  : undefined
+              }
+              onRemove={removable ? () => handleRemove(id) : undefined}
+            />
+          );
+        })}
         {createPortal(
           <DragOverlay
             dropAnimation={dropAnimationConfig}

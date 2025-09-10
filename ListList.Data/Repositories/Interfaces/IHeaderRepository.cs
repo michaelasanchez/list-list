@@ -13,4 +13,5 @@ public interface IHeaderRepository
     Task PatchHeader(Guid headerId, HeaderResource resource);
     Task PutHeader(Guid listHeaderId, HeaderEntity update);
     Task RelocateHeader(Guid ownerId, Guid listHeaderId, int index);
+    Task RestoreHeader(Guid value, Guid headerId, int? order);
 }

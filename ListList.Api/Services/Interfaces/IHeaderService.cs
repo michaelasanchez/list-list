@@ -15,4 +15,5 @@ public interface IHeaderService
     Task PatchHeader(Guid headerId, HeaderPatch headerPatch);
     Task PutHeader(Guid headerId, HeaderPut headerPut);
     Task DeleteHeader(Guid headerId);
+    Task RestoreHeader(Guid headerId, int? order);
 }

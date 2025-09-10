@@ -7,7 +7,29 @@ namespace ListList.Data.Validators;
 
 public class HeaderValidator(IListListContext _context) : IHeaderValidator
 {
-    public async Task IsValidHeaderIndexAsync(Guid? userId, int index, ValidationResult result)
+    public async Task HeaderIsDeleted(Guid? userId, Guid headerId, ValidationResult result)
+    {
+        var isDeleted = await _context.Headers
+            .AnyAsync(z => z.Id == headerId && z.OwnerId == userId && z.Deleted);
+
+        if (!isDeleted)
+        {
+            result.AddError($"The {nameof(headerId)} '{headerId}' is not deleted.");
+        }
+    }
+
+    public async Task HeaderIsNotDeleted(Guid? userId, Guid headerId, ValidationResult result)
+    {
+        var isDeleted = await _context.Headers
+            .AnyAsync(z => z.Id == headerId && z.OwnerId == userId && z.Deleted);
+
+        if (isDeleted)
+        {
+            result.AddError($"The {nameof(headerId)} '{headerId}' is deleted.");
+        }
+    }
+
+    public async Task IsValidHeaderIndexAsync(Guid? userId, int? index, ValidationResult result)
     {
         var isValidIndex = index >= 0 &&
             index < await _context.Headers
@@ -22,7 +44,7 @@ public class HeaderValidator(IListListContext _context) : IHeaderValidator
     public async Task UserOwnsListHeaderAsync(Guid? userId, Guid listHeaderId, ValidationResult result)
     {
         var userOwnsListHeader = await _context.Headers
-            .AnyAsync(z => z.Id == listHeaderId && z.OwnerId == userId && !z.Deleted);
+            .AnyAsync(z => z.Id == listHeaderId && z.OwnerId == userId);
 
         if (!userOwnsListHeader)
         {

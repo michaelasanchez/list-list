@@ -28,6 +28,8 @@ public partial class Guard : IGuard
 
         await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
 
+        await headerValidator.HeaderIsNotDeleted(userId, listHeaderId, result);
+
         return result;
     }
 
@@ -56,6 +58,19 @@ public partial class Guard : IGuard
         await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
 
         await headerValidator.IsValidHeaderIndexAsync(userId, index, result);
+
+        return result;
+    }
+
+    public async Task<ValidationResult> AgainstInvalidHeaderRestoral(Guid? userId, Guid headerId, int? order)
+    {
+        var result = new ValidationResult();
+
+        await headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
+
+        await headerValidator.HeaderIsDeleted(userId, headerId, result);
+
+        await headerValidator.IsValidHeaderIndexAsync(userId, order, result);
 
         return result;
     }

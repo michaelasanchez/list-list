@@ -112,4 +112,13 @@ public class HeaderService(
 
         await _headerRepository.RelocateHeader(userId.Value, listHeaderId, index);
     }
+
+    public async Task RestoreHeader(Guid headerId, int? order)
+    {
+        var userId = await _userService.GetUserId();
+
+        await InvokeGuard(() => _guard.AgainstInvalidHeaderRestoral(userId, headerId, order));
+
+        await _headerRepository.RestoreHeader(userId.Value, headerId, order);
+    }
 }

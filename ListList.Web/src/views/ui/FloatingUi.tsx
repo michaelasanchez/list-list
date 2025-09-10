@@ -1,8 +1,10 @@
 import classNames from 'classnames';
 import React, { ActionDispatch } from 'react';
+import { Alert } from 'react-bootstrap';
 import { IconButton } from '../../components';
+import { AlertCreation } from '../../hooks';
 import { Header } from '../../models';
-import { AppStateAction, AppStateActionType as ActionType } from '../app';
+import { AppStateActionType as ActionType, AppStateAction } from '../app';
 import * as styles from './FloatingUi.module.scss';
 
 export enum UiMode {
@@ -14,6 +16,7 @@ export enum UiMode {
 interface FloatingUiProps {
   selectedHeader: Header;
   dispatch: ActionDispatch<[action: AppStateAction]>;
+  showAlert: (creation: AlertCreation) => void;
 }
 
 const calcUiMode = (props: FloatingUiProps): UiMode => {
@@ -43,6 +46,21 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
   return (
     <div className={styles.FloatingUi}>
       <div className={classNames(styles.Layer, styles.Active)}>
+        {/* <IconButton
+          iconType="question"
+          size="sm"
+          variant="info"
+          onClick={() =>
+            props.showAlert({
+              content: (
+                <>
+                  <strong>[List Name]</strong> was deleted.{' '}
+                  <Alert.Link>Undo</Alert.Link>
+                </>
+              ),
+            })
+          }
+        /> */}
         <IconButton
           iconType="create"
           size="lg"

@@ -13,6 +13,7 @@ public interface IGuard
     Task<ValidationResult> AgainstInvalidHeaderGet(Guid? userId, Guid listHeaderId);
     Task<ValidationResult> AgainstInvalidHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch);
     Task<ValidationResult> AgainstInvalidHeaderRelocation(Guid? userId, Guid listHeaderId, int index);
+    Task<ValidationResult> AgainstInvalidHeaderRestoral(Guid? userId, Guid headerId, int? order);
 
     Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid? userId, Guid parentId);
     Task<ValidationResult> AgainstInvalidListItemDeleteAsync(Guid? userId, Guid listItemId);

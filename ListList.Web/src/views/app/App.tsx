@@ -1,16 +1,22 @@
 import { findIndex } from 'lodash';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
-import { Container } from 'react-bootstrap';
+import { Alert, Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
-import { MinimumLink, SelectedHeader, ShareModal } from '../../components';
+import {
+  DropdownAction,
+  MinimumLink,
+  SelectedHeader,
+  ShareModal,
+} from '../../components';
 import {
   SortableTreeHooks as Hooks,
   SortableTree,
 } from '../../components/tree/SortableTree';
 import {
   LocalStorageState,
+  useAlerts,
   useAuth,
   useLocalStorage,
   useTheme,
@@ -55,6 +61,8 @@ export const App: React.FC = () => {
   const [state, dispatch] = useReducer(AppStateReducer, null, () =>
     getDefaultAppState(localStorage)
   );
+
+  const { AlertList, showAlert } = useAlerts();
 
   // Keep local storage up-to-date
   useEffect(() => {
@@ -232,19 +240,55 @@ export const App: React.FC = () => {
 
   const headersListHooks = React.useMemo<Hooks>(
     (): Hooks | null => ({
-      actions: [
-        {
-          label: 'Delete',
-          icon: 'delete',
-          action: async (headerId: string) => {
-            await apis.headerApi.Delete(headerId);
-
-            dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
-
-            return true;
+      actions: ({
+        id: headerId,
+        checklist,
+      }: {
+        id: string;
+        checklist: boolean;
+      }): DropdownAction[] => {
+        return [
+          {
+            label: 'Checklist',
+            icon: checklist ? 'check' : null,
+            action: () =>
+              apis.headerApi
+                .Patch(headerId, { checklist: !checklist })
+                .then(() => loadHeader(headerId)),
           },
-        },
-      ],
+          {
+            label: 'Delete',
+            icon: 'delete',
+            action: async () => {
+              await apis.headerApi.Delete(headerId);
+
+              const header = state.headers.find((h) => h.id == headerId);
+
+              dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
+
+              showAlert({
+                content: (
+                  <>
+                    <strong>{header.label}</strong> was deleted.
+                    <Alert.Link
+                      onClick={
+                        () =>
+                          apis.headerApi
+                            .Restore(headerId, { order: header.order })
+                            .then(() => loadHeaders()) // TODO: this could probably use loadHeader(headerId), but something isn't working (maybe it's not ordering the list properly?)
+                      }
+                    >
+                      Undo
+                    </Alert.Link>
+                  </>
+                ),
+              });
+
+              return true;
+            },
+          },
+        ];
+      },
       onClick: (headerId: string) => {
         navigate(headerId);
       },
@@ -373,7 +417,14 @@ export const App: React.FC = () => {
           </Container>
         </div>
       </main>
-      <FloatingUi selectedHeader={selectedHeader} dispatch={dispatch} />
+
+      <FloatingUi
+        selectedHeader={selectedHeader}
+        dispatch={dispatch}
+        showAlert={showAlert}
+      />
+
+      {AlertList}
 
       <ShareModal
         show={params?.action == 'share'}

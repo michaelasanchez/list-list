@@ -2,6 +2,7 @@ import { Api } from '.';
 import {
   ApiHeader,
   ApiHeaderPatch,
+  ApiHeaderRestoral,
   ApiListHeaderPut,
   ApiListHeaderRelocation,
   ApiListItemCreation,
@@ -55,6 +56,15 @@ export class ListHeaderApi extends Api {
     this.setActionPath(`${headerId}/relocate`);
 
     return this.executePost(relocation, null, false);
+  };
+
+  public Restore = (
+    headerId: string,
+    restoral: ApiHeaderRestoral
+  ): Promise<void> => {
+    this.setActionPath(`${headerId}/restore`);
+
+    return this.executePost(restoral, null, false);
   };
 
   public Update = (id: string, put: ApiListHeaderPut): Promise<void> => {

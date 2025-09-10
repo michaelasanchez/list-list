@@ -110,11 +110,11 @@ public class HeaderController(IHeaderService _service) : Controller
     }
 
     [HttpPut("{headerId}")]
-    public async Task<ActionResult> PutListHeader(Guid headerId, HeaderPut listHeaderPut)
+    public async Task<ActionResult> PutListHeader(Guid headerId, HeaderPut headerPut)
     {
         try
         {
-            await _service.PutHeader(headerId, listHeaderPut);
+            await _service.PutHeader(headerId, headerPut);
         }
         catch (Exception ex)
         {
@@ -130,6 +130,21 @@ public class HeaderController(IHeaderService _service) : Controller
         try
         {
             await _service.RelocateHeader(headerId, listHeaderRelocation.Order);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
+    }
+
+    [HttpPost("{headerId}/restore")]
+    public async Task<ActionResult> RestoreListHeaderAsync(Guid headerId, HeaderRestoral? headerRestoral)
+    {
+        try
+        {
+            await _service.RestoreHeader(headerId, headerRestoral?.Order);
         }
         catch (Exception ex)
         {

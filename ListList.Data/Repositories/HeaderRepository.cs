@@ -139,6 +139,33 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
+    public async Task RestoreHeader(Guid ownerId, Guid headerId, int? order)
+    {
+        var entity = await _context.Headers
+            .SingleAsync(z =>
+                z.Id == headerId &&
+                z.OwnerId == ownerId &&
+                z.Deleted);
+
+        var headers = await _context.Headers
+            .Where(z => z.OwnerId == ownerId && !z.Deleted)
+            .OrderBy(z => z.Order)
+            .ToListAsync();
+
+        var newOrder = order.HasValue && order.Value >= 0 && order.Value <= headers.Count
+            ? order.Value
+            : headers.Count;
+
+        foreach (var item in headers.Where(z => z.Order >= newOrder))
+            item.Order++;
+
+        entity.Deleted = false;
+        entity.DeletedOn = null;
+        entity.Order = newOrder;
+
+        await _context.SaveChangesAsync();
+    }
+
     private IQueryable<HeaderEntity> GetQuery(Guid? ownerId = null)
     {
         var query = _context.Headers

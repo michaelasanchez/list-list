@@ -1,0 +1,25 @@
+.Container {
+  position: absolute;
+  overflow: hidden;
+  inset: 0 0 0 0;
+  pointer-events: none;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+
+  .Alert {
+    pointer-events: painted;
+    position: absolute;
+    bottom: 0;
+
+    transition: opacity 100ms, transform 100ms;
+
+    --opacity: 0;
+    --transform-y: 100%;
+
+    opacity: var(--opacity);
+    transform: translateY(var(--transform-y));
+  }
+}

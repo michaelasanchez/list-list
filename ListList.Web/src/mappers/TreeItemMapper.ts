@@ -17,6 +17,7 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
       data: {
         label: header.label,
         description: header.description,
+        isChecklist: header.isChecklist,
       },
       pending: header.pending,
     })) ?? []

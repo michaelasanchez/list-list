@@ -1,10 +1,6 @@
 import React from 'react';
 import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
-import {
-  ApiHeaderPatch,
-  ApiHeaderShare,
-  SharedPermission,
-} from '../../contracts';
+import { ApiHeaderPatch } from '../../contracts';
 import { Header } from '../../models';
 import { SortableTreeHooks } from '../tree/SortableTree';
 
@@ -16,17 +12,7 @@ export interface SelectedHeaderProps {
   onPatch?: (patch: ApiHeaderPatch) => void;
 }
 
-interface State {
-  show: boolean;
-  pendingShare?: ApiHeaderShare;
-}
-
 export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
-  const [state, setState] = React.useState<State>({
-    show: false,
-    pendingShare: { permission: SharedPermission.View },
-  });
-
   const headerActions = React.useMemo(
     () =>
       props.header.isReadonly ? (
@@ -41,17 +27,10 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
           />
           <ActionDropdown
             size="sm"
-            actions={[
-              {
-                icon: props.header.isChecklist ? 'check' : null,
-                label: 'Checklist',
-                action: (e) => {
-                  e.stopPropagation();
-
-                  props.onPatch?.({ checklist: !props.header.isChecklist });
-                },
-              },
-            ]}
+            actions={props.listeners?.actions?.({
+              id: props.header.id,
+              checklist: props.header.isChecklist,
+            })}
           />
           <IconButton
             iconType="backward"
@@ -60,9 +39,7 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
           />
         </>
       ),
-    [
-      props.header
-    ]
+    [props.header]
   );
 
   return (

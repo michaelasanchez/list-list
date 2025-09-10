@@ -4,9 +4,9 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
-const isProd = process.env.NODE_ENV === 'production';
-
 module.exports = (_, argv) => {
+  const isProd = argv.mode == 'production';
+
   const envFile = `config/.env.${argv.mode || 'development'}`;
   const envVars = dotenv.config({ path: envFile }).parsed || {};
 
