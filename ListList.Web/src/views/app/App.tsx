@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
+
 import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
 import {
   DropdownAction,
@@ -75,7 +76,7 @@ export const App: React.FC = () => {
 
   // Load/unload headers
   useEffect(() => {
-    if (authState.initialized) {
+    if (authState.initialized && !authState.loading) {
       if (authState.authenticated) {
         loadHeaders();
       } else {
@@ -84,7 +85,7 @@ export const App: React.FC = () => {
         finishSyncing();
       }
     }
-  }, [authState.initialized, authState.authenticated]);
+  }, [authState.initialized, authState.authenticated, authState.loading]);
 
   // Keep state up-to-date with route
   useEffect(() => {
@@ -246,47 +247,67 @@ export const App: React.FC = () => {
       }: {
         id: string;
         checklist: boolean;
-      }): DropdownAction[] => {
+      }): DropdownAction[][] => {
         return [
-          {
-            label: 'Checklist',
-            icon: checklist ? 'check' : null,
-            action: () =>
-              apis.headerApi
-                .Patch(headerId, { checklist: !checklist })
-                .then(() => loadHeader(headerId)),
-          },
-          {
-            label: 'Delete',
-            icon: 'delete',
-            action: async () => {
-              await apis.headerApi.Delete(headerId);
-
-              const header = state.headers.find((h) => h.id == headerId);
-
-              dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
-
-              showAlert({
-                content: (
-                  <>
-                    <strong>{header.label}</strong> was deleted.
-                    <Alert.Link
-                      onClick={
-                        () =>
-                          apis.headerApi
-                            .Restore(headerId, { order: header.order })
-                            .then(() => loadHeaders()) // TODO: this could probably use loadHeader(headerId), but something isn't working (maybe it's not ordering the list properly?)
-                      }
-                    >
-                      Undo
-                    </Alert.Link>
-                  </>
-                ),
-              });
-
-              return true;
+          [
+            {
+              label: 'Checklist',
+              icon: checklist ? 'checked' : 'unchecked',
+              fade: !checklist,
+              keepOpen: true,
+              action: () =>
+                apis.headerApi
+                  .Patch(headerId, { checklist: !checklist })
+                  .then(() => loadHeader(headerId)),
             },
-          },
+            {
+              label: 'Show Completed',
+              icon: 'unchecked',
+              fade: true,
+              keepOpen: true,
+              action: () => console.log('show completed'),
+            },
+            {
+              label: 'Show Dates',
+              icon: 'unchecked',
+              fade: true,
+              keepOpen: true,
+              action: () => console.log('show dates'),
+            },
+          ],
+          [
+            {
+              label: 'Delete',
+              icon: 'delete',
+              action: async () => {
+                await apis.headerApi.Delete(headerId);
+
+                const header = state.headers.find((h) => h.id == headerId);
+
+                dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
+
+                showAlert({
+                  content: (
+                    <>
+                      <strong>{header.label}</strong> was deleted.
+                      <Alert.Link
+                        onClick={
+                          () =>
+                            apis.headerApi
+                              .Restore(headerId, { order: header.order })
+                              .then(() => loadHeaders()) // TODO: this could probably use loadHeader(headerId), but something isn't working (maybe it's not ordering the list properly?)
+                        }
+                      >
+                        Undo
+                      </Alert.Link>
+                    </>
+                  ),
+                });
+
+                return true;
+              },
+            },
+          ],
         ];
       },
       onClick: (headerId: string) => {

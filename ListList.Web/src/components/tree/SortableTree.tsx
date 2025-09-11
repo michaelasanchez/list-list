@@ -77,7 +77,7 @@ export interface NotSureYet {
 }
 
 export interface SortableTreeHooks {
-  actions?: (thing: NotSureYet) => DropdownAction[];
+  actions?: (thing: NotSureYet) => DropdownAction[][];
   onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
   onClick?: (id: UniqueIdentifier) => void;
   onCreate?: (label: string, description: string) => Promise<Succeeded>;

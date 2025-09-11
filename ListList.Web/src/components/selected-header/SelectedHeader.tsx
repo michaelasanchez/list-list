@@ -27,7 +27,7 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
           />
           <ActionDropdown
             size="sm"
-            actions={props.listeners?.actions?.({
+            actionGroups={props.listeners?.actions?.({
               id: props.header.id,
               checklist: props.header.isChecklist,
             })}

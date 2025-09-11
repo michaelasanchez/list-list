@@ -8,10 +8,13 @@
   color: transparent;
   user-select: none;
 
+  text-decoration: inherit;
+
   span,
   textarea {
     font-weight: inherit;
     font-size: inherit;
+    text-decoration: inherit;
   }
 
   span {

@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import { isNil } from 'lodash';
 import React from 'react';
 import { Collapse } from 'react-bootstrap';
@@ -8,6 +9,7 @@ interface LabelAndDescriptionEditorProps {
   label: string;
   description: string;
   autoFocus?: boolean;
+  className?: string;
   onEditingChange?: (editing: boolean) => void;
   onSaveDescription?: (description: string) => void;
   onSaveLabel?: (label: string) => void;
@@ -80,7 +82,7 @@ export const LabelAndDescriptionEditor: React.FC<
     <>
       <LabelEditor
         autoFocus={props.autoFocus}
-        className="label"
+        className={classNames('label', props.className)}
         name={`${props.name}-label`}
         label={isNil(state?.pendingLabel) ? props.label : state.pendingLabel}
         placeholder="New Item"
@@ -91,6 +93,7 @@ export const LabelAndDescriptionEditor: React.FC<
         onFocus={handleBeginUpdateLabel}
       />
       <Collapse
+        className="description"
         in={
           !!props.description ||
           !!state.pendingDescription ||
@@ -100,7 +103,7 @@ export const LabelAndDescriptionEditor: React.FC<
       >
         <div>
           <LabelEditor
-            className="description"
+            className={classNames('description', props.className)}
             name={`${props.name}-description`}
             label={
               isNil(state.pendingDescription)

@@ -3,6 +3,7 @@ import React from 'react';
 import {
   ArrowLeft,
   ArrowRight,
+  Calendar,
   Check,
   ChevronDown,
   ChevronUp,
@@ -26,6 +27,7 @@ import {
 
 const icons = {
   backward: ArrowLeft,
+  calendar: Calendar,
   cancel: X,
   check: Check,
   checked: SquareCheckBig,

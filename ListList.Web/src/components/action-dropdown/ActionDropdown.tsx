@@ -1,4 +1,5 @@
-import React from 'react';
+import classNames from 'classnames';
+import React, { ReactNode } from 'react';
 import { Dropdown } from 'react-bootstrap';
 import { AlignType, ButtonVariant } from 'react-bootstrap/esm/types';
 import { Icon, IconType } from '..';
@@ -7,20 +8,55 @@ import * as styles from './ActionDropdown.module.scss';
 export interface DropdownAction {
   label: string;
   icon?: IconType;
+  fade?: boolean;
+  keepOpen?: boolean;
   action: (e: React.MouseEvent) => void;
 }
 
 export interface ActionDropdownProps {
-  actions: DropdownAction[];
+  actionGroups: DropdownAction[][];
   align?: AlignType;
   icon?: IconType;
   size?: 'sm' | 'lg';
   variant?: ButtonVariant;
 }
 
+const FecalPellets: React.FC<DropdownAction> = (a) => (
+  <Dropdown.Item
+    className={classNames(styles.ActionItem, a.fade && styles.fade)}
+    onClick={(e) => {
+      a.keepOpen && e.stopPropagation();
+      a.action(e);
+    }}
+  >
+    <span>{a.label}</span>
+    {a.icon && <Icon type={a.icon} />}
+  </Dropdown.Item>
+);
+
+const intersperseGroups = (
+  groups: DropdownAction[][],
+  divider: ReactNode
+): ReactNode => {
+  if (groups.length === 0) return null;
+
+  return (
+    <>
+      {groups.map((group, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && divider}
+          {group.map((g, i) => (
+            <FecalPellets key={i} {...g} />
+          ))}
+        </React.Fragment>
+      ))}
+    </>
+  );
+};
+
 export const ActionDropdown: React.FC<ActionDropdownProps> = (props) => {
   const {
-    actions = [],
+    actionGroups = [],
     align = 'end',
     icon: iconType = 'kebab',
     size,
@@ -38,16 +74,7 @@ export const ActionDropdown: React.FC<ActionDropdownProps> = (props) => {
         <Icon type={iconType} />
       </Dropdown.Toggle>
       <Dropdown.Menu align={align}>
-        {actions.map((a, i) => (
-          <Dropdown.Item
-            key={i}
-            className={styles.ActionItem}
-            onClick={a.action}
-          >
-            <span>{a.label}</span>
-            {a.icon && <Icon type={a.icon} />}
-          </Dropdown.Item>
-        ))}
+        {intersperseGroups(actionGroups, <Dropdown.Divider />)}
       </Dropdown.Menu>
     </Dropdown>
   );

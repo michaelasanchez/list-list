@@ -13,7 +13,7 @@ import { Icon } from '../../../icon';
 import { TreeItemData } from '../../types';
 
 export interface Hooks {
-  actions?: DropdownAction[];
+  actions?: DropdownAction[][];
   onSaveDescription?: (updated: string) => void;
   onSaveLabel?: (updated: string) => void;
 }
@@ -81,7 +81,8 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
           childCount && styles.parent,
           pending && styles.pending,
           disableSelection && styles.disableSelection,
-          disableInteraction && styles.disableInteraction
+          disableInteraction && styles.disableInteraction,
+          data.complete && styles.complete
         )}
         ref={wrapperRef}
         style={
@@ -93,8 +94,9 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
-          <div className={styles.Text}>
+          <div className={styles.Content}>
             <LabelAndDescriptionEditor
+              className={styles.Editor}
               autoFocus={pending}
               name={name}
               label={data.label}
@@ -102,10 +104,11 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               onSaveDescription={hooks?.onSaveDescription}
               onSaveLabel={hooks?.onSaveLabel}
             />
+            {/* {data.completedOn && <small>{data.completedOn?.toDateString()}</small>} */}
           </div>
           <div className={styles.Actions}>
-            {hooks.actions?.length > 0 && (
-              <ActionDropdown actions={hooks.actions} variant="none" />
+            {hooks?.actions?.length > 0 && (
+              <ActionDropdown actionGroups={hooks.actions} variant="none" />
             )}
             {checkbox && (
               <Action

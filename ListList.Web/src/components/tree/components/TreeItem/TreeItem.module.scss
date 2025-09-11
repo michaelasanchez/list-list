@@ -71,7 +71,7 @@
   &.parent {
     .TreeItem {
       border: 1px solid rgba(255, 255, 255, 0.08);
-      
+
       cursor: pointer;
     }
   }
@@ -111,6 +111,16 @@
       // animation: pulseIn 400ms ease-out forwards;
     }
   }
+
+  &.complete {
+    .Content {
+      opacity: 0.35;
+
+      .Editor {
+        text-decoration: line-through;
+      }
+    }
+  }
 }
 
 .TreeItem {
@@ -127,12 +137,16 @@
   touch-action: pan-y;
 }
 
-.Text {
+.Content {
   flex-grow: 1;
   padding-left: 0.5rem;
+
   // white-space: nowrap;
   // text-overflow: ellipsis;
   // overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .Actions {
@@ -183,7 +197,7 @@
 
 .disableSelection,
 .clone {
-  .Text,
+  .Content,
   .Count {
     user-select: none;
     -webkit-user-select: none;
