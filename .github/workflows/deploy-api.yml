@@ -10,8 +10,18 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout API code
         uses: actions/checkout@v3
+        with:
+          # default checkout of current repo
+          submodules: recursive
+
+      - name: Checkout Auth repo
+        uses: actions/checkout@v3
+        with:
+          repository: michaelasanchez/Auth
+          path: ./auth
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache NuGet packages
         uses: actions/cache@v3
