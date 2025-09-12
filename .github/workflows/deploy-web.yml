@@ -31,7 +31,7 @@ jobs:
         run: npm ci
         
       - name: Create config.ts
-        working-directory: ./ListList.Web
+        working-directory: ./ListList.Web/src/shared
         run: |
           echo "export const config = {" > ./src/config.ts
           echo "  apiUrl: \`https://\${process.env.API_DOMAIN}/api/\`," >> ./src/config.ts
