@@ -31,11 +31,12 @@ jobs:
         run: npm ci
         
       - name: Create config.ts
+        working-directory: ./ListList.Web
         run: |
           mkdir -p ./src/shared
           echo "export const config = {
-  apiUrl: \`https://${process.env.API_DOMAIN}/api/\`,
-  clientId: '\${process.env.CLIENT_ID}',
+  apiUrl: \`https://${API_DOMAIN}/api/\`,
+  clientId: '${CLIENT_ID}',
   cookiePolicy: 'single_host_origin',
 };" > ./src/shared/config.ts
         env:
