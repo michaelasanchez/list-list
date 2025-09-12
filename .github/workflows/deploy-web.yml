@@ -35,7 +35,7 @@ jobs:
         run: npm run build
 
       - name: Upload built web
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: web-dist
           path: ./ListList.Web/dist
@@ -46,7 +46,7 @@ jobs:
 
     steps:
       - name: Download built web
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: web-dist
           path: ./dist

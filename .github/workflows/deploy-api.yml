@@ -36,7 +36,7 @@ jobs:
         run: dotnet publish ./ListList.Api/ListList.Api.csproj --configuration Release --output ./publish
 
       - name: Upload published API
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: api-publish
           path: ./publish
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: Download published API
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: api-publish
           path: ./publish
