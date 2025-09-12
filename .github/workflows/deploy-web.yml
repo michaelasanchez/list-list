@@ -36,14 +36,11 @@ jobs:
           mkdir -p ./src/shared
           cat <<EOF > ./src/shared/config.ts
           export const config = {
-            apiUrl: \`https://\${API_DOMAIN}/api/\`,
-            clientId: '\${CLIENT_ID}',
+            apiUrl: \`https://\${secrets.CONFIG_API_DOMAIN}/api/\`,
+            clientId: '\${secrets.CONFIG_CLIENT_ID}',
             cookiePolicy: 'single_host_origin',
           };
           EOF
-        env:
-          API_DOMAIN: ${{ secrets.API_DOMAIN }}
-          CLIENT_ID: ${{ secrets.CLIENT_ID }}
 
       - name: Build React app
         working-directory: ./ListList.Web

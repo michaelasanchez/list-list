@@ -23,6 +23,14 @@ jobs:
           path: ./auth
           token: ${{ secrets.AUTH_REPO_PAT }}
           ref: master
+          
+      - name: Build Auth
+        working-directory: ./auth
+        run: dotnet build Auth.csproj --configuration Release
+
+      - name: Pack Auth
+        working-directory: ./auth
+        run: dotnet pack Auth.csproj --configuration Release -o ./nupkgs
 
       - name: Cache NuGet packages
         uses: actions/cache@v3
