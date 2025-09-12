@@ -71,5 +71,6 @@ jobs:
           site-name: ${{ secrets.DEPLOY_SITE_WEB }}
           user-name: ${{ secrets.DEPLOY_USERNAME }}
           user-password: ${{ secrets.DEPLOY_PASSWORD }}
+          additional-args: '-skip:objectName=filePath,absolutePath=web.config'
           remove-additional-files: true
           take-application-offline: true
