@@ -25,12 +25,10 @@ jobs:
           ref: master
           
       - name: Build Auth
-        working-directory: ./auth
-        run: dotnet build Auth.csproj --configuration Release
+        run: dotnet build ./auth/auth/Auth.csproj --configuration Release
 
       - name: Pack Auth
-        working-directory: ./auth
-        run: dotnet pack Auth.csproj --configuration Release -o ./nupkgs
+        run: dotnet pack ./auth/auth/Auth.csproj --configuration Release -o ./auth/nupkgs
 
       - name: Cache NuGet packages
         uses: actions/cache@v3
