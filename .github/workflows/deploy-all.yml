@@ -1,0 +1,11 @@
+name: Deploy All
+
+on:
+  workflow_dispatch:   # manual trigger
+
+jobs:
+  deploy-api:
+    uses: ./.github/workflows/deploy-api.yml
+
+  deploy-web:
+    uses: ./.github/workflows/deploy-web.yml

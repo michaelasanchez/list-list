@@ -1,0 +1,63 @@
+name: Deploy ListList Web
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest   # Faster for Node builds
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('ListList.Web/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        working-directory: ./ListList.Web
+        run: npm ci
+
+      - name: Build React app
+        working-directory: ./ListList.Web
+        run: npm run build
+
+      - name: Upload built web
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-dist
+          path: ./ListList.Web/dist
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+      - name: Download built web
+        uses: actions/download-artifact@v3
+        with:
+          name: web-dist
+          path: ./dist
+
+      - name: Deploy to IIS
+        uses: microsoft/iis-web-deploy@v1
+        with:
+          publish-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
+          package: ./dist
+          site-name: ${{ secrets.DEPLOY_SITE_WEB }}
+          user-name: ${{ secrets.DEPLOY_USERNAME }}
+          user-password: ${{ secrets.DEPLOY_PASSWORD }}
+          remove-additional-files: true
+          take-application-offline: true

@@ -1,0 +1,65 @@
+name: Deploy ListList API
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./ListList.Api/ListList.Api.csproj
+
+      - name: Build project
+        run: dotnet build ./ListList.Api/ListList.Api.csproj --configuration Release
+
+      - name: Publish project
+        run: dotnet publish ./ListList.Api/ListList.Api.csproj --configuration Release --output ./publish
+
+      - name: Upload published API
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-publish
+          path: ./publish
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+      - name: Download published API
+        uses: actions/download-artifact@v3
+        with:
+          name: api-publish
+          path: ./publish
+
+      - name: Deploy to IIS
+        uses: microsoft/iis-web-deploy@v1
+        with:
+          publish-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
+          package: ./publish
+          site-name: ${{ secrets.DEPLOY_SITE_API }}
+          user-name: ${{ secrets.DEPLOY_USERNAME }}
+          user-password: ${{ secrets.DEPLOY_PASSWORD }}
+          remove-additional-files: false
+          take-application-offline: true
+          additional-args: '-skip:objectName=filePath,absolutePath=appsettings.json'
