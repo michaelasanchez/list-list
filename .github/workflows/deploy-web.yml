@@ -36,8 +36,8 @@ jobs:
           mkdir -p ./src/shared
           cat <<EOF > ./src/shared/config.ts
           export const config = {
-            apiUrl: \`https://\${API_DOMAIN}/api/\`,
-            clientId: '\${CLIENT_ID}',
+            apiUrl: 'https://\${API_DOMAIN}/api/',
+            clientId: '${CLIENT_ID}',
             cookiePolicy: 'single_host_origin',
           };
           EOF
