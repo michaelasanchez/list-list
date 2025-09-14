@@ -64,12 +64,13 @@ jobs:
           path: ./publish
 
       - name: Deploy API to IIS
-        run: |
-          & "C:\Program Files\IIS\Microsoft Web Deploy V4\msdeploy.exe" `
-            -source:contentPath="./publish" `
-            -dest:contentPath="${{ secrets.DEPLOY_SITE_API }}",computerName="${{ secrets.DEPLOY_PUBLISH_URL }}",userName="${{ secrets.DEPLOY_USERNAME }}",password="${{ secrets.DEPLOY_PASSWORD }}",authType="Basic" `
-            -verb:sync `
-            -allowUntrusted `
-            -skip:objectName=filePath,absolutePath=appsettings.json
-        shell: pwsh
+        uses: ChristopheLav/iis-deploy@v1
+        with:
+          website-name: ${{ secrets.DEPLOY_SITE_API }}
+          msdeploy-service-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
+          msdeploy-username: ${{ secrets.DEPLOY_USERNAME }}
+          msdeploy-password: ${{ secrets.DEPLOY_PASSWORD }}
+          source-path: ./publish
+          skip-extra-files: false
+          additional-arguments: '-skip:objectName=filePath,absolutePath=appsettings.json'
 
