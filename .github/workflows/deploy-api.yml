@@ -43,7 +43,7 @@ jobs:
 
       - name: Restore dependencies
         shell: bash
-        run: dotnet restore ./ListList.Api/ListList.Api.csproj --source ./auth/nupkgs --source "https://api.nuget.org/v3/index.json/"
+        run: dotnet restore ./ListList.Api/ListList.Api.csproj --configfile nuget.release.config
 
       - name: Build project
         run: dotnet build ./ListList.Api/ListList.Api.csproj --configuration Release
