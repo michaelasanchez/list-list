@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'ListList.Api/**' 
+      - 'ListList.Data/**' 
 
 jobs:
   build:
@@ -39,7 +42,7 @@ jobs:
 
       - name: Restore dependencies
         run: dotnet restore "./ListList.Api/ListList.Api.csproj" `
-          --source "D:\a\list-list\list-list\auth\nupkgs" `
+          --source "./authnupkgs" `
           --source "https://api.nuget.org/v3/index.json"
 
       - name: Build project

@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - './github/workflows/deploy-web.yml'
+      - '.github/workflows/deploy-web.yml'
       - 'ListList.Web/**' 
 
 jobs:
