@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - '.github/workflows/deploy-api.yml'
       - 'ListList.Api/**' 
       - 'ListList.Data/**' 
 
