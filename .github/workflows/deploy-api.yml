@@ -13,7 +13,6 @@ jobs:
       - name: Checkout API code
         uses: actions/checkout@v3
         with:
-          # default checkout of current repo
           submodules: recursive
 
       - name: Checkout Auth repo
@@ -39,7 +38,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore ./ListList.Api/ListList.Api.csproj
+        run: dotnet restore ./ListList.Api/ListList.Api.csproj --source ./auth/nupkgs --source https://api.nuget.org/v3/index.json
 
       - name: Build project
         run: dotnet build ./ListList.Api/ListList.Api.csproj --configuration Release
@@ -64,8 +63,8 @@ jobs:
           name: api-publish
           path: ./publish
 
-      - name: Deploy to IIS
-        uses: microsoft/iis-web-deploy@v1
+      - name: Deploy API to IIS
+        uses: joonasf/gha-msdeploy@v1
         with:
           publish-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
           package: ./publish
@@ -75,3 +74,4 @@ jobs:
           remove-additional-files: false
           take-application-offline: true
           additional-args: '-skip:objectName=filePath,absolutePath=appsettings.json'
+
