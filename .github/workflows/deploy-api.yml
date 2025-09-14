@@ -28,7 +28,7 @@ jobs:
           ref: master
           
       - name: Build Auth
-        run: dotnet build ./auth/auth/Auth.csproj --configuration Release
+        run: dotnet build ./auth/auth/Auth.csproj --configuration Release --configfile ./nuget.release.config
 
       - name: Pack Auth
         run: dotnet pack ./auth/auth/Auth.csproj --configuration Release -o ./auth/nupkgs
@@ -43,7 +43,7 @@ jobs:
 
       - name: Restore dependencies
         shell: bash
-        run: dotnet restore ./ListList.Api/ListList.Api.csproj --configfile ./nuget.release.config -v diag
+        run: dotnet restore ./ListList.Api/ListList.Api.csproj --configfile ./nuget.release.config
 
       - name: Build project
         run: dotnet build ./ListList.Api/ListList.Api.csproj --configuration Release
