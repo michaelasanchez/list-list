@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - './github/workflows/deploy-web.yml'
       - 'ListList.Web/**' 
 
 jobs:
@@ -76,5 +77,4 @@ jobs:
           msdeploy-username: ${{ secrets.DEPLOY_USERNAME }}
           msdeploy-password: ${{ secrets.DEPLOY_PASSWORD }}
           source-path: ./dist
-          skip-extra-files: false
-          additional-arguments: '-skip:objectName=filePath,absolutePath=web.config'
+          skip-extra-files: true

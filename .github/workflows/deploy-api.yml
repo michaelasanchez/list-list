@@ -38,7 +38,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore ./ListList.Api/ListList.Api.csproj `
+        run: dotnet restore "./ListList.Api/ListList.Api.csproj" `
           --source "D:\a\list-list\list-list\auth\nupkgs" `
           --source "https://api.nuget.org/v3/index.json"
 
