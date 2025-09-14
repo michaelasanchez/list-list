@@ -54,7 +54,7 @@ jobs:
         with:
           name: web-dist
           path: ./ListList.Web/dist
-          
+
   deploy:
     runs-on: windows-latest
     needs: build
@@ -67,13 +67,11 @@ jobs:
           path: ./dist
 
       - name: Deploy Web to IIS
-        uses: joonasf/gha-msdeploy@v1
-        with:
-          publish-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
-          package: ./dist
-          site-name: ${{ secrets.DEPLOY_SITE_WEB }}
-          user-name: ${{ secrets.DEPLOY_USERNAME }}
-          user-password: ${{ secrets.DEPLOY_PASSWORD }}
-          remove-additional-files: true
-          take-application-offline: true
-          additional-args: '-skip:objectName=filePath,absolutePath=web.config'
+        run: |
+          & "C:\Program Files\IIS\Microsoft Web Deploy V4\msdeploy.exe" `
+            -source:contentPath="./dist" `
+            -dest:contentPath="${{ secrets.DEPLOY_SITE_WEB }}",computerName="${{ secrets.DEPLOY_PUBLISH_URL }}",userName="${{ secrets.DEPLOY_USERNAME }}",password="${{ secrets.DEPLOY_PASSWORD }}",authType="Basic" `
+            -verb:sync `
+            -allowUntrusted `
+            -skip:objectName=filePath,absolutePath=web.config
+        shell: pwsh

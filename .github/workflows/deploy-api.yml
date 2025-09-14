@@ -38,7 +38,7 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore ./ListList.Api/ListList.Api.csproj --source ./auth/nupkgs --source https://api.nuget.org/v3/index.json
+        run: dotnet restore ./ListList.Api/ListList.Api.csproj --source ./auth/nupkgs
 
       - name: Build project
         run: dotnet build ./ListList.Api/ListList.Api.csproj --configuration Release
@@ -64,14 +64,12 @@ jobs:
           path: ./publish
 
       - name: Deploy API to IIS
-        uses: joonasf/gha-msdeploy@v1
-        with:
-          publish-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
-          package: ./publish
-          site-name: ${{ secrets.DEPLOY_SITE_API }}
-          user-name: ${{ secrets.DEPLOY_USERNAME }}
-          user-password: ${{ secrets.DEPLOY_PASSWORD }}
-          remove-additional-files: false
-          take-application-offline: true
-          additional-args: '-skip:objectName=filePath,absolutePath=appsettings.json'
+        run: |
+          & "C:\Program Files\IIS\Microsoft Web Deploy V4\msdeploy.exe" `
+            -source:contentPath="./publish" `
+            -dest:contentPath="${{ secrets.DEPLOY_SITE_API }}",computerName="${{ secrets.DEPLOY_PUBLISH_URL }}",userName="${{ secrets.DEPLOY_USERNAME }}",password="${{ secrets.DEPLOY_PASSWORD }}",authType="Basic" `
+            -verb:sync `
+            -allowUntrusted `
+            -skip:objectName=filePath,absolutePath=appsettings.json
+        shell: pwsh
 
