@@ -77,4 +77,3 @@ jobs:
           msdeploy-username: ${{ secrets.DEPLOY_USERNAME }}
           msdeploy-password: ${{ secrets.DEPLOY_PASSWORD }}
           source-path: ./dist
-          skip-extra-files: true
