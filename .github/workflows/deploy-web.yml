@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+    paths:
+      - '.github/workflows/deploy-web.yml'
+      - 'ListList.Web/**' 
 
 jobs:
   build:
@@ -36,8 +39,8 @@ jobs:
           mkdir -p ./src/shared
           cat <<EOF > ./src/shared/config.ts
           export const config = {
-            apiUrl: \`https://\${API_DOMAIN}/api/\`,
-            clientId: '\${CLIENT_ID}',
+            apiUrl: 'https://\${API_DOMAIN}/api/',
+            clientId: '${CLIENT_ID}',
             cookiePolicy: 'single_host_origin',
           };
           EOF
@@ -66,14 +69,11 @@ jobs:
           name: web-dist
           path: ./dist
 
-      - name: Deploy to IIS
-        uses: microsoft/iis-web-deploy@v1
+      - name: Deploy Web to IIS
+        uses: ChristopheLav/iis-deploy@v1
         with:
-          publish-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
-          package: ./dist
-          site-name: ${{ secrets.DEPLOY_SITE_WEB }}
-          user-name: ${{ secrets.DEPLOY_USERNAME }}
-          user-password: ${{ secrets.DEPLOY_PASSWORD }}
-          additional-args: '-skip:objectName=filePath,absolutePath=web.config'
-          remove-additional-files: true
-          take-application-offline: true
+          website-name: ${{ secrets.DEPLOY_SITE_WEB }}
+          msdeploy-service-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
+          msdeploy-username: ${{ secrets.DEPLOY_USERNAME }}
+          msdeploy-password: ${{ secrets.DEPLOY_PASSWORD }}
+          source-path: ./dist

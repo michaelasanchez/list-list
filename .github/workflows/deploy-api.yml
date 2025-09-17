@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - master
+    paths:
+      - '.github/workflows/deploy-api.yml'
+      - 'ListList.Api/**' 
+      - 'ListList.Data/**' 
 
 jobs:
   build:
@@ -13,7 +17,6 @@ jobs:
       - name: Checkout API code
         uses: actions/checkout@v3
         with:
-          # default checkout of current repo
           submodules: recursive
 
       - name: Checkout Auth repo
@@ -38,13 +41,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '9.0.x'
-
       - name: Restore dependencies
-        run: dotnet restore ./ListList.Api/ListList.Api.csproj
+        shell: bash
+        run: dotnet restore ./ListList.Api/ListList.Api.csproj --configfile ./nuget.release.config
 
       - name: Build project
         run: dotnet build ./ListList.Api/ListList.Api.csproj --configuration Release
@@ -69,14 +68,12 @@ jobs:
           name: api-publish
           path: ./publish
 
-      - name: Deploy to IIS
-        uses: microsoft/iis-web-deploy@v1
+      - name: Deploy API to IIS
+        uses: ChristopheLav/iis-deploy@v1
         with:
-          publish-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
-          package: ./publish
-          site-name: ${{ secrets.DEPLOY_SITE_API }}
-          user-name: ${{ secrets.DEPLOY_USERNAME }}
-          user-password: ${{ secrets.DEPLOY_PASSWORD }}
-          remove-additional-files: false
-          take-application-offline: true
-          additional-args: '-skip:objectName=filePath,absolutePath=appsettings.json'
+          website-name: ${{ secrets.DEPLOY_SITE_API }}
+          msdeploy-service-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
+          msdeploy-username: ${{ secrets.DEPLOY_USERNAME }}
+          msdeploy-password: ${{ secrets.DEPLOY_PASSWORD }}
+          source-path: ./publish
+
