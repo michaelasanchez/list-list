@@ -1,8 +1,14 @@
 import classNames from 'classnames';
 import { isNil } from 'lodash';
 import React from 'react';
-import { Collapse } from 'react-bootstrap';
+import { Collapse, Spinner } from 'react-bootstrap';
 import { LabelEditor } from '.';
+import { Succeeded } from '../network';
+
+interface Update {
+  label?: string;
+  description?: string;
+}
 
 interface LabelAndDescriptionEditorProps {
   name: string;
@@ -10,14 +16,15 @@ interface LabelAndDescriptionEditorProps {
   description: string;
   autoFocus?: boolean;
   className?: string;
-  onEditingChange?: (editing: boolean) => void;
-  onSaveDescription?: (description: string) => void;
-  onSaveLabel?: (label: string) => void;
+  placeholderDescription?: string;
+  placeholderLabel?: string;
+  onUpdate?: (update: Update) => Promise<Succeeded>;
 }
 
 interface LabelAndDescriptionEditorState {
   editingLabel: boolean;
   editingDescription: boolean;
+  loading: boolean;
   pendingLabel?: string;
   pendingDescription?: string;
 }
@@ -28,70 +35,99 @@ export const LabelAndDescriptionEditor: React.FC<
   const [state, setState] = React.useState<LabelAndDescriptionEditorState>({
     editingDescription: false,
     editingLabel: false,
+    loading: false,
   });
 
-  const handleBeginDescriptionUpdate = () => {
-    props.onEditingChange?.(true);
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
-    setState({
-      ...state,
-      editingDescription: true,
-      pendingDescription: props.description ?? '',
-    });
-  };
-
-  const handleEndDescriptionUpdate = () => {
-    const trimmedPendingDescription = state.pendingDescription.trim();
-
-    if (trimmedPendingDescription != props.description) {
-      props.onSaveDescription?.(trimmedPendingDescription);
+  const handleBlurContainer = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (
+      containerRef.current &&
+      e.relatedTarget &&
+      containerRef.current.contains(e.relatedTarget as Node)
+    ) {
+      // focus just moved *within* the container → do nothing
+      return;
     }
 
-    props.onEditingChange?.(false);
+    const trimmedPendingLabel = state.pendingLabel?.trim();
+    const trimmedPendingDescription = state.pendingDescription?.trim();
 
-    setState((s) => ({
-      ...s,
-      editingDescription: false,
-      pendingDescription: null,
-    }));
-  };
+    const updateLabel =
+      trimmedPendingLabel != null && trimmedPendingLabel !== props.label;
+    const updateDescription =
+      trimmedPendingDescription != null &&
+      trimmedPendingDescription !== props.description;
 
-  const handleBeginUpdateLabel = () => {
-    props.onEditingChange?.(true);
+    if (Boolean(props.onUpdate) && (updateLabel || updateDescription)) {
+      const update: Update = {};
 
-    setState({
-      ...state,
-      editingLabel: true,
-      pendingLabel: props.label ?? '',
-    });
-  };
+      if (updateLabel) {
+        update.label = trimmedPendingLabel;
+      }
 
-  const handleEndUpdateLabel = () => {
-    const trimmedPendingLabel = state.pendingLabel.trim();
+      if (updateDescription) {
+        update.description = trimmedPendingDescription;
+      }
 
-    if (trimmedPendingLabel != props.label) {
-      props.onSaveLabel?.(trimmedPendingLabel);
+      setState((s) => ({ ...s, loading: true }));
+
+      props.onUpdate?.(update).then(() =>
+        setState({
+          editingLabel: false,
+          editingDescription: false,
+          loading: false,
+          pendingLabel: null,
+          pendingDescription: null,
+        })
+      );
+    } else {
+      setState({
+        editingLabel: false,
+        editingDescription: false,
+        loading: false,
+        pendingLabel: null,
+        pendingDescription: null,
+      });
     }
-
-    props.onEditingChange?.(false);
-
-    setState((s) => ({ ...s, editingLabel: false, pendingLabel: null }));
   };
 
   return (
-    <>
+    <div
+      ref={containerRef}
+      onBlur={handleBlurContainer}
+      tabIndex={-1} // required so the container can receive focus events
+    >
       <LabelEditor
         autoFocus={props.autoFocus}
         className={classNames('label', props.className)}
         name={`${props.name}-label`}
         label={isNil(state?.pendingLabel) ? props.label : state.pendingLabel}
-        placeholder="New Item"
-        onBlur={handleEndUpdateLabel}
+        placeholder={props.placeholderLabel}
         onChange={(update: string) =>
           setState({ ...state, pendingLabel: update })
         }
-        onFocus={handleBeginUpdateLabel}
+        onFocus={() =>
+          setState({
+            ...state,
+            editingLabel: true,
+            pendingLabel: props.label ?? '',
+          })
+        }
       />
+      {state.loading && (
+        <Spinner
+          animation="border"
+          style={
+            {
+              marginLeft: '0.5em',
+              '--bs-spinner-height': '1em',
+              '--bs-spinner-width': '1em',
+              '--bs-spinner-border-width': '0.2em',
+            } as React.CSSProperties
+          }
+        />
+      )}
       <Collapse
         className="description"
         in={
@@ -110,15 +146,20 @@ export const LabelAndDescriptionEditor: React.FC<
                 ? props.description
                 : state.pendingDescription
             }
-            placeholder="Add note"
-            onFocus={handleBeginDescriptionUpdate}
-            onBlur={handleEndDescriptionUpdate}
+            placeholder={props.placeholderDescription}
             onChange={(update: string) =>
               setState({ ...state, pendingDescription: update })
+            }
+            onFocus={() =>
+              setState({
+                ...state,
+                editingDescription: true,
+                pendingDescription: props.description ?? '',
+              })
             }
           />
         </div>
       </Collapse>
-    </>
+    </div>
   );
 };

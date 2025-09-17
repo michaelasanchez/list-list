@@ -10,6 +10,21 @@
 
   text-decoration: inherit;
 
+  min-height: 1.2em;
+
+  &:has(span:empty) {
+    min-width: 0.5em;
+
+    .form-control,
+    .form-control-plaintext {
+      transition: border-color 0ms;
+    }
+  }
+
+  &:has(span:empty + textarea:not(:focus)) {
+    min-width: 4em;
+  }
+
   span,
   textarea {
     font-weight: inherit;

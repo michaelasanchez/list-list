@@ -10,12 +10,12 @@ import { Succeeded } from '../../../../network';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
 import { ActionDropdown, DropdownAction } from '../../../action-dropdown';
 import { Icon } from '../../../icon';
+import { ItemUpdate } from '../../SortableTree';
 import { TreeItemData } from '../../types';
 
 export interface Hooks {
   actions?: DropdownAction[][];
-  onSaveDescription?: (updated: string) => void;
-  onSaveLabel?: (updated: string) => void;
+  onUpdate?: (update: ItemUpdate) => Promise<Succeeded>;
 }
 
 export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
@@ -100,11 +100,14 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               autoFocus={pending}
               name={name}
               label={data.label}
+              placeholderLabel={pending ? 'New Item' : null}
               description={data.description}
-              onSaveDescription={hooks?.onSaveDescription}
-              onSaveLabel={hooks?.onSaveLabel}
+              placeholderDescription="Add note"
+              onUpdate={hooks?.onUpdate}
             />
-            {/* {data.completedOn && <small>{data.completedOn?.toDateString()}</small>} */}
+            {data.completedOn && (
+              <small>{Boolean(data.completedOn)?.toString()}</small>
+            )}
           </div>
           <div className={styles.Actions}>
             {hooks?.actions?.length > 0 && (

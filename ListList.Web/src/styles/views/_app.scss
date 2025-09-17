@@ -34,7 +34,7 @@ main {
   }
 
   &.show {
-    overflow: auto;
+    overflow-y: auto;
     transform: translateX(0);
   }
 }

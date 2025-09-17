@@ -49,11 +49,8 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
           name={props.header?.id ?? 'none'}
           label={props.header?.label ?? ''}
           description={props.header?.description ?? ''}
-          onSaveLabel={(label) =>
-            props.listeners?.onSaveLabel(props.header.id, label)
-          }
-          onSaveDescription={(description) =>
-            props.listeners?.onSaveDescription(props.header.id, description)
+          onUpdate={(update) =>
+            props.listeners?.onUpdate(props.header.id, update)
           }
         />
       </div>

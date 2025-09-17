@@ -13,6 +13,7 @@ import {
 } from '../../components';
 import {
   SortableTreeHooks as Hooks,
+  ItemUpdate,
   SortableTree,
 } from '../../components/tree/SortableTree';
 import {
@@ -310,9 +311,7 @@ export const App: React.FC = () => {
           ],
         ];
       },
-      onClick: (headerId: string) => {
-        navigate(headerId);
-      },
+      onClick: (headerId: string) => navigate(headerId),
       onCreate: async (label: string, description: string) => {
         const id = await apis.headerApi.CreateHeader({ label, description });
 
@@ -327,18 +326,11 @@ export const App: React.FC = () => {
 
         return loadHeaders();
       },
-      onSaveDescription: (id: string, description: string) =>
+      onUpdate: async (id: string, update: ItemUpdate) =>
         apis.headerApi
           .Put(id, {
             ...state.headers.find((h) => h.id == id),
-            description,
-          })
-          .then(() => loadHeader(id)),
-      onSaveLabel: (id: string, label: string) =>
-        apis.headerApi
-          .Put(id, {
-            ...state.headers.find((h) => h.id == id),
-            label,
+            ...update,
           })
           .then(() => loadHeader(id)),
     }),
@@ -366,18 +358,11 @@ export const App: React.FC = () => {
               apis.itemApi
                 .Relocate(activeId, overId, parentId)
                 .then(() => loadHeader(selectedHeader.id)),
-            onSaveDescription: (id: string, description: string) =>
+            onUpdate: (id: string, update: ItemUpdate) =>
               apis.itemApi
                 .Put(id, {
                   ...selectedHeader.items.find((i) => i.id == id),
-                  description,
-                })
-                .then(() => loadItem(id)),
-            onSaveLabel: (id: string, label: string) =>
-              apis.itemApi
-                .Put(id, {
-                  ...selectedHeader.items.find((i) => i.id == id),
-                  label,
+                  ...update,
                 })
                 .then(() => loadItem(id)),
           }

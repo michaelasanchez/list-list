@@ -27,7 +27,7 @@ import { createPortal } from 'react-dom';
 
 import { CSS } from '@dnd-kit/utilities';
 import React from 'react';
-import { DropdownAction } from '..';
+import { DropdownAction, Hooks } from '..';
 import { Succeeded } from '../../network';
 import { SortableTreeItem } from './components';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
@@ -76,6 +76,11 @@ export interface NotSureYet {
   checklist: boolean;
 }
 
+export interface ItemUpdate {
+  label?: string;
+  description?: string;
+}
+
 export interface SortableTreeHooks {
   actions?: (thing: NotSureYet) => DropdownAction[][];
   onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
@@ -87,8 +92,7 @@ export interface SortableTreeHooks {
     overId: UniqueIdentifier,
     parentId: UniqueIdentifier
   ) => Promise<Succeeded>;
-  onSaveDescription?: (id: UniqueIdentifier, description: string) => void;
-  onSaveLabel?: (id: UniqueIdentifier, label: string) => void;
+  onUpdate?: (id: UniqueIdentifier, update: ItemUpdate) => Promise<Succeeded>;
 }
 
 interface Props {
@@ -215,20 +219,17 @@ export function SortableTree({
         {flattenedItems.map((item) => {
           const { id, children, collapsed, depth, pending, data } = item;
 
-          const itemHooks = pending
+          const itemHooks: Hooks = pending
             ? {
-                onSaveDescription: (description: string) =>
-                  hooks?.onCreate('', description),
-                onSaveLabel: (label: string) => hooks?.onCreate(label, ''),
+                onUpdate: (update: ItemUpdate) =>
+                  hooks?.onCreate(update.label, update.description),
               }
             : {
                 actions: hooks?.actions?.({
                   id: item.id as string,
                   checklist: data.isChecklist,
                 }),
-                onSaveDescription: (description: string) =>
-                  hooks?.onSaveDescription(id, description),
-                onSaveLabel: (label: string) => hooks?.onSaveLabel(id, label),
+                onUpdate: (update: ItemUpdate) => hooks?.onUpdate(id, update),
               };
 
           return (
