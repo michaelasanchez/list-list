@@ -5,6 +5,8 @@ export interface TreeItemData {
   description: string;
   complete?: boolean;
   completedOn?: Date;
+  index: number;
+  numbered?: boolean;
   isChecklist?: boolean;
 }
 

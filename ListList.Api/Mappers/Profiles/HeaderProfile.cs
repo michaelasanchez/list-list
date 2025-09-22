@@ -21,7 +21,7 @@ public class HeaderProfile : Profile
         CreateMap<Header, HeaderEntity>()
             .ForMember(dest => dest.Nodes, opt => opt.MapFrom(src => src.Items));
 
-        CreateMap<ListHeaderCreation, HeaderEntity>()
+        CreateMap<HeaderCreation, HeaderEntity>()
             .ForMember(dest => dest.Nodes, opt => opt.Ignore());
 
         CreateMap<HeaderPatch, HeaderResource>();

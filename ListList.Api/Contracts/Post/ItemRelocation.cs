@@ -1,6 +1,6 @@
 ﻿namespace ListList.Api.Contracts.Post;
 
-public class ListItemRelocation
+public class ItemRelocation
 {
     public Guid OverId { get; set; }
     public Guid? ParentId { get; set; }

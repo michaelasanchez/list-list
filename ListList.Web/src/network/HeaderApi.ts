@@ -3,6 +3,7 @@ import {
   ApiHeader,
   ApiHeaderPatch,
   ApiHeaderRestoral,
+  ApiListHeaderCreation,
   ApiListHeaderPut,
   ApiListHeaderRelocation,
   ApiListItemCreation,
@@ -13,7 +14,7 @@ export class ListHeaderApi extends Api {
     super('header', token);
   }
 
-  public CreateHeader = (creation: ApiListItemCreation): Promise<string> => {
+  public CreateHeader = (creation: ApiListHeaderCreation): Promise<string> => {
     return this.executePost(creation);
   };
 

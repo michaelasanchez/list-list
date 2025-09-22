@@ -1,6 +1,6 @@
 ﻿namespace ListList.Api.Contracts.Post;
 
-public class ListHeaderRelocation
+public class HeaderRelocation
 {
     public int Order { get; set; }
 }

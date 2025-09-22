@@ -13,6 +13,7 @@ public class ItemResource
     public int Right { get; set; }
 
     public int Depth { get; set; }
+    public int Index { get; set; }
 
     public Guid HeaderId { get; set; }
     public Guid? ParentId { get; set; }

@@ -5,7 +5,7 @@ import { Action, Handle, Remove } from '../../../Item';
 import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
-import { Spinner } from 'react-bootstrap';
+import { Badge, Spinner } from 'react-bootstrap';
 import { Succeeded } from '../../../../network';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
 import { ActionDropdown, DropdownAction } from '../../../action-dropdown';
@@ -94,6 +94,9 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
+          {data.numbered && (
+            <Badge bg="secondary">{pending ? '+' : data.index + 1}</Badge>
+          )}
           <div className={styles.Content}>
             <LabelAndDescriptionEditor
               className={styles.Editor}

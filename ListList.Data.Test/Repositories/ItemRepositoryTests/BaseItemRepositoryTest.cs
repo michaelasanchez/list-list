@@ -1,6 +1,8 @@
 ﻿using AutoFixture;
+using AutoMapper;
 using ListList.Data.Models.Entities;
 using ListList.Data.Repositories;
+using Moq;
 
 namespace ListList.Data.Test.Repositories.ItemRepositoryTests;
 
@@ -10,7 +12,9 @@ public class BaseItemRepositoryTest : BaseRepositoryTest
 
     public BaseItemRepositoryTest() : base()
     {
-        _repository = new ItemRepository(_context);
+        var mockMapper = new Mock<IMapper>();
+
+        _repository = new ItemRepository(_context, mockMapper.Object);
     }
 
     protected Guid GetIndex(List<ItemEntity> items, int index) => items[index].Id;

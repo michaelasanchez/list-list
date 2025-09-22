@@ -14,16 +14,6 @@ export class ListItemApi extends Api {
     return this.executePost(null, null, false);
   };
 
-  // public Create = (
-  //   creation: ApiListItemCreation,
-  //   headerId: string,
-  //   parentId?: string
-  // ): Promise<string> => {
-  //   this.setActionPath(`${headerId}`);
-
-  //   return this.executePost(creation);
-  // };
-
   public Delete = (itemId: string): Promise<void> => {
     return this.executeDelete(itemId);
   };

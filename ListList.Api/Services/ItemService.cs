@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using ListList.Api.Contracts;
 using ListList.Api.Contracts.Patch;
-using ListList.Api.Contracts.Post;
 using ListList.Api.Contracts.Put;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Services.Interfaces;
@@ -25,19 +24,6 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
         await _listItemRepository.CompleteListItem(listItemId);
 
         await _unitOfWork.SaveChangesAsync();
-    }
-
-    public async Task<Guid> CreateListItemAsync(ListItemCreation listItem, Guid parentId)
-    {
-        var userId = await _userService.GetUserId();
-
-        await InvokeGuard(() => _guard.AgainstInvalidListItemCreationAsync(userId, parentId));
-
-        var creation = _mapper.Map<ItemEntity>(listItem);
-
-        await _listItemRepository.CreateListItem(creation, parentId);
-
-        return creation.Id;
     }
 
     public async Task DeleteListItemAsync(Guid listItemId)

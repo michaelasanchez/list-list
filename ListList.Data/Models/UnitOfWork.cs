@@ -25,7 +25,7 @@ internal class UnitOfWork : IUnitOfWork
         _mapper = mapper;
 
         _headerRepository = new Lazy<IHeaderRepository>(() => new HeaderRepository(_context, _mapper));
-        _itemRepository = new Lazy<IItemRepository>(() => new ItemRepository(_context));
+        _itemRepository = new Lazy<IItemRepository>(() => new ItemRepository(_context, _mapper));
         _shareRepository = new Lazy<IShareRepository>(() => new ShareRepository(_context));
         _userRepository = new Lazy<IUserRepository>(() => new UserRepository(_context));
 

@@ -4,7 +4,12 @@ import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { Alert, Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 
-import { AppStateActionType as ActionType, AppState, AppStateReducer } from '.';
+import {
+  AppStateActionType as ActionType,
+  AppState,
+  AppStateReducer,
+  newNodeId,
+} from '.';
 import {
   DropdownAction,
   MinimumLink,
@@ -16,6 +21,7 @@ import {
   ItemUpdate,
   SortableTree,
 } from '../../components/tree/SortableTree';
+import { ApiListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
   useAlerts,
@@ -166,21 +172,21 @@ export const App: React.FC = () => {
   );
 
   const handleCreateItem = useCallback(
-    async (
-      headerId: string,
-      label: string,
-      description: string
-    ): Promise<Succeeded> => {
-      if (label?.trim().length > 0 || description?.trim().length > 0) {
-        const headerCreation = {
-          label: label?.trim(),
-          description: description?.trim(),
+    async (headerId: string, raw: ApiListItemCreation): Promise<Succeeded> => {
+      if (raw.label?.trim().length > 0 || raw.description?.trim().length > 0) {
+        const creation: ApiListItemCreation = {
+          // ...raw,
+          label: raw.label?.trim(),
+          description: raw.description?.trim(),
+          complete: raw.complete,
+          overId: raw.overId,
+          parentId: raw.parentId,
         };
 
         dispatch({ type: ActionType.SetLoading, loading: true });
 
         try {
-          await apis.headerApi.CreateItem(headerId, headerCreation);
+          await apis.headerApi.CreateItem(headerId, creation);
 
           dispatch({ type: ActionType.FinalizeHeaderCreate });
           dispatch({ type: ActionType.SetLoading, loading: true });
@@ -240,7 +246,7 @@ export const App: React.FC = () => {
     return index >= 0 ? state.headers[index] : null;
   }, [selectedHeader, state.previousHeaderId]);
 
-  const headersListHooks = React.useMemo<Hooks>(
+  const headersHooks = React.useMemo<Hooks>(
     (): Hooks | null => ({
       actions: ({
         id: headerId,
@@ -337,10 +343,11 @@ export const App: React.FC = () => {
     [authState?.token, state.headers]
   );
 
-  const selectedListHooks = React.useMemo<Hooks>(
+  const selectedHooks = React.useMemo<Hooks>(
     (): Hooks | null =>
-      selectedHeader
-        ? {
+      !selectedHeader
+        ? null
+        : {
             onCheck: (itemId: string) =>
               apis.itemApi.Complete(itemId).then(() => loadItem(itemId)),
             onClick: (itemId: string) => {
@@ -350,10 +357,25 @@ export const App: React.FC = () => {
                 itemId,
               });
             },
-            onCreate: (label, description) =>
-              handleCreateItem(selectedHeader.id, label, description),
-            onDelete: (id: string) =>
-              apis.itemApi.Delete(id).then(() => loadHeader(selectedHeader.id)),
+            onCreate: (label, description, overId: string, parentId: string) =>
+              handleCreateItem(selectedHeader.id, {
+                label,
+                description,
+                overId,
+                parentId,
+              }),
+            onDelete: (id: string) => {
+              if (id == newNodeId) {
+                dispatch({
+                  type: ActionType.CancelItemCreate,
+                  headerId: selectedHeader.id,
+                });
+              } else {
+                return apis.itemApi
+                  .Delete(id)
+                  .then(() => loadHeader(selectedHeader.id));
+              }
+            },
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
               apis.itemApi
                 .Relocate(activeId, overId, parentId)
@@ -365,12 +387,13 @@ export const App: React.FC = () => {
                   ...update,
                 })
                 .then(() => loadItem(id)),
-          }
-        : null,
+          },
     [selectedHeader]
   );
 
   const showListView = Boolean(selectedHeader);
+
+  const viewRef = React.useRef<HTMLDivElement>(null);
 
   return (
     <Router>
@@ -381,23 +404,29 @@ export const App: React.FC = () => {
         onSetTheme={themeState.setTheme}
       />
       <main>
-        <div className={`header-view${!showListView ? ' show' : ''}`}>
+        <div
+          className={`header-view${!showListView ? ' show' : ''}`}
+          ref={!showListView ? viewRef : null}
+        >
           <Container className="list-container">
             <SortableTree
-              hooks={headersListHooks}
+              hooks={headersHooks}
               defaultItems={Temp.buildTreeFromHeaders(
                 state.headers.filter((h) => !h.isNotOwned)
               )}
             />
           </Container>
         </div>
-        <div className={`list-view${showListView ? ' show' : ''}`}>
+        <div
+          className={`list-view${showListView ? ' show' : ''}`}
+          ref={showListView ? viewRef : null}
+        >
           <Container className="list-container">
             {displayHeader && (
               <>
                 <SelectedHeader
                   header={displayHeader}
-                  listeners={headersListHooks}
+                  listeners={headersHooks}
                   onBack={() => navigate('/')}
                   onPatch={(patch) =>
                     apis.headerApi
@@ -416,7 +445,7 @@ export const App: React.FC = () => {
                     displayHeader.items,
                     state.expanded
                   )}
-                  hooks={selectedListHooks}
+                  hooks={selectedHooks}
                 />
               </>
             )}
@@ -426,6 +455,7 @@ export const App: React.FC = () => {
 
       <FloatingUi
         selectedHeader={selectedHeader}
+        viewRef={viewRef}
         dispatch={dispatch}
         showAlert={showAlert}
       />

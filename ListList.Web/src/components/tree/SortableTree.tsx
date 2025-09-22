@@ -29,6 +29,7 @@ import { CSS } from '@dnd-kit/utilities';
 import React from 'react';
 import { DropdownAction, Hooks } from '..';
 import { Succeeded } from '../../network';
+import { newNodeId } from '../../views';
 import { SortableTreeItem } from './components';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
 import type { FlattenedItem, SensorContext, TreeItems } from './types';
@@ -71,7 +72,7 @@ const dropAnimationConfig: DropAnimation = {
   },
 };
 
-export interface NotSureYet {
+export interface ActionsProps {
   id: string;
   checklist: boolean;
 }
@@ -82,10 +83,16 @@ export interface ItemUpdate {
 }
 
 export interface SortableTreeHooks {
-  actions?: (thing: NotSureYet) => DropdownAction[][];
+  actions?: (props: ActionsProps) => DropdownAction[][];
   onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
   onClick?: (id: UniqueIdentifier) => void;
-  onCreate?: (label: string, description: string) => Promise<Succeeded>;
+  // onCreate?: (label: string, description: string) => Promise<Succeeded>;
+  onCreate?: (
+    label: string,
+    description: string,
+    overId: UniqueIdentifier,
+    parentId?: UniqueIdentifier
+  ) => Promise<Succeeded>;
   onDelete?: (id: UniqueIdentifier) => Promise<Succeeded>;
   onDragEnd?: (
     id: UniqueIdentifier,
@@ -221,8 +228,22 @@ export function SortableTree({
 
           const itemHooks: Hooks = pending
             ? {
-                onUpdate: (update: ItemUpdate) =>
-                  hooks?.onCreate(update.label, update.description),
+                onUpdate: (update: ItemUpdate) => {
+                  const overId =
+                    flattenedItems[
+                      Math.min(
+                        flattenedItems.findIndex((i) => i.id == id) + 1,
+                        flattenedItems.length - 1
+                      )
+                    ].id;
+
+                  return hooks?.onCreate(
+                    update.label,
+                    update.description,
+                    overId == newNodeId ? null : overId,
+                    item.parentId
+                  );
+                },
               }
             : {
                 actions: hooks?.actions?.({
@@ -312,6 +333,12 @@ export function SortableTree({
     resetState();
 
     if (projected && over) {
+      console.log(
+        active.data.current.sortable.index < over.data.current.sortable.index
+          ? 'down'
+          : 'up'
+      );
+
       const { depth, parentId } = projected;
 
       dragEndLocal(active.id, over.id, depth, parentId);
@@ -357,7 +384,6 @@ export function SortableTree({
 
   async function handleRemove(id: UniqueIdentifier) {
     await hooks.onDelete(id);
-
     setItems((items) => removeItem(items, id));
   }
 

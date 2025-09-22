@@ -7,8 +7,8 @@ namespace ListList.Api.Services.Interfaces;
 
 public interface IHeaderService
 {
-    Task<Guid> CreateHeader(ListHeaderCreation listHeader);
-    Task<Guid> CreateItem(Guid headerId, ListItemCreation itemCreation);
+    Task<Guid> CreateHeader(HeaderCreation listHeader);
+    Task<Guid> CreateItem(Guid headerId, ItemCreation itemCreation);
     Task<IEnumerable<Header>> GetHeaders();
     Task<Header> GetHeader(string headerId);
     Task RelocateHeader(Guid headerId, int order);

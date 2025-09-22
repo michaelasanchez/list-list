@@ -11,26 +11,8 @@ namespace ListList.Api.Controllers;
 [Route("api/item")]
 public class ItemController(IItemService _service) : Controller
 {
-    // TODO: deprecate (on header api)
-    [HttpPost("{headerId}")]
-    public async Task<ActionResult<Guid>> CreateListItemAsync([FromRoute] Guid headerId, ListItemCreation creation)
-    {
-        Guid id;
-
-        try
-        {
-            id = await _service.CreateListItemAsync(creation, headerId);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-
-        return Ok(id);
-    }
-
     [HttpPost("{listItemId}/complete")]
-    public async Task<ActionResult> CompleteListItemAsync(Guid listItemId)
+    public async Task<ActionResult> CompleteItem(Guid listItemId)
     {
         try
         {
@@ -45,7 +27,7 @@ public class ItemController(IItemService _service) : Controller
     }
 
     [HttpDelete("{listItemId}")]
-    public async Task<ActionResult> DeleteListItemAsync([FromRoute] Guid listItemId)
+    public async Task<ActionResult> DeleteItem([FromRoute] Guid listItemId)
     {
         try
         {
@@ -91,7 +73,7 @@ public class ItemController(IItemService _service) : Controller
     }
 
     [HttpPut("{listItemId}")]
-    public async Task<ActionResult> PutListItemAsync(Guid listItemId, ItemPut listItemPut)
+    public async Task<ActionResult> PutItem(Guid listItemId, ItemPut listItemPut)
     {
         try
         {
@@ -106,7 +88,7 @@ public class ItemController(IItemService _service) : Controller
     }
 
     [HttpPost("{activeId}/relocate")]
-    public async Task<IActionResult> RelocateListItemAsync(Guid activeId, ListItemRelocation listItemRelocation)
+    public async Task<IActionResult> RelocateItem(Guid activeId, ItemRelocation listItemRelocation)
     {
         try
         {

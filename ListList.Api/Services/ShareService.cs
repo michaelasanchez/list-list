@@ -37,7 +37,7 @@ public class ShareService(
         await _shareRepository.PutLink(shareLinkId, resource);
     }
 
-    public async Task<string> ShareHeader(Guid listHeaderId, ListHeaderShare listHeaderShare)
+    public async Task<string> ShareHeader(Guid listHeaderId, HeaderShare listHeaderShare)
     {
         var userId = await _userService.GetUserId();
 

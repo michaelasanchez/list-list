@@ -12,7 +12,7 @@ namespace ListList.Api.Controllers;
 public class HeaderController(IHeaderService _service) : Controller
 {
     [HttpPost]
-    public async Task<ActionResult<Guid>> CreateHeader(ListHeaderCreation headerCreation)
+    public async Task<ActionResult<Guid>> CreateHeader(HeaderCreation headerCreation)
     {
         Guid id;
 
@@ -29,7 +29,7 @@ public class HeaderController(IHeaderService _service) : Controller
     }
 
     [HttpPost("{headerId}")]
-    public async Task<ActionResult<Guid>> CreateItem(Guid headerId, ListItemCreation itemCreation)
+    public async Task<ActionResult<Guid>> CreateItem(Guid headerId, ItemCreation itemCreation)
     {
         Guid id;
 
@@ -125,7 +125,7 @@ public class HeaderController(IHeaderService _service) : Controller
     }
 
     [HttpPost("{headerId}/relocate")]
-    public async Task<ActionResult> RelocateListHeaderAsync(Guid headerId, ListHeaderRelocation listHeaderRelocation)
+    public async Task<ActionResult> RelocateListHeaderAsync(Guid headerId, HeaderRelocation listHeaderRelocation)
     {
         try
         {

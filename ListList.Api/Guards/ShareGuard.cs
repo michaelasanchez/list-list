@@ -28,7 +28,7 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, ListHeaderShare listHeaderShare)
+    public async Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, HeaderShare listHeaderShare)
     {
         var result = new ValidationResult();
 

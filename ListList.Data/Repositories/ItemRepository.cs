@@ -1,4 +1,5 @@
-﻿using ListList.Data.Extensions;
+﻿using AutoMapper;
+using ListList.Data.Extensions;
 using ListList.Data.Models;
 using ListList.Data.Models.Entities;
 using ListList.Data.Models.Resources;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ListList.Data.Repositories;
 
-public class ItemRepository(ListListContext _context) : IItemRepository
+public class ItemRepository(ListListContext _context, IMapper _mapper) : IItemRepository
 {
     public async Task CompleteListItem(Guid listItemId)
     {
@@ -25,16 +26,20 @@ public class ItemRepository(ListListContext _context) : IItemRepository
         }
     }
 
-    public async Task CreateListItem(ItemEntity creation, Guid headerId)
+    public async Task<Guid> CreateListItem(ItemResource creation, Guid headerId, Guid? overId, Guid? parentId)
     {
-        creation.HeaderId = headerId;
-        creation.Left = 1;
-        creation.Right = 2;
+        var entity = _mapper.Map<ItemEntity>(creation);
 
-        await InsertItem([creation], null);
+        entity.HeaderId = headerId;
+        entity.Left = 1;
+        entity.Right = 2;
 
-        await _context.Items.AddAsync(creation);
+        await InsertItem([entity], parentId, overId);
+
+        await _context.Items.AddAsync(entity);
         await _context.SaveChangesAsync();
+
+        return entity.Id;
     }
 
     public async Task InsertItem(List<ItemEntity> active, Guid? parentId, Guid? overId = null)

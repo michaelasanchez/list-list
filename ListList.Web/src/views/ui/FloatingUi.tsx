@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import React, { ActionDispatch } from 'react';
-import { Alert } from 'react-bootstrap';
 import { IconButton } from '../../components';
 import { AlertCreation } from '../../hooks';
 import { Header } from '../../models';
@@ -15,6 +14,7 @@ export enum UiMode {
 
 interface FloatingUiProps {
   selectedHeader: Header;
+  viewRef: React.RefObject<HTMLDivElement>;
   dispatch: ActionDispatch<[action: AppStateAction]>;
   showAlert: (creation: AlertCreation) => void;
 }
@@ -31,14 +31,18 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
   const mode = React.useMemo(() => calcUiMode(props), [props.selectedHeader]);
 
   const handleCreate = () => {
+    const index = getInsertIndex(props.viewRef.current);
+
     if (props.selectedHeader) {
       props.dispatch({
         type: ActionType.InitiateItemCreate,
         headerId: props.selectedHeader.id,
+        index,
       });
     } else {
       props.dispatch({
         type: ActionType.InitiateHeaderCreate,
+        index,
       });
     }
   };
@@ -46,21 +50,6 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
   return (
     <div className={styles.FloatingUi}>
       <div className={classNames(styles.Layer, styles.Active)}>
-        {/* <IconButton
-          iconType="question"
-          size="sm"
-          variant="info"
-          onClick={() =>
-            props.showAlert({
-              content: (
-                <>
-                  <strong>[List Name]</strong> was deleted.{' '}
-                  <Alert.Link>Undo</Alert.Link>
-                </>
-              ),
-            })
-          }
-        /> */}
         <IconButton
           iconType="create"
           size="lg"
@@ -80,3 +69,32 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
     </div>
   );
 };
+
+function getInsertIndex(view: HTMLElement) {
+  const centerY = view.scrollTop + view.clientHeight / 2;
+
+  const items = view.querySelectorAll<HTMLLIElement>('.list-container > li');
+
+  // console.log('CENTER', centerY);
+  // console.log('--------------------------');
+
+  for (let i = 0; i < items.length; i++) {
+    const el = items[i];
+    const top = el.offsetTop;
+    const bottom = top + el.offsetHeight;
+
+    // console.log(
+    //   top,
+    //   bottom,
+    //   el.querySelector('.label-editor.label span').textContent
+    // );
+
+    if (centerY <= bottom || top > centerY) {
+      // console.log(' -> index', i);
+      return i;
+    }
+  }
+
+  // console.log(' -> last', items.length);
+  return items.length;
+}

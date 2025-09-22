@@ -37,12 +37,13 @@ public class ItemMapper
                 parentStack.Pop();
             }
 
-            resource.Depth = parentStack.Count;
-
             resource.ParentId = parentStack.Count != 0 ? parentStack.Peek().Id : null;
 
             resource.IsParent = entity.IsParent();
             resource.DescendantCount = entity.DescendantCount();
+
+            resource.Depth = parentStack.Count;
+            resource.Index = resources.Where(z => z.ParentId == resource.ParentId).Count();
 
             resources.Add(resource);
 

@@ -7,6 +7,7 @@ export interface ApiItem {
   completedOn: string;
 
   depth: number;
+  index: number;
 
   headerId: string;
   parentId?: string;

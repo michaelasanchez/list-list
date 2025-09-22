@@ -24,5 +24,5 @@ public interface IGuard
 
     Task<ValidationResult> AgainstInvalidShareLinkDelete(Guid? userId, Guid listHeaderId);
     Task<ValidationResult> AgainstInvalidShareLinkPatch(Guid? userId, Guid listHeaderId, ShareLinkPut shareLinkPatch);
-    Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, ListHeaderShare listHeaderShare);
+    Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, HeaderShare listHeaderShare);
 }

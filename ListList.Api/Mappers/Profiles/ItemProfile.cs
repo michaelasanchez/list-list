@@ -12,13 +12,16 @@ public class ItemProfile : Profile
 {
     public ItemProfile()
     {
-        CreateMap<ItemEntity, ItemResource>();
 
         CreateMap<ItemResource, Item>();
 
+        CreateMap<ItemEntity, ItemResource>();
+
+        CreateMap<ItemResource, ItemEntity>();
+
         CreateMap<Item, ItemEntity>();
 
-        CreateMap<ListItemCreation, ItemEntity>();
+        CreateMap<ItemCreation, ItemResource>();
 
         CreateMap<ItemPatch, ItemResource>();
 

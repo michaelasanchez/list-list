@@ -20,7 +20,7 @@ public class HeaderService(
 {
     private readonly IHeaderRepository _headerRepository = _unitOfWork.HeaderRepository;
 
-    public async Task<Guid> CreateHeader(ListHeaderCreation listHeader)
+    public async Task<Guid> CreateHeader(HeaderCreation listHeader)
     {
         var userId = await _userService.GetUserId();
 
@@ -33,17 +33,15 @@ public class HeaderService(
         return creation.Id;
     }
 
-    public async Task<Guid> CreateItem(Guid headerId, ListItemCreation itemCreation)
+    public async Task<Guid> CreateItem(Guid headerId, ItemCreation creation)
     {
         var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidListItemCreationAsync(userId, headerId));
 
-        var creation = _mapper.Map<ItemEntity>(itemCreation);
+        var resource = _mapper.Map<ItemResource>(creation);
 
-        await _unitOfWork.ItemRepository.CreateListItem(creation, headerId);
-
-        return creation.Id;
+        return await _unitOfWork.ItemRepository.CreateListItem(resource, headerId, creation.OverId, creation.ParentId);
     }
 
     public async Task DeleteHeader(Guid headerId)

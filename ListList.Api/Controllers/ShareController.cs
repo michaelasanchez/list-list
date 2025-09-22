@@ -41,7 +41,7 @@ public class ShareController(IShareService service) : Controller
     }
 
     [HttpPost("{listHeaderId}")]
-    public async Task<IActionResult> ShareHeader([FromRoute] Guid listHeaderId, ListHeaderShare listHeaderShare)
+    public async Task<IActionResult> ShareHeader([FromRoute] Guid listHeaderId, HeaderShare listHeaderShare)
     {
         ShareResult? result;
 

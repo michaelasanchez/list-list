@@ -1,11 +1,16 @@
+import { UniqueIdentifier } from '@dnd-kit/core';
 import { filter, map } from 'lodash';
 import { AppState } from '.';
+import { flattenTree, removeChildrenOf } from '../../components';
+import { FlattenedItem } from '../../components/tree/types';
 import { ApiHeader, ApiItem, ApiListItemCreation } from '../../contracts';
-import { ListItemMapper } from '../../mappers';
+import { ListItemMapper, Temp } from '../../mappers';
+import { Item } from '../../models';
 
 export enum AppStateActionType {
   // AddHeader,
   CancelHeaderCreate,
+  CancelItemCreate,
   CancelItemDelete,
   // DeselectHeader,
   FinalizeHeaderCreate,
@@ -27,7 +32,7 @@ export enum AppStateActionType {
 
 export type NodePath = number[];
 
-const newNodeId = 'new-node-id';
+export const newNodeId = 'new-node-id';
 
 export interface AppStateAction {
   type: AppStateActionType;
@@ -37,8 +42,22 @@ export interface AppStateAction {
   headers?: ApiHeader[];
   loading?: boolean;
   syncing?: boolean;
+  index?: number;
   item?: ApiItem;
   itemId?: string;
+}
+
+function getFlattenedItems(items: Item[], expanded: string[]): FlattenedItem[] {
+  const tree = Temp.buildTreeFromItems(items, expanded);
+
+  const flattenedTree = flattenTree(tree);
+  const collapsedItems = flattenedTree.reduce<UniqueIdentifier[]>(
+    (acc, { children, collapsed, id }) =>
+      collapsed && children.length ? [...acc, id] : acc,
+    []
+  );
+
+  return removeChildrenOf(flattenedTree, collapsedItems);
 }
 
 export const AppStateReducer = (
@@ -50,6 +69,16 @@ export const AppStateReducer = (
       const { headerCreation, ...rest } = state;
 
       return rest;
+    }
+    case AppStateActionType.CancelItemCreate: {
+      return {
+        ...state,
+        headers: state.headers.map((h) =>
+          h.id == action.headerId
+            ? { ...h, items: h.items.filter((i) => i.id != newNodeId) }
+            : h
+        ),
+      };
     }
     case AppStateActionType.CancelItemDelete: {
       const { headerCreation, ...rest } = state;
@@ -87,9 +116,15 @@ export const AppStateReducer = (
         pending: true,
       };
 
+      state.headers.splice(
+        action.index ?? state.headers.length,
+        0,
+        pendingHeader
+      );
+
       return {
         ...state,
-        headers: [...state.headers, pendingHeader],
+        headers: [...state.headers],
       };
     }
     case AppStateActionType.FinalizeHeaderDelete: {
@@ -101,11 +136,27 @@ export const AppStateReducer = (
     case AppStateActionType.InitiateItemCreate: {
       const activeHeader = state.headers.find((h) => h.id == action.headerId);
 
+      // TODO: remove this limit?
       if (activeHeader.items.some((i) => i.id == newNodeId)) {
         return state;
       }
 
-      const pendingItem = {
+      const flattenedItems = getFlattenedItems(
+        activeHeader.items,
+        state.expanded
+      );
+
+      // console.log(activeHeader, flattenedItems);
+      // console.log('ACTION INDEX', action.index);
+
+      const overId = flattenedItems[action.index]?.id;
+
+      const overIndex = activeHeader.items.findIndex((i) => i.id == overId);
+      const over = activeHeader.items[overIndex];
+
+      // console.log('...OVER', over);
+
+      const pending = {
         id: newNodeId,
         label: '',
         description: '',
@@ -113,16 +164,18 @@ export const AppStateReducer = (
         completedOn: null,
         left: 0,
         right: 0,
-        depth: 0,
+        depth: over?.depth ?? 0,
+        index: 0,
         headerId: action.headerId,
         isParent: false,
         childCount: 0,
         descendantCount: 0,
         expanded: false,
         pending: true,
+        parentId: over?.parentId as string,
       };
 
-      activeHeader.items.splice(activeHeader.items.length, 0, pendingItem);
+      activeHeader.items.splice(overIndex, 0, pending);
 
       return {
         ...state,

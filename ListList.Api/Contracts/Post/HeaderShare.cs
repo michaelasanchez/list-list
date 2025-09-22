@@ -2,7 +2,7 @@
 
 namespace ListList.Api.Contracts.Post;
 
-public class ListHeaderShare
+public class HeaderShare
 {
     public string? Token { get; set; }
     public SharedPermission Permission { get; set; } = SharedPermission.View;
