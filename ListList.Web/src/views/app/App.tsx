@@ -30,6 +30,7 @@ import {
   useTheme,
 } from '../../hooks';
 import { Temp } from '../../mappers/TreeItemMapper';
+import { Header, Item } from '../../models';
 import { ListHeaderApi, ListItemApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
@@ -70,7 +71,7 @@ export const App: React.FC = () => {
     getDefaultAppState(localStorage)
   );
 
-  const { AlertList, showAlert } = useAlerts();
+  const { AlertList, hideAlert, showAlert } = useAlerts();
 
   // Keep local storage up-to-date
   useEffect(() => {
@@ -267,13 +268,13 @@ export const App: React.FC = () => {
                   .Patch(headerId, { checklist: !checklist })
                   .then(() => loadHeader(headerId)),
             },
-            {
-              label: 'Show Completed',
-              icon: 'unchecked',
-              fade: true,
-              keepOpen: true,
-              action: () => console.log('show completed'),
-            },
+            // {
+            //   label: 'Show Completed',
+            //   icon: 'unchecked',
+            //   fade: true,
+            //   keepOpen: true,
+            //   action: () => console.log('show completed'),
+            // },
             {
               label: 'Show Dates',
               icon: 'unchecked',
@@ -293,23 +294,7 @@ export const App: React.FC = () => {
 
                 dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
 
-                showAlert({
-                  content: (
-                    <>
-                      <strong>{header.label}</strong> was deleted.
-                      <Alert.Link
-                        onClick={
-                          () =>
-                            apis.headerApi
-                              .Restore(headerId, { order: header.order })
-                              .then(() => loadHeaders()) // TODO: this could probably use loadHeader(headerId), but something isn't working (maybe it's not ordering the list properly?)
-                        }
-                      >
-                        Undo
-                      </Alert.Link>
-                    </>
-                  ),
-                });
+                showHeaderUndoAlert(header);
 
                 return true;
               },
@@ -364,16 +349,24 @@ export const App: React.FC = () => {
                 overId,
                 parentId,
               }),
-            onDelete: (id: string) => {
+            onDelete: (id: string, overId: string, parentId: string) => {
               if (id == newNodeId) {
                 dispatch({
                   type: ActionType.CancelItemCreate,
                   headerId: selectedHeader.id,
                 });
+
+                return Promise.resolve(true);
               } else {
-                return apis.itemApi
-                  .Delete(id)
-                  .then(() => loadHeader(selectedHeader.id));
+                return apis.itemApi.Delete(id).then(() => {
+                  loadHeader(selectedHeader.id);
+
+                  const item = selectedHeader.items.find((i) => i.id == id);
+
+                  showItemUndoAlert(item, overId, parentId);
+
+                  return true;
+                });
               }
             },
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
@@ -482,4 +475,47 @@ export const App: React.FC = () => {
       />
     </Router>
   );
+
+  function showHeaderUndoAlert(header: Header) {
+    const alertId = showAlert({
+      content: (
+        <>
+          <strong>"{header.label}"</strong> was deleted.{' '}
+          <Alert.Link
+            onClick={() =>
+              apis.headerApi
+                .Restore(header.id, { order: header.order })
+                .then(() => {
+                  // TODO: loading items could be skipped
+                  loadHeaders(/* skipItems = true */);
+                  hideAlert(alertId);
+                })
+            }
+          >
+            Undo
+          </Alert.Link>
+        </>
+      ),
+    });
+  }
+
+  function showItemUndoAlert(item: Item, overId: string, parentId: string) {
+    const alertId = showAlert({
+      content: (
+        <>
+          <strong>"{item.label}"</strong> was deleted.{' '}
+          <Alert.Link
+            onClick={() =>
+              apis.itemApi.Restore(item.id, overId, parentId).then(() => {
+                loadHeader(item.headerId);
+                hideAlert(alertId);
+              })
+            }
+          >
+            Undo
+          </Alert.Link>
+        </>
+      ),
+    });
+  }
 };

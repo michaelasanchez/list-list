@@ -11,7 +11,7 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
 {
     public async Task CreateHeader(Guid ownerId, HeaderEntity creation)
     {
-        var nextOrder = await _context.Headers.CountAsync() + 1;
+        var nextOrder = await _context.Headers.CountAsync(z => !z.Deleted);
 
         creation.OwnerId = ownerId;
         creation.Order = nextOrder;

@@ -1,3 +1,13 @@
+@keyframes intro {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0%);
+  }
+}
+
 .Container {
   position: absolute;
   overflow: hidden;
@@ -10,16 +20,21 @@
   align-items: center;
 
   .Alert {
+    --opacity: 0;
+    --transform-y: 100%;
+    --duration: 1000ms;
+
     pointer-events: painted;
     position: absolute;
     bottom: 0;
 
-    transition: opacity 100ms, transform 100ms;
-
-    --opacity: 0;
-    --transform-y: 100%;
+    transition: opacity var(--duration), transform var(--duration);
 
     opacity: var(--opacity);
     transform: translateY(var(--transform-y));
+
+    &:only-child {
+      animation: intro;
+    }
   }
 }

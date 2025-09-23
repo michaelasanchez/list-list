@@ -1,7 +1,6 @@
 import { Api } from '.';
 import { ApiItem, ApiListItemPut as ApiItemPut } from '../contracts';
 import { ApiItemPatch } from '../contracts/patch/ApiItemPatch';
-import { ApiListItemCreation } from '../contracts/post/ApiListItemCreation';
 
 export class ListItemApi extends Api {
   constructor(token?: string) {
@@ -46,6 +45,16 @@ export class ListItemApi extends Api {
     parentId: string
   ): Promise<void> => {
     this.setActionPath(`${activeId}/relocate`);
+
+    return this.executePost({ overId, parentId }, null, false);
+  };
+
+  public Restore = (
+    itemId: string,
+    overId: string,
+    parentId: string
+  ): Promise<void> => {
+    this.setActionPath(`${itemId}/restore`);
 
     return this.executePost({ overId, parentId }, null, false);
   };

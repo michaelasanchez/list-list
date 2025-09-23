@@ -64,4 +64,15 @@ public partial class Guard : IGuard
 
         return result;
     }
+
+    public async Task<ValidationResult> AgainstInvalidItemRestoral(Guid? userId, Guid itemId, Guid? overId, Guid? parentId)
+    {
+        var result = new ValidationResult();
+
+        await itemValidator.ListItemIsOwnedByUserAsync(userId, itemId, result);
+
+        await itemValidator.ListItemIsDeletedAsync(itemId, result);
+
+        return result;
+    }
 }

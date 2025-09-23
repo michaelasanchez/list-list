@@ -3,13 +3,15 @@ import { Alert } from 'react-bootstrap';
 import { Variant } from 'react-bootstrap/esm/types';
 import * as styles from './useAlerts.module.scss';
 
-export interface AlertData {
+export interface AlertCreation {
   content: ReactElement;
-  created: Date;
   variant?: Variant | null;
 }
 
-export type AlertCreation = Pick<AlertData, 'content' | 'variant'>;
+export interface AlertData extends AlertCreation {
+  id: string;
+  created: Date;
+}
 
 export interface AlertsOptions {
   max?: number;
@@ -18,8 +20,11 @@ export interface AlertsOptions {
 
 export interface AlertsState {
   AlertList: ReactElement;
-  showAlert: (data: AlertCreation) => void;
+  hideAlert: (id: string) => void;
+  showAlert: (data: AlertCreation) => string;
 }
+
+const getUniqueId = (): string => 'id' + Math.random().toString(16).slice(2);
 
 const getTimeout = (created: Date, maxAgeMs: number): number => {
   const age = Date.now() - created.getTime();
@@ -27,28 +32,24 @@ const getTimeout = (created: Date, maxAgeMs: number): number => {
   return remaining > 0 ? remaining : 0;
 };
 
-const addAlert = (data: AlertData[], creation: AlertCreation, max: number) => {
-  const newAlert: AlertData = {
-    content: creation.content,
-    created: new Date(),
-    variant: creation.variant,
-  };
+const mapAlert = (creation: AlertCreation) => ({
+  id: getUniqueId(),
+  content: creation.content,
+  created: new Date(),
+  variant: creation.variant,
+});
 
-  const updated = [...data, newAlert];
-
-  if (updated.length > max) {
-    updated.shift();
-  }
-
-  return updated;
-};
-
-const mapComponent = (data?: AlertData[] | null): ReactElement => (
+const mapAlertList = (
+  data?: AlertData[] | null,
+  hideAlert?: () => void
+): ReactElement => (
   <div className={styles.Container}>
     {data?.map((d, i) => (
       <Alert
         key={i}
         className={styles.Alert}
+        dismissible
+        onClose={() => hideAlert?.()}
         variant={d.variant ?? 'dark'}
         style={
           {
@@ -63,31 +64,48 @@ const mapComponent = (data?: AlertData[] | null): ReactElement => (
   </div>
 );
 
+const updateAlerts = (data: AlertData[], newAlert: AlertData, max: number) => {
+  const updated = [...data, newAlert];
+
+  if (updated.length > max) {
+    updated.shift();
+  }
+
+  return updated;
+};
+
 export const useAlerts = ({
   max = 3,
   duration = 10000,
 }: AlertsOptions = {}): AlertsState => {
-  const [data, setData] = React.useState<AlertData[]>([]);
+  const [alerts, setAlerts] = React.useState<AlertData[]>([]);
 
   const [state, setState] = React.useState<AlertsState>({
-    AlertList: mapComponent(),
-    showAlert: (creation: AlertCreation) =>
-      setData((d) => {
-        const updated = addAlert(d, creation, max);
+    AlertList: mapAlertList(),
+    hideAlert: () => {},
+    showAlert: (creation: AlertCreation) => {
+      const data = mapAlert(creation);
+
+      setAlerts((d) => {
+        const updated = updateAlerts(d, data, max);
 
         return updated;
-      }),
+      });
+
+      return data.id;
+    },
   });
 
   React.useEffect(() => {
     let timeout: NodeJS.Timeout;
 
-    if (data?.length > 0) {
-      const delay = getTimeout(data[0].created, duration);
+    // Set first fade timeout
+    if (alerts?.length > 0) {
+      const delay = getTimeout(alerts[0].created, duration);
 
       timeout = setTimeout(
         () =>
-          setData((d) => {
+          setAlerts((d) => {
             d.shift();
 
             return [...d];
@@ -96,18 +114,21 @@ export const useAlerts = ({
       );
     }
 
+    // Set hook output
     setState({
-      AlertList: mapComponent(data),
-      showAlert: (creation: AlertCreation) =>
-        setData((d) => {
-          const updated = addAlert(d, creation, max);
+      AlertList: mapAlertList(alerts),
+      hideAlert: (id: string) => setAlerts((d) => d.filter((i) => i.id != id)),
+      showAlert: (creation: AlertCreation) => {
+        const newAlert = mapAlert(creation);
 
-          return updated;
-        }),
+        setAlerts((d) => updateAlerts(d, newAlert, max));
+
+        return newAlert.id;
+      },
     });
 
     return () => Boolean(timeout) && clearTimeout(timeout);
-  }, [data]);
+  }, [alerts]);
 
   return state;
 };

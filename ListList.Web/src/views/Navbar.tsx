@@ -25,39 +25,43 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
         <BSNavbar.Brand href="#">
           {strings.components.navbar.brand}
         </BSNavbar.Brand>
-        {!props.authState.initialized || props.authState.loading ? (
-          <Spinner animation="border" size="sm" />
-        ) : props.authState.authenticated ? (
-          <span className="group">
-            <div className={`syncing${props.syncing ? ' show' : ''}`}>
-              Syncing <Spinner animation="border" size="sm" />
-            </div>
-            <Button
-              className="settings"
-              variant="dark"
-              onClick={() =>
-                props.onSetTheme(
-                  props.theme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light
-                )
-              }
-            >
-              <Icon type={props.theme == AppTheme.Light ? 'light' : 'dark'} />
+        <span className="group">
+          {!props.authState.initialized || props.authState.loading ? (
+            <Spinner animation="border" size="sm" />
+          ) : props.authState.authenticated ? (
+            <>
+              <div className={`syncing${props.syncing ? ' show' : ''}`}>
+                Syncing <Spinner animation="border" size="sm" />
+              </div>
+              <Button
+                className="settings"
+                variant="dark"
+                onClick={() =>
+                  props.onSetTheme(
+                    props.theme == AppTheme.Light
+                      ? AppTheme.Dark
+                      : AppTheme.Light
+                  )
+                }
+              >
+                <Icon type={props.theme == AppTheme.Light ? 'light' : 'dark'} />
+              </Button>
+              <DropdownButton
+                title={<img src={props.authState.picture} />}
+                variant="dark"
+                align="end"
+              >
+                <Dropdown.Item onClick={props.authState.logout}>
+                  Logout
+                </Dropdown.Item>
+              </DropdownButton>
+            </>
+          ) : (
+            <Button variant="success" onClick={props.authState.login}>
+              Login
             </Button>
-            <DropdownButton
-              title={<img src={props.authState.picture} />}
-              variant="dark"
-              align="end"
-            >
-              <Dropdown.Item onClick={props.authState.logout}>
-                Logout
-              </Dropdown.Item>
-            </DropdownButton>
-          </span>
-        ) : (
-          <Button variant="success" onClick={props.authState.login}>
-            Login
-          </Button>
-        )}
+          )}
+        </span>
       </Container>
     </BSNavbar>
   );

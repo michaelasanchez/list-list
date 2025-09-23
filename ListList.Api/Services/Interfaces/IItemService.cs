@@ -12,4 +12,5 @@ public interface IItemService
     Task PatchItemAsync(Guid listItemId, ItemPatch itemPatch, bool? recursive);
     Task PutListItemAsync(Guid listItemId, ItemPut listItemPut);
     Task RelocateListItemAsync(Guid activeId, Guid overId, Guid? parentId);
+    Task RestoreListItemAsync(Guid itemId, Guid? overId, Guid? parentId);
 }

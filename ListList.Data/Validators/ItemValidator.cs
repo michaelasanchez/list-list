@@ -7,6 +7,17 @@ namespace ListList.Data.Validators;
 
 public class ItemValidator(IListListContext _context) : IItemValidator
 {
+    public async Task ListItemIsDeletedAsync(Guid itemId, ValidationResult result)
+    {
+        var itemIsNotDeleted = await _context.Items
+            .AnyAsync(z => z.Id == itemId && !z.Deleted);
+
+        if (itemIsNotDeleted)
+        {
+            result.AddError($"List item [{itemId}] is deleted.");
+        }
+    }
+
     public async Task ListItemIsEmptyAsync(Guid itemId, ValidationResult result)
     {
         var targetNode = await _context.Items

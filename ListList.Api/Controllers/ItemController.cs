@@ -11,12 +11,12 @@ namespace ListList.Api.Controllers;
 [Route("api/item")]
 public class ItemController(IItemService _service) : Controller
 {
-    [HttpPost("{listItemId}/complete")]
-    public async Task<ActionResult> CompleteItem(Guid listItemId)
+    [HttpPost("{itemId}/complete")]
+    public async Task<ActionResult> CompleteItem(Guid itemId)
     {
         try
         {
-            await _service.CompleteListItemAsync(listItemId);
+            await _service.CompleteListItemAsync(itemId);
         }
         catch (Exception ex)
         {
@@ -26,12 +26,12 @@ public class ItemController(IItemService _service) : Controller
         return Ok();
     }
 
-    [HttpDelete("{listItemId}")]
-    public async Task<ActionResult> DeleteItem([FromRoute] Guid listItemId)
+    [HttpDelete("{itemId}")]
+    public async Task<ActionResult> DeleteItem([FromRoute] Guid itemId)
     {
         try
         {
-            await _service.DeleteListItemAsync(listItemId);
+            await _service.DeleteListItemAsync(itemId);
         }
         catch (Exception ex)
         {
@@ -41,14 +41,14 @@ public class ItemController(IItemService _service) : Controller
         return Ok();
     }
 
-    [HttpGet("{listItemId}")]
-    public async Task<ActionResult<Item>> GetItemById([FromRoute] Guid listItemId)
+    [HttpGet("{itemId}")]
+    public async Task<ActionResult<Item>> GetItemById([FromRoute] Guid itemId)
     {
         Item listItem;
 
         try
         {
-            listItem = await _service.GetItemById(listItemId);
+            listItem = await _service.GetItemById(itemId);
         }
         catch (Exception ex)
         {
@@ -58,12 +58,12 @@ public class ItemController(IItemService _service) : Controller
         return Ok(listItem);
     }
 
-    [HttpPatch("{listItemId}")]
-    public async Task<ActionResult> PatchItem(Guid listItemId, ItemPatch itemPatch, [FromQuery] bool? recursive)
+    [HttpPatch("{itemId}")]
+    public async Task<ActionResult> PatchItem(Guid itemId, ItemPatch itemPatch, [FromQuery] bool? recursive)
     {
         try
         {
-            await _service.PatchItemAsync(listItemId, itemPatch, recursive);
+            await _service.PatchItemAsync(itemId, itemPatch, recursive);
         }
         catch (Exception ex)
         {
@@ -72,12 +72,12 @@ public class ItemController(IItemService _service) : Controller
         return Ok();
     }
 
-    [HttpPut("{listItemId}")]
-    public async Task<ActionResult> PutItem(Guid listItemId, ItemPut listItemPut)
+    [HttpPut("{itemId}")]
+    public async Task<ActionResult> PutItem(Guid itemId, ItemPut listItemPut)
     {
         try
         {
-            await _service.PutListItemAsync(listItemId, listItemPut);
+            await _service.PutListItemAsync(itemId, listItemPut);
         }
         catch (Exception ex)
         {
@@ -93,6 +93,21 @@ public class ItemController(IItemService _service) : Controller
         try
         {
             await _service.RelocateListItemAsync(activeId, listItemRelocation.OverId, listItemRelocation.ParentId);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+
+        return Ok();
+    }
+
+    [HttpPost("{itemId}/restore")]
+    public async Task<ActionResult> RestoreItem(Guid itemId, ItemRestoral? itemRestoral)
+    {
+        try
+        {
+            await _service.RestoreListItemAsync(itemId, itemRestoral?.OverId, itemRestoral?.ParentId);
         }
         catch (Exception ex)
         {

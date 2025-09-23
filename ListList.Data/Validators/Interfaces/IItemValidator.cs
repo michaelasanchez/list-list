@@ -4,6 +4,7 @@ namespace ListList.Data.Validators.Interfaces;
 
 public interface IItemValidator
 {
+    Task ListItemIsDeletedAsync(Guid itemId, ValidationResult result);
     Task ListItemIsEmptyAsync(Guid listItemId, ValidationResult result);
     Task ListItemIsNotDeletedAsync(Guid? listItemId, ValidationResult result);
     Task ListItemIsOwnedByUserAsync(Guid? userId, Guid listItemId, ValidationResult result);

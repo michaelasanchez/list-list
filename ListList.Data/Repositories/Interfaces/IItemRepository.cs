@@ -12,4 +12,5 @@ public interface IItemRepository
     Task PatchListItem(Guid listItemId, ItemResource resource, bool? recursive);
     Task PutListItem(Guid listItemId, ItemEntity entityPut);
     Task RelocateListItem(Guid activeId, Guid overId, Guid? parentId);
+    Task RestoreListItem(Guid itemId, Guid? overId, Guid? parentId);
 }

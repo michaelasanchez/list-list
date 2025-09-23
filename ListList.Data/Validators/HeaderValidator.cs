@@ -32,7 +32,7 @@ public class HeaderValidator(IListListContext _context) : IHeaderValidator
     public async Task IsValidHeaderIndexAsync(Guid? userId, int? index, ValidationResult result)
     {
         var isValidIndex = index >= 0 &&
-            index < await _context.Headers
+            index <= await _context.Headers
                 .CountAsync(z => z.OwnerId == userId && !z.Deleted);
 
         if (!isValidIndex)

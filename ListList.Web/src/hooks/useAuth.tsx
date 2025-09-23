@@ -4,6 +4,13 @@ import { ApiToken, AuthorizationCodeReponse } from '../contracts';
 import { Payload } from '../models';
 import { UserApi } from '../network';
 
+const DEBUG = false;
+const VERBOSE = true;
+
+const debug = (message: string, obj?: any) =>
+  DEBUG &&
+  (Boolean(obj) && VERBOSE ? console.log(message, obj) : console.log(message));
+
 declare global {
   interface Window {
     google: any;
@@ -70,7 +77,7 @@ export const useAuth = (clientId: string) => {
         ux_mode: 'popup',
         // TODO: does this need error handling? (probably)
         callback: (response: AuthorizationCodeReponse) => {
-          console.log('CALLBACK');
+          debug('CALLBACK', response);
 
           setState((s) => ({ ...s, loading: true }));
 
@@ -80,7 +87,7 @@ export const useAuth = (clientId: string) => {
 
             const parsedToken = parseJwt(token.idToken);
 
-            console.log('LOGIN');
+            debug('LOGIN', parsedToken);
 
             setState((s) => ({
               ...s,
@@ -93,7 +100,7 @@ export const useAuth = (clientId: string) => {
         },
       });
 
-      console.log('INIT');
+      debug('INIT', state);
 
       setState((s) => ({
         ...s,
@@ -116,7 +123,7 @@ export const useAuth = (clientId: string) => {
   const logout = () => {
     localStorage.clear();
 
-    console.log('LOGOUT');
+    debug('LOGOUT', state);
 
     setState((s) => ({
       ...s,
@@ -135,7 +142,7 @@ export const useAuth = (clientId: string) => {
         expiresWithinThreshold(new Date(storedToken.expiry), refreshThreshold);
 
       if (isStale) {
-        console.log('IS STALE');
+        debug('IS STALE', storedToken);
 
         setState((s) => ({ ...s, loading: true }));
 
@@ -153,7 +160,7 @@ export const useAuth = (clientId: string) => {
 
             const parsedToken = parseJwt(storedToken.idToken);
 
-            console.log('REFRESHED');
+            debug('REFRESHED', parsedToken);
 
             setState((s) => ({
               ...s,
@@ -163,8 +170,8 @@ export const useAuth = (clientId: string) => {
               picture: parsedToken.picture ?? state.picture,
             }));
           })
-          .catch(() => {
-            console.log('ERROR');
+          .catch((e) => {
+            debug('ERROR', e);
 
             setState((s) => ({
               ...s,
@@ -176,11 +183,12 @@ export const useAuth = (clientId: string) => {
       } else {
         const parsedToken = parseJwt(storedToken.idToken);
 
-        console.log('RECOVERED (FROM CACHE)');
+        debug('RECOVERED (FROM CACHE)', parsedToken);
 
         setState((s) => ({
           ...s,
           authenticated: true,
+          loading: false,
           token: storedToken.idToken,
           picture: parsedToken.picture,
         }));

@@ -44,7 +44,7 @@ public class InsertItemTests : BaseItemRepositoryTest
             index);
 
         // Act
-        await _repository.InsertItem([active], ancestorId, over.Id);
+        await _repository.InsertItemDebug([active], ancestorId, over.Id);
 
         // Assert
         root.Left.Should().Be(1);

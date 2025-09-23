@@ -93,7 +93,11 @@ export interface SortableTreeHooks {
     overId: UniqueIdentifier,
     parentId?: UniqueIdentifier
   ) => Promise<Succeeded>;
-  onDelete?: (id: UniqueIdentifier) => Promise<Succeeded>;
+  onDelete?: (
+    id: UniqueIdentifier,
+    overId: UniqueIdentifier,
+    parentId: UniqueIdentifier
+  ) => Promise<Succeeded>;
   onDragEnd?: (
     id: UniqueIdentifier,
     overId: UniqueIdentifier,
@@ -383,7 +387,14 @@ export function SortableTree({
   }
 
   async function handleRemove(id: UniqueIdentifier) {
-    await hooks.onDelete(id);
+    const index = flattenedItems.findIndex((i) => i.id == id);
+
+    await hooks.onDelete(
+      id,
+      flattenedItems[index + 1]?.id,
+      flattenedItems[index]?.parentId
+    );
+
     setItems((items) => removeItem(items, id));
   }
 

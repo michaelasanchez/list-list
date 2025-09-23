@@ -28,41 +28,18 @@ public class ItemRepository(ListListContext _context, IMapper _mapper) : IItemRe
 
     public async Task<Guid> CreateListItem(ItemResource creation, Guid headerId, Guid? overId, Guid? parentId)
     {
-        var entity = _mapper.Map<ItemEntity>(creation);
+        var active = _mapper.Map<ItemEntity>(creation);
 
-        entity.HeaderId = headerId;
-        entity.Left = 1;
-        entity.Right = 2;
+        active.HeaderId = headerId;
+        active.Left = 1;
+        active.Right = 2;
 
-        await InsertItem([entity], parentId, overId);
+        await InsertItem([active], parentId, overId);
 
-        await _context.Items.AddAsync(entity);
+        await _context.Items.AddAsync(active);
         await _context.SaveChangesAsync();
 
-        return entity.Id;
-    }
-
-    public async Task InsertItem(List<ItemEntity> active, Guid? parentId, Guid? overId = null)
-    {
-        if (active is not { Count: > 0 })
-        {
-            return;
-        }
-
-        var listHeaderId = active.First().HeaderId;
-        var spaceNeeded = active.Count * 2;
-
-        var insertionPoint = await GetInsertionPoint(listHeaderId, parentId, overId);
-
-        await ShiftExistingNodes(listHeaderId, insertionPoint, spaceNeeded);
-
-        var positioningOffset = Math.Max(insertionPoint - 1, 0);
-
-        foreach (var item in active)
-        {
-            item.Left += positioningOffset;
-            item.Right += positioningOffset;
-        }
+        return active.Id;
     }
 
     public async Task DeleteListItem(Guid itemId)
@@ -217,6 +194,20 @@ public class ItemRepository(ListListContext _context, IMapper _mapper) : IItemRe
         await _context.SaveChangesAsync();
     }
 
+    public async Task RestoreListItem(Guid itemId, Guid? overId, Guid? parentId)
+    {
+        var active = await _context.Items.SingleAsync(z => z.Id == itemId);
+
+        active.Left = 1;
+        active.Right = 2;
+        active.Deleted = false;
+        active.DeletedOn = null;
+
+        await InsertItem([active], parentId, overId);
+
+        await _context.SaveChangesAsync();
+    }
+
     private async Task<List<ItemEntity>> GetDescendants(ItemEntity parent)
     {
         return await _context.Items
@@ -265,6 +256,33 @@ public class ItemRepository(ListListContext _context, IMapper _mapper) : IItemRe
         );
 
         return leftBoundary;
+    }
+
+    // TODO: DEBUG
+    public async Task InsertItemDebug(List<ItemEntity> active, Guid? parentId, Guid? overId = null)
+        => await InsertItem(active, parentId, overId);
+
+    private async Task InsertItem(List<ItemEntity> active, Guid? parentId, Guid? overId = null)
+    {
+        if (active is null or [])
+        {
+            return;
+        }
+
+        var listHeaderId = active.First().HeaderId;
+        var spaceNeeded = active.Count * 2;
+
+        var insertionPoint = await GetInsertionPoint(listHeaderId, parentId, overId);
+
+        await ShiftExistingNodes(listHeaderId, insertionPoint, spaceNeeded);
+
+        var positioningOffset = Math.Max(insertionPoint - 1, 0);
+
+        foreach (var item in active)
+        {
+            item.Left += positioningOffset;
+            item.Right += positioningOffset;
+        }
     }
 
     private async Task<List<ItemEntity>> RemoveNode(ItemEntity active)

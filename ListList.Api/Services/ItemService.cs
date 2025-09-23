@@ -11,7 +11,11 @@ using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Api.Services;
 
-public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMapper _mapper, IGuard _guard) : BaseService, IItemService
+public class ItemService(
+    IUnitOfWork _unitOfWork,
+    IUserService _userService,
+    IMapper _mapper,
+    IGuard _guard) : BaseService, IItemService
 {
     private readonly IItemRepository _listItemRepository = _unitOfWork.ItemRepository;
 
@@ -77,5 +81,14 @@ public class ItemService(IUnitOfWork _unitOfWork, IUserService _userService, IMa
         await InvokeGuard(() => _guard.AgainstInvalidListItemRelocation(userId, activeId, parentId));
 
         await _listItemRepository.RelocateListItem(activeId, overId, parentId);
+    }
+
+    public async Task RestoreListItemAsync(Guid itemId, Guid? overId, Guid? parentId)
+    {
+        var userId = await _userService.GetUserId();
+
+        await InvokeGuard(() => _guard.AgainstInvalidItemRestoral(userId, itemId, overId, parentId));
+
+        await _listItemRepository.RestoreListItem(itemId, overId, parentId);
     }
 }

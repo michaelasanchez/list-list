@@ -1,4 +1,5 @@
 ﻿using ListList.Data.Models;
+using ListList.Data.Models.Exceptions;
 
 namespace ListList.Api.Services;
 
@@ -10,7 +11,7 @@ public class BaseService
 
         if (result.IsInvalid)
         {
-            throw new Exception(result.Message);
+            throw new ValidationException(result.Message);
         }
     }
 }
