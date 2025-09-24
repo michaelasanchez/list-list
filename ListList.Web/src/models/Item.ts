@@ -1,7 +1,7 @@
 import { ApiItem } from '../contracts';
 
 export interface Item extends Omit<ApiItem, 'completedOn'> {
-  completedOn: Date;
+  completedOn: string;
   expanded: boolean;
   pending: boolean;
 }

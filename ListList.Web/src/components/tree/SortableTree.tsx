@@ -183,7 +183,9 @@ export function SortableTree({
     [flattenedItems]
   );
 
-  useEffect(() => setItems(defaultItems), [defaultItems]);
+  useEffect(() => {
+    setItems(defaultItems);
+  }, [defaultItems]);
 
   useEffect(() => {
     sensorContext.current = {
@@ -337,12 +339,6 @@ export function SortableTree({
     resetState();
 
     if (projected && over) {
-      console.log(
-        active.data.current.sortable.index < over.data.current.sortable.index
-          ? 'down'
-          : 'up'
-      );
-
       const { depth, parentId } = projected;
 
       dragEndLocal(active.id, over.id, depth, parentId);
@@ -389,13 +385,13 @@ export function SortableTree({
   async function handleRemove(id: UniqueIdentifier) {
     const index = flattenedItems.findIndex((i) => i.id == id);
 
+    setItems((items) => removeItem(items, id));
+
     await hooks.onDelete(
       id,
       flattenedItems[index + 1]?.id,
       flattenedItems[index]?.parentId
     );
-
-    setItems((items) => removeItem(items, id));
   }
 
   function handleCollapse(id: UniqueIdentifier) {

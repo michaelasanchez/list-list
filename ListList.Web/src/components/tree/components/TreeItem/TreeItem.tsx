@@ -12,6 +12,7 @@ import { ActionDropdown, DropdownAction } from '../../../action-dropdown';
 import { Icon } from '../../../icon';
 import { ItemUpdate } from '../../SortableTree';
 import { TreeItemData } from '../../types';
+import { DateUtils } from '../../../../shared';
 
 export interface Hooks {
   actions?: DropdownAction[][];
@@ -108,9 +109,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               placeholderDescription="Add note"
               onUpdate={hooks?.onUpdate}
             />
-            {data.completedOn && (
-              <small>{Boolean(data.completedOn)?.toString()}</small>
-            )}
+            {data.completedOn && <small>{DateUtils.timeAgo(data.completedOn)}</small>}
           </div>
           <div className={styles.Actions}>
             {hooks?.actions?.length > 0 && (
@@ -149,7 +148,14 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
                 <Icon type="collapsed" size={20} />
               </Action>
             ) : (
-              onRemove && <Remove onClick={onRemove} />
+              onRemove && (
+                <Remove
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove();
+                  }}
+                />
+              )
             )}
           </div>
           {clone && childCount && childCount > 1 ? (

@@ -71,7 +71,7 @@ export const App: React.FC = () => {
     getDefaultAppState(localStorage)
   );
 
-  const { AlertList, hideAlert, showAlert } = useAlerts();
+  const { AlertList, hideAlert, showAlert } = useAlerts({ duration: 15000 });
 
   // Keep local storage up-to-date
   useEffect(() => {
@@ -207,7 +207,7 @@ export const App: React.FC = () => {
     [apis]
   );
 
-  const selectedHeader = React.useMemo(() => {
+  const selected = React.useMemo(() => {
     const index = !token
       ? -1
       : findIndex(
@@ -215,28 +215,32 @@ export const App: React.FC = () => {
           (h) => h.id == token || h.tokens?.includes(token)
         );
 
-    const selected = index >= 0 ? state.headers[index] : null;
+    const header = index >= 0 ? state.headers[index] : null;
+    const id = Boolean(header) ? header.id : null;
+    const tree = Boolean(header)
+      ? Temp.buildTreeFromItems(header.items, state.expanded)
+      : [];
 
-    if (Boolean(selected)) {
+    if (Boolean(header)) {
       dispatch({
         type: ActionType.SetPreviousHeaderId,
-        headerId: selected.id,
+        headerId: header.id,
       });
     }
 
-    return selected;
+    return { header, id, tree };
   }, [token, state.headers, state.expanded]);
 
   // Load header if not found from initial load
   useEffect(() => {
-    if (!state.syncing && !selectedHeader && !!token) {
+    if (!state.syncing && !selected && !!token) {
       loadHeader(token);
     }
-  }, [selectedHeader, state.syncing]);
+  }, [selected, state.syncing]);
 
-  const displayHeader = React.useMemo(() => {
-    if (selectedHeader) {
-      return selectedHeader;
+  const display = React.useMemo(() => {
+    if (Boolean(selected.header)) {
+      return selected;
     }
 
     const index = findIndex(
@@ -244,8 +248,14 @@ export const App: React.FC = () => {
       (h) => h.id == state.previousHeaderId
     );
 
-    return index >= 0 ? state.headers[index] : null;
-  }, [selectedHeader, state.previousHeaderId]);
+    const header = index >= 0 ? state.headers[index] : null;
+    const id = Boolean(header) ? header.id : null;
+    const tree = Boolean(header)
+      ? Temp.buildTreeFromItems(header.items, state.expanded)
+      : [];
+
+    return { header, id, tree };
+  }, [selected, state.previousHeaderId]);
 
   const headersHooks = React.useMemo<Hooks>(
     (): Hooks | null => ({
@@ -330,7 +340,7 @@ export const App: React.FC = () => {
 
   const selectedHooks = React.useMemo<Hooks>(
     (): Hooks | null =>
-      !selectedHeader
+      !selected
         ? null
         : {
             onCheck: (itemId: string) =>
@@ -338,12 +348,12 @@ export const App: React.FC = () => {
             onClick: (itemId: string) => {
               dispatch({
                 type: ActionType.ToggleExpanded,
-                headerId: selectedHeader.id,
+                headerId: selected.id,
                 itemId,
               });
             },
             onCreate: (label, description, overId: string, parentId: string) =>
-              handleCreateItem(selectedHeader.id, {
+              handleCreateItem(selected.id, {
                 label,
                 description,
                 overId,
@@ -353,15 +363,15 @@ export const App: React.FC = () => {
               if (id == newNodeId) {
                 dispatch({
                   type: ActionType.CancelItemCreate,
-                  headerId: selectedHeader.id,
+                  headerId: selected.id,
                 });
 
                 return Promise.resolve(true);
               } else {
                 return apis.itemApi.Delete(id).then(() => {
-                  loadHeader(selectedHeader.id);
+                  loadHeader(selected.id);
 
-                  const item = selectedHeader.items.find((i) => i.id == id);
+                  const item = selected.header.items.find((i) => i.id == id);
 
                   showItemUndoAlert(item, overId, parentId);
 
@@ -372,19 +382,19 @@ export const App: React.FC = () => {
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
               apis.itemApi
                 .Relocate(activeId, overId, parentId)
-                .then(() => loadHeader(selectedHeader.id)),
+                .then(() => loadHeader(selected.id)),
             onUpdate: (id: string, update: ItemUpdate) =>
               apis.itemApi
                 .Put(id, {
-                  ...selectedHeader.items.find((i) => i.id == id),
+                  ...selected.header.items.find((i) => i.id == id),
                   ...update,
                 })
                 .then(() => loadItem(id)),
           },
-    [selectedHeader]
+    [selected]
   );
 
-  const showListView = Boolean(selectedHeader);
+  const showListView = Boolean(selected.header);
 
   const viewRef = React.useRef<HTMLDivElement>(null);
 
@@ -415,16 +425,16 @@ export const App: React.FC = () => {
           ref={showListView ? viewRef : null}
         >
           <Container className="list-container">
-            {displayHeader && (
+            {Boolean(display.header) && (
               <>
                 <SelectedHeader
-                  header={displayHeader}
+                  header={display.header}
                   listeners={headersHooks}
                   onBack={() => navigate('/')}
                   onPatch={(patch) =>
                     apis.headerApi
-                      .Patch(displayHeader.id, patch)
-                      .then(() => loadHeader(displayHeader.id))
+                      .Patch(display.id, patch)
+                      .then(() => loadHeader(display.id))
                   }
                   onShare={() => navigate(`/${token}/share`)}
                 />
@@ -432,12 +442,9 @@ export const App: React.FC = () => {
                   collapsible
                   indicator
                   removable
-                  checklist={displayHeader.isChecklist}
-                  readonly={displayHeader.isReadonly}
-                  defaultItems={Temp.buildTreeFromItems(
-                    displayHeader.items,
-                    state.expanded
-                  )}
+                  checklist={display.header.isChecklist}
+                  readonly={display.header.isReadonly}
+                  defaultItems={display.tree}
                   hooks={selectedHooks}
                 />
               </>
@@ -447,7 +454,7 @@ export const App: React.FC = () => {
       </main>
 
       <FloatingUi
-        selectedHeader={selectedHeader}
+        selectedHeader={selected?.header}
         viewRef={viewRef}
         dispatch={dispatch}
         showAlert={showAlert}
@@ -457,20 +464,20 @@ export const App: React.FC = () => {
 
       <ShareModal
         show={params?.action == 'share'}
-        shareLinks={selectedHeader?.shareLinks}
-        onClose={() => navigate(`/${token ?? selectedHeader?.id}`)}
+        shareLinks={selected.header?.shareLinks}
+        onClose={() => navigate(`/${token ?? selected.id}`)}
         onDelete={(id: string) =>
-          apis.shareApi.Delete(id).then(() => loadHeader(selectedHeader?.id))
+          apis.shareApi.Delete(id).then(() => loadHeader(selected.id))
         }
         onShare={(share) =>
           apis.shareApi
-            .Share(selectedHeader?.id, share)
-            .then(() => loadHeader(selectedHeader?.id))
+            .Share(selected.id, share)
+            .then(() => loadHeader(selected.id))
         }
         onUpdate={(id: string, put: MinimumLink) =>
           apis.shareApi
             .Put(id, { token: put.token ?? '', ...put })
-            .then(() => loadHeader(selectedHeader?.id))
+            .then(() => loadHeader(selected.id))
         }
       />
     </Router>

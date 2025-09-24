@@ -71,6 +71,7 @@ module.exports = (_, argv) => {
       new webpack.DefinePlugin(defineEnv),
       new HtmlWebpackPlugin({
         template: './src/public/index.html',
+        title: 'List List',
       }),
       new MiniCssExtractPlugin({
         filename: isProd ? '[name].[contenthash].css' : '[name].css',
