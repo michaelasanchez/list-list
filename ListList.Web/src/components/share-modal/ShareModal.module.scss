@@ -1,26 +1,58 @@
-.Inset {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
+.Modal {
+  :global(.modal-dialog) {
+    max-height: 460px;
+    overflow: hidden;
+    display: flex;
+  }
 
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  padding: 0.5em;
+  :global(.modal-content) {
+    max-height: 100%;
+    overflow: hidden;
+  }
 
-  & + .Heading {
-    margin-top: 1em;
+  :global(.modal-body) {
+    overflow: auto;
+  }
+
+  .Inset {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 0.5em;
+
+    .Empty {
+      align-self: center;
+      padding: 1em 0;
+
+      opacity: 0.5;
+    }
+
+    & + .Heading {
+      margin-top: 1em;
+    }
+  }
+
+  .Heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+
+    margin-bottom: 0.5em;
+  }
+
+  .Footer {
+    justify-content: flex-end;
+
+    .Alert {
+      flex-grow: 1;
+      margin-bottom: 0;
+    }
+  }
+
+  .Users {
+    align-items: center;
   }
 }
-
-.Heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-
-  margin-bottom: 0.5em;
-}
-
-.Users {
-  align-items: center;
-}
-

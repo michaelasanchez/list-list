@@ -284,7 +284,9 @@ export function SortableTree({
                   ? () => handleCollapse(id)
                   : undefined
               }
-              onRemove={removable ? () => handleRemove(id) : undefined}
+              onRemove={
+                removable || pending ? () => handleRemove(id) : undefined
+              }
             />
           );
         })}

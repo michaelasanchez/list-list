@@ -15,6 +15,7 @@ export enum AppStateActionType {
   // DeselectHeader,
   FinalizeHeaderCreate,
   FinalizeHeaderDelete,
+  FinalizeItemCreate,
   FinalizeItemDelete,
   InitiateHeaderCreate,
   InitiateItemCreate,
@@ -88,6 +89,16 @@ export const AppStateReducer = (
     case AppStateActionType.FinalizeHeaderCreate: {
       return { ...state, headers: state.headers.filter((h) => !h.pending) };
     }
+    case AppStateActionType.FinalizeItemCreate: {
+      return {
+        ...state,
+        headers: state.headers.map((h) =>
+          h.id == action.headerId
+            ? { ...h, items: h.items.filter((i) => !i.pending) }
+            : h
+        ),
+      };
+    }
     case AppStateActionType.FinalizeItemDelete: {
       const updatedHeaders = filter(
         state.headers,
@@ -138,7 +149,10 @@ export const AppStateReducer = (
 
       // TODO: remove this limit?
       if (activeHeader.items.some((i) => i.id == newNodeId)) {
-        return state;
+        // return state;
+        activeHeader.items = activeHeader.items.filter(
+          (i) => i.id != newNodeId
+        );
       }
 
       const flattenedItems = getFlattenedItems(

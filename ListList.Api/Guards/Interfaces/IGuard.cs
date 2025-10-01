@@ -8,7 +8,7 @@ namespace ListList.Api.Guards.Interfaces;
 public interface IGuard
 {
     Task<ValidationResult> AgainstInvalidItemComplete(Guid? userId, Guid listItemId);
-    Task<ValidationResult> AgainstInvalidHeaderCreation(Guid? userId);
+    Task<ValidationResult> AgainstInvalidHeaderCreation(Guid? userId, int? order);
     Task<ValidationResult> AgainstInvalidHeaderDelete(Guid? userId, Guid listHeaderId);
     Task<ValidationResult> AgainstInvalidHeaderGet(Guid? userId, Guid listHeaderId);
     Task<ValidationResult> AgainstInvalidHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch);
@@ -22,8 +22,8 @@ public interface IGuard
     Task<ValidationResult> AgainstInvalidListItemPutAsync(Guid? userId, Guid listItemId);
     Task<ValidationResult> AgainstInvalidListItemRelocation(Guid? userId, Guid listItemId, Guid? parentId);
 
-    Task<ValidationResult> AgainstInvalidShareLinkDelete(Guid? userId, Guid listHeaderId);
-    Task<ValidationResult> AgainstInvalidShareLinkPatch(Guid? userId, Guid listHeaderId, ShareLinkPut shareLinkPatch);
-    Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, HeaderShare listHeaderShare);
+    Task<ValidationResult> AgainstInvalidShareLinkDelete(Guid? userId, Guid linkId);
+    Task<ValidationResult> AgainstInvalidShareLinkPut(Guid? userId, Guid linkId, ShareLinkPut shareLinkPatch);
+    Task<ValidationResult> AgainstInvalidShare(Guid? userId, Guid listHeaderId, HeaderShare listHeaderShare);
     Task<ValidationResult> AgainstInvalidItemRestoral(Guid? userId, Guid itemId, Guid? overId, Guid? parentId);
 }

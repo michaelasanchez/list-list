@@ -20,6 +20,7 @@ export interface MinimumLink extends ApiHeaderShare {
 export interface ShareLinkProps {
   link: MinimumLink;
   editing?: boolean;
+  errored?: boolean;
   onCancel?: () => void;
   onConfirm?: () => void;
   onDelete?: () => void;
@@ -31,73 +32,84 @@ const showLabels = false;
 export const ShareLink: React.FC<ShareLinkProps> = (props) => {
   const { link, editing, onCancel, onConfirm, onDelete, onUpdate } = props;
 
-  const isFutureOrToday = !link?.expiresOn || link?.expiresOn >= today;
+  const isFutureOrToday = !Boolean(link?.expiresOn) || link?.expiresOn >= today;
 
   return (
     <Card className={classNames(styles.ShareLink, editing && styles.editing)}>
       <Card.Body>
-        <div className={styles.Content}>
-          <Form.Group className={classNames(styles.formgroup, styles.url)}>
-            {showLabels && <Form.Label as="small">Url</Form.Label>}
+        <Form
+          className={styles.Content}
+          onSubmit={(e) => {
+            e.preventDefault();
+            onConfirm();
+          }}
+        >
+          <div className={styles.ContentRow}>
+            <Form.Group className={classNames(styles.FormGroup, styles.grow)}>
+              {showLabels && <Form.Label as="small">Url</Form.Label>}
 
-            <InputGroup size="sm">
-              <InputGroup.Text>/</InputGroup.Text>
+              <InputGroup size="sm">
+                <InputGroup.Text>/</InputGroup.Text>
+                <Form.Control
+                  className="code"
+                  autoFocus={editing}
+                  min={today}
+                  value={link.token}
+                  isInvalid={props.errored}
+                  onChange={(e) =>
+                    onUpdate?.({ id: link.id, token: e.target.value })
+                  }
+                />
+              </InputGroup>
+            </Form.Group>
+          </div>
+          <div className={styles.ContentRow}>
+            <Form.Group className={classNames(styles.FormGroup, styles.grow)}>
+              {showLabels && <Form.Label as="small">Expiration</Form.Label>}
               <Form.Control
-                className="code"
-                autoFocus={editing}
-                min={today}
-                value={link.token}
+                className={classNames(
+                  link.expiresOn === null && styles.dateEmpty
+                )}
+                size="sm"
+                type="date"
+                // isInvalid={!isFutureOrToday}
+                value={
+                  Boolean(link.expiresOn)
+                    ? formatDate(new Date(link.expiresOn))
+                    : ''
+                }
                 onChange={(e) =>
-                  onUpdate?.({ id: link.id, token: e.target.value })
+                  onUpdate?.({ id: link.id, expiresOn: e.target.value })
                 }
               />
-            </InputGroup>
-          </Form.Group>
-          <Form.Group className={styles.formgroup}>
-            {showLabels && <Form.Label as="small">Expiration</Form.Label>}
-            <Form.Control
-              className={classNames(
-                link.expiresOn === null && styles.dateEmpty
-              )}
-              size="sm"
-              type="date"
-              // isInvalid={!isFutureOrToday}
-              value={
-                Boolean(link.expiresOn)
-                  ? formatDate(new Date(link.expiresOn))
-                  : ''
-              }
-              onChange={(e) =>
-                onUpdate?.({ id: link.id, expiresOn: e.target.value })
-              }
-            />
-            <Form.Control.Feedback type="invalid">
-              Please select today or a future date.
-            </Form.Control.Feedback>
-          </Form.Group>
-          <Form.Group className={styles.formgroup}>
-            {showLabels && <Form.Label as="small">Permission</Form.Label>}
-            <DropdownButton
-              title={getPermissionLabel(link.permission)}
-              size="sm"
-              variant="outline-secondary"
-              // variant={getPermissionVariant(link.permission)}
-            >
-              {[SharedPermission.View, SharedPermission.Edit].map((p, i) => (
-                <Dropdown.Item
-                  key={i}
-                  active={link.permission == p}
-                  // className={getPermissionVariant(p, false)}
-                  onClick={() =>
-                    props.onUpdate?.({ id: link.id, permission: p })
-                  }
-                >
-                  {getPermissionLabel(p)}
-                </Dropdown.Item>
-              ))}
-            </DropdownButton>
-          </Form.Group>
-        </div>
+              <Form.Control.Feedback type="invalid">
+                Please select today or a future date.
+              </Form.Control.Feedback>
+            </Form.Group>
+            <Form.Group className={styles.FormGroup}>
+              {showLabels && <Form.Label as="small">Permission</Form.Label>}
+              <DropdownButton
+                title={getPermissionLabel(link.permission)}
+                size="sm"
+                variant="outline-secondary"
+                // variant={getPermissionVariant(link.permission)}
+              >
+                {[SharedPermission.View, SharedPermission.Edit].map((p, i) => (
+                  <Dropdown.Item
+                    key={i}
+                    active={link.permission == p}
+                    // className={getPermissionVariant(p, false)}
+                    onClick={() =>
+                      props.onUpdate?.({ id: link.id, permission: p })
+                    }
+                  >
+                    {getPermissionLabel(p)}
+                  </Dropdown.Item>
+                ))}
+              </DropdownButton>
+            </Form.Group>
+          </div>
+        </Form>
         <div className={styles.Actions}>
           <div className={classNames(styles.Layer, editing && styles.Active)}>
             <IconButton

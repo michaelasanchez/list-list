@@ -18,7 +18,7 @@ public class HeaderController(IHeaderService _service) : Controller
 
         try
         {
-            id = await _service.CreateHeader(headerCreation);
+            id = await _service.CreateHeader(headerCreation, headerCreation.Order);
         }
         catch (Exception ex)
         {

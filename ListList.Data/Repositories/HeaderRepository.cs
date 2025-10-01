@@ -9,15 +9,26 @@ namespace ListList.Data.Repositories;
 
 public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHeaderRepository
 {
-    public async Task CreateHeader(Guid ownerId, HeaderEntity creation)
+    public async Task CreateHeader(Guid ownerId, HeaderEntity creation, int? order)
     {
-        var nextOrder = await _context.Headers.CountAsync(z => !z.Deleted);
+        var nextOrder = order ?? await _context.Headers.CountAsync(z => !z.Deleted);
 
         creation.OwnerId = ownerId;
         creation.Order = nextOrder;
         creation.Nodes = [];
 
         await _context.Headers.AddAsync(creation);
+
+        if (order.HasValue)
+        {
+            var after = await _context.Headers
+                .Where(z => z.OwnerId == ownerId && z.Order >= order && !z.Deleted)
+                .ToListAsync();
+
+            foreach (var item in after)
+                item.Order++;
+        }
+
         await _context.SaveChangesAsync();
     }
 

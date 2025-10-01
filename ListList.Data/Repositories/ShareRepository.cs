@@ -23,6 +23,7 @@ public class ShareRepository(ListListContext context) : IShareRepository
 
         if (entity is not null)
         {
+            entity.Token = resource.Token ?? string.Empty;
             entity.Permission = resource.Permission;
             entity.ExpiresOn = resource.ExpiresOn?.ToUniversalTime();
 

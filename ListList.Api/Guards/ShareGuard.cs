@@ -8,6 +8,19 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
+    public async Task<ValidationResult> AgainstInvalidShare(Guid? userId, Guid headerId, HeaderShare headerShare)
+    {
+        var result = new ValidationResult();
+
+        await headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
+
+        await shareValidator.TokenIsAvailable(null, headerShare.Token, result);
+
+        DateValidator.IsFutureDate(headerShare.ExpiresOn, result);
+
+        return result;
+    }
+
     public async Task<ValidationResult> AgainstInvalidShareLinkDelete(Guid? userId, Guid listHeaderId)
     {
         var result = new ValidationResult();
@@ -17,24 +30,15 @@ public partial class Guard : IGuard
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidShareLinkPatch(Guid? userId, Guid listHeaderId, ShareLinkPut shareLinkPatch)
+    public async Task<ValidationResult> AgainstInvalidShareLinkPut(Guid? userId, Guid linkId, ShareLinkPut put)
     {
         var result = new ValidationResult();
 
-        await shareValidator.UserOwnsShareLink(userId, listHeaderId, result);
+        await shareValidator.UserOwnsShareLink(userId, linkId, result);
 
-        DateValidator.IsFutureDate(shareLinkPatch.ExpiresOn, result);
+        await shareValidator.TokenIsAvailable(linkId, put.Token, result);
 
-        return result;
-    }
-
-    public async Task<ValidationResult> AgainstInvalidListShare(Guid? userId, Guid listHeaderId, HeaderShare listHeaderShare)
-    {
-        var result = new ValidationResult();
-
-        await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
-
-        DateValidator.IsFutureDate(listHeaderShare.ExpiresOn, result);
+        DateValidator.IsFutureDate(put.ExpiresOn, result);
 
         return result;
     }

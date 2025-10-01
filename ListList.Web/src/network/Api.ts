@@ -58,12 +58,19 @@ export class Api {
       }
     }
 
-    const fetchInvocation = init
-      ? fetch(requestPath, init)
-      : fetch(requestPath);
+    const fetchPath = init ? fetch(requestPath, init) : fetch(requestPath);
 
-    return fetchInvocation.then((result) =>
-      result.ok && result.status == 200 && toJson ? result.json() : result
+    this._actionPath = null;
+    this._queryParameters = null;
+
+    return fetchPath.then((result) =>
+      result.ok && result.status >= 200 && result.status < 300
+        ? toJson
+          ? result.json()
+          : result
+        : result.text().then((text) => {
+            throw new Error(text);
+          })
     );
   }
 
@@ -72,6 +79,7 @@ export class Api {
     params: RequestInit = null
   ): Promise<void> {
     this.setActionPath(`${id}`);
+
     return this.execute(
       {
         ...params,

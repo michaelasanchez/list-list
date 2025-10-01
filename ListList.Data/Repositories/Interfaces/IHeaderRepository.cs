@@ -5,7 +5,7 @@ namespace ListList.Data.Repositories.Interfaces;
 
 public interface IHeaderRepository
 {
-    Task CreateHeader(Guid ownerId, HeaderEntity creation);
+    Task CreateHeader(Guid ownerId, HeaderEntity creation, int? order);
     Task DeleteHeader(Guid headerId);
     Task<HeaderResource> GetHeaderById(Guid? ownerId, Guid listHeaderId);
     Task<HeaderResource> GetHeaderByToken(string token);

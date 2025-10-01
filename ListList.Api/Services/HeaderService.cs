@@ -20,15 +20,15 @@ public class HeaderService(
 {
     private readonly IHeaderRepository _headerRepository = _unitOfWork.HeaderRepository;
 
-    public async Task<Guid> CreateHeader(HeaderCreation listHeader)
+    public async Task<Guid> CreateHeader(HeaderCreation listHeader, int? order)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidHeaderCreation(userId));
+        await InvokeGuard(() => _guard.AgainstInvalidHeaderCreation(userId, order));
 
         var creation = _mapper.Map<HeaderEntity>(listHeader);
 
-        await _headerRepository.CreateHeader(userId.Value, creation);
+        await _headerRepository.CreateHeader(userId.Value, creation, order);
 
         return creation.Id;
     }

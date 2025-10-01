@@ -6,11 +6,13 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
-    public Task<ValidationResult> AgainstInvalidHeaderCreation(Guid? userId)
+    public async Task<ValidationResult> AgainstInvalidHeaderCreation(Guid? userId, int? order)
     {
         var result = new ValidationResult();
 
-        return Task.FromResult(result);
+        await headerValidator.IsValidHeaderIndexAsync(userId, order, result);
+
+        return result;
     }
 
     public async Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid? userId, Guid headerId)

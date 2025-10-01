@@ -1,9 +1,10 @@
 import { findIndex } from 'lodash';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
-import { Alert, Container } from 'react-bootstrap';
+import { Alert, Button, Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 
+import cn from 'classnames';
 import {
   AppStateActionType as ActionType,
   AppState,
@@ -12,6 +13,7 @@ import {
 } from '.';
 import {
   DropdownAction,
+  IconButton,
   MinimumLink,
   SelectedHeader,
   ShareModal,
@@ -35,6 +37,7 @@ import { ListHeaderApi, ListItemApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
 import { FloatingUi } from '../ui';
+import * as styles from './App.module.scss';
 
 const themeKey = 'll-them';
 const cacheKey = 'll-data';
@@ -189,7 +192,7 @@ export const App: React.FC = () => {
         try {
           await apis.headerApi.CreateItem(headerId, creation);
 
-          dispatch({ type: ActionType.FinalizeHeaderCreate });
+          // dispatch({ type: ActionType.FinalizeItemCreate, headerId });
           dispatch({ type: ActionType.SetLoading, loading: true });
 
           loadHeader(headerId);
@@ -199,7 +202,7 @@ export const App: React.FC = () => {
           return false;
         }
       } else {
-        dispatch({ type: ActionType.CancelHeaderCreate });
+        dispatch({ type: ActionType.CancelItemCreate });
 
         return false;
       }
@@ -217,6 +220,7 @@ export const App: React.FC = () => {
 
     const header = index >= 0 ? state.headers[index] : null;
     const id = Boolean(header) ? header.id : null;
+
     const tree = Boolean(header)
       ? Temp.buildTreeFromItems(header.items, state.expanded)
       : [];
@@ -313,12 +317,18 @@ export const App: React.FC = () => {
         ];
       },
       onClick: (headerId: string) => navigate(headerId),
-      onCreate: async (label: string, description: string) => {
-        const id = await apis.headerApi.CreateHeader({ label, description });
+      onCreate: async (label: string, description: string, overId: string) => {
+        const order = state.headers.findIndex((h) => h.id == overId) - 1;
 
-        dispatch({ type: ActionType.FinalizeHeaderCreate });
+        await apis.headerApi.CreateHeader({
+          label,
+          description,
+          order,
+        });
 
-        return loadHeader(id);
+        // dispatch({ type: ActionType.FinalizeHeaderCreate });
+
+        return loadHeaders();
       },
       onDragEnd: async (headerId: string, destinationId: string) => {
         const order = state.headers.findIndex((h) => h.id == destinationId);
@@ -394,9 +404,11 @@ export const App: React.FC = () => {
     [selected]
   );
 
-  const showListView = Boolean(selected.header);
+  const showListView = Boolean(token);
 
   const viewRef = React.useRef<HTMLDivElement>(null);
+
+  console.log('LOADING', state.syncing || state.loading);
 
   return (
     <Router>
@@ -421,34 +433,46 @@ export const App: React.FC = () => {
           </Container>
         </div>
         <div
-          className={`list-view${showListView ? ' show' : ''}`}
+          className={cn(styles.ListView, 'list-view', showListView && 'show')}
           ref={showListView ? viewRef : null}
         >
           <Container className="list-container">
-            {Boolean(display.header) && (
+            <SelectedHeader
+              token={token}
+              header={display.header}
+              listeners={headersHooks}
+              onBack={() => navigate('/')}
+              onPatch={(patch) =>
+                apis.headerApi
+                  .Patch(display.id, patch)
+                  .then(() => loadHeader(display.id))
+              }
+              onShare={() => navigate(`/${token}/share`)}
+            />
+            {!Boolean(display.header) && (
               <>
-                <SelectedHeader
-                  header={display.header}
-                  listeners={headersHooks}
-                  onBack={() => navigate('/')}
-                  onPatch={(patch) =>
-                    apis.headerApi
-                      .Patch(display.id, patch)
-                      .then(() => loadHeader(display.id))
-                  }
-                  onShare={() => navigate(`/${token}/share`)}
-                />
-                <SortableTree
-                  collapsible
-                  indicator
-                  removable
-                  checklist={display.header.isChecklist}
-                  readonly={display.header.isReadonly}
-                  defaultItems={display.tree}
-                  hooks={selectedHooks}
-                />
+                <div className={styles.NotFound}>
+                  <h2>List not found!</h2>
+                  {/* <Button */}
+                  <IconButton iconType="backward"
+                    size="sm"
+                    variant="outline-secondary"
+                    onClick={() => navigate('/')}
+                  >
+                    Back
+                  </IconButton>
+                </div>
               </>
             )}
+            <SortableTree
+              collapsible
+              indicator
+              removable
+              checklist={display.header?.isChecklist}
+              readonly={display.header?.isReadonly}
+              defaultItems={display.tree}
+              hooks={selectedHooks}
+            />
           </Container>
         </div>
       </main>

@@ -7,6 +7,7 @@ export interface LabelEditorProps {
   label: string;
   autoFocus?: boolean;
   className?: string;
+  disabled?: boolean;
   placeholder?: string;
   onBlur?: () => void;
   onCancel?: () => void;
@@ -59,6 +60,7 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
       <Form.Control
         as="textarea"
         autoFocus={props.autoFocus}
+        disabled={props.disabled}
         name={`${props.name}-label-editor`}
         plaintext={!editing}
         placeholder={props.placeholder}

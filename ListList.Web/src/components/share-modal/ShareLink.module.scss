@@ -15,19 +15,24 @@
     padding: 0.5em;
   }
 
+  .grow {
+    flex-grow: 1;
+  }
+
   .Content {
     display: flex;
+    flex-direction: column;
     flex-grow: 1;
     gap: 1em;
-    align-items: center;
 
-    .formgroup {
+    .ContentRow {
+      display: flex;
+      gap: 1em;
+    }
+
+    .FormGroup {
       display: flex;
       flex-direction: column;
-
-      &.url {
-        flex-grow: 1;
-      }
     }
   }
 
@@ -38,8 +43,9 @@
 
     .Layer {
       display: flex;
-      gap: 0.5em;
+      flex-direction: column-reverse;
       justify-content: flex-end;
+      gap: 1em;
 
       grid-column: 1 / 2;
       grid-row: 1 / 2;
@@ -63,7 +69,7 @@
 
   :global(.card-body) {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 1em;
     padding: 0.5em;

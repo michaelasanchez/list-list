@@ -26,22 +26,22 @@ public class ShareService(
         await _shareRepository.DeleteLink(shareLinkId);
     }
 
-    public async Task PutLink(Guid shareLinkId, ShareLinkPut patch)
+    public async Task PutLink(Guid linkId, ShareLinkPut put)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidShareLinkPatch(userId, shareLinkId, patch));
+        await InvokeGuard(() => _guard.AgainstInvalidShareLinkPut(userId, linkId, put));
 
-        var resource = _mapper.Map<ShareLinkResource>(patch);
+        var resource = _mapper.Map<ShareLinkResource>(put);
 
-        await _shareRepository.PutLink(shareLinkId, resource);
+        await _shareRepository.PutLink(linkId, resource);
     }
 
     public async Task<string> ShareHeader(Guid listHeaderId, HeaderShare listHeaderShare)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListShare(userId, listHeaderId, listHeaderShare));
+        await InvokeGuard(() => _guard.AgainstInvalidShare(userId, listHeaderId, listHeaderShare));
 
         return await _shareRepository.ShareList(listHeaderId, listHeaderShare.Permission, listHeaderShare.Token, listHeaderShare.ExpiresOn);
     }

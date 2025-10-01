@@ -16,6 +16,7 @@ interface LabelAndDescriptionEditorProps {
   description: string;
   autoFocus?: boolean;
   className?: string;
+  disabled?: boolean;
   placeholderDescription?: string;
   placeholderLabel?: string;
   onUpdate?: (update: Update) => Promise<Succeeded>;
@@ -100,6 +101,7 @@ export const LabelAndDescriptionEditor: React.FC<
     >
       <LabelEditor
         autoFocus={props.autoFocus}
+        disabled={props.disabled || state.loading}
         className={classNames('label', props.className)}
         name={`${props.name}-label`}
         label={isNil(state?.pendingLabel) ? props.label : state.pendingLabel}
@@ -140,6 +142,7 @@ export const LabelAndDescriptionEditor: React.FC<
         <div>
           <LabelEditor
             className={classNames('description', props.className)}
+            disabled={props.disabled || state.loading}
             name={`${props.name}-description`}
             label={
               isNil(state.pendingDescription)

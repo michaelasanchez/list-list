@@ -7,12 +7,12 @@ import * as styles from './TreeItem.module.scss';
 import React from 'react';
 import { Badge, Spinner } from 'react-bootstrap';
 import { Succeeded } from '../../../../network';
+import { DateUtils } from '../../../../shared';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
 import { ActionDropdown, DropdownAction } from '../../../action-dropdown';
 import { Icon } from '../../../icon';
 import { ItemUpdate } from '../../SortableTree';
 import { TreeItemData } from '../../types';
-import { DateUtils } from '../../../../shared';
 
 export interface Hooks {
   actions?: DropdownAction[][];
@@ -109,7 +109,9 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
               placeholderDescription="Add note"
               onUpdate={hooks?.onUpdate}
             />
-            {data.completedOn && <small>{DateUtils.timeAgo(data.completedOn)}</small>}
+            {data.completedOn && (
+              <small>{DateUtils.timeAgo(data.completedOn)}</small>
+            )}
           </div>
           <div className={styles.Actions}>
             {hooks?.actions?.length > 0 && (

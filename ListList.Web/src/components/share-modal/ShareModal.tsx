@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from 'react-bootstrap';
+import { Alert, Modal } from 'react-bootstrap';
 import { ShareLink as Link } from '../../models';
 
 import classNames from 'classnames';
@@ -17,6 +17,12 @@ export interface ShareModalProps {
   onShare: (share: ApiHeaderShare) => Promise<Succeeded>;
 }
 
+const strings = {
+  create: 'Create',
+  empty: 'No share links have been created.',
+  title: 'Share Links',
+};
+
 const addDays = (date: Date, days: number): Date => {
   const copy = new Date(date);
 
@@ -31,6 +37,7 @@ export const today = formatDate(new Date());
 
 export const ShareModal: React.FC<ShareModalProps> = (props) => {
   const [pending, setPending] = React.useState<MinimumLink | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   // Clear out pending when modal is closed
   React.useEffect(() => {
@@ -39,41 +46,46 @@ export const ShareModal: React.FC<ShareModalProps> = (props) => {
     }
   }, [props.show]);
 
+  const checkError = () => error !== null && setError(null);
+
+  const handleCancel = () => {
+    setPending(null);
+    setError(null);
+  };
+
   const handleShare = () => {
-    props.onShare(pending).then(() => setPending(null));
+    checkError();
+
+    props
+      .onShare(pending)
+      .then(() => setPending(null))
+      .catch((e) => setError(e.message));
   };
 
   const handlePut = () => {
+    checkError();
+
     if (Boolean(pending.id)) {
       const { id, ...put } = pending;
 
-      props.onUpdate(id, put).then(() => setPending(null));
+      props
+        .onUpdate(id, put)
+        .then(() => setPending(null))
+        .catch((e) => setError(e.message));
     }
   };
 
   return (
-    <Modal show={props.show} onHide={props.onClose}>
+    <Modal className={styles.Modal} show={props.show} onHide={props.onClose}>
       <Modal.Header closeButton>
-        <Modal.Title>Share Links</Modal.Title>
+        <Modal.Title>{strings.title}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <div className={classNames(styles.Heading)}>
-          <IconButton
-            iconType="create"
-            variant="outline-secondary"
-            size="sm"
-            onClick={() =>
-              setPending(() => ({
-                token: 'new-link',
-                permission: SharedPermission.View,
-                expiresOn: formatDate(addDays(new Date(), 7)),
-              }))
-            }
-          >
-            Create
-          </IconButton>
-        </div>
+        <div className={classNames(styles.Heading)}></div>
         <div className={classNames(styles.Inset)}>
+          {!Boolean(props.shareLinks?.length) && !Boolean(pending) && (
+            <div className={styles.Empty}>{strings.empty}</div>
+          )}
           {props.shareLinks?.map((l, i) => {
             const editing = pending?.id == l.id;
 
@@ -82,7 +94,7 @@ export const ShareModal: React.FC<ShareModalProps> = (props) => {
                 key={i}
                 link={editing ? pending : l}
                 editing={editing}
-                onCancel={() => setPending(null)}
+                onCancel={handleCancel}
                 onConfirm={handlePut}
                 onDelete={() => props.onDelete(l.id)}
                 onUpdate={(update) => {
@@ -97,17 +109,41 @@ export const ShareModal: React.FC<ShareModalProps> = (props) => {
               />
             );
           })}
-          {Boolean(pending) && Boolean(!pending.id) && (
+          {Boolean(pending) && !Boolean(pending.id) && (
             <ShareLink
               link={pending}
               editing={true}
-              onCancel={() => setPending(null)}
+              errored={Boolean(error)}
+              onCancel={handleCancel}
               onConfirm={handleShare}
               onUpdate={(update) => setPending((s) => ({ ...s, ...update }))}
             />
           )}
         </div>
       </Modal.Body>
+
+      <Modal.Footer className={styles.Footer}>
+        {!Boolean(error) ? (
+          <IconButton
+            iconType="create"
+            variant="outline-secondary"
+            size="sm"
+            onClick={() =>
+              setPending(() => ({
+                token: 'new-link',
+                permission: SharedPermission.View,
+                expiresOn: formatDate(addDays(new Date(), 7)),
+              }))
+            }
+          >
+            {strings.create}
+          </IconButton>
+        ) : (
+          <Alert autoFocus={true} className={styles.Alert} variant="danger">
+            {error}
+          </Alert>
+        )}
+      </Modal.Footer>
     </Modal>
   );
 };

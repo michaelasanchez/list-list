@@ -5,6 +5,7 @@ import { Header } from '../../models';
 import { SortableTreeHooks } from '../tree/SortableTree';
 
 export interface SelectedHeaderProps {
+  token: string;
   header: Header;
   listeners?: SortableTreeHooks;
   onBack?: () => void;
@@ -15,7 +16,7 @@ export interface SelectedHeaderProps {
 export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
   const headerActions = React.useMemo(
     () =>
-      props.header.isReadonly ? (
+      !Boolean(props.header) || props.header.isReadonly ? (
         <></>
       ) : (
         <>
@@ -46,9 +47,10 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
     <div className="selected-header">
       <div className="content">
         <LabelAndDescriptionEditor
-          name={props.header?.id ?? 'none'}
+          name={props.header?.id ?? 'no-header-selected'}
           label={props.header?.label ?? ''}
           description={props.header?.description ?? ''}
+          disabled={!Boolean(props.header)}
           onUpdate={(update) =>
             props.listeners?.onUpdate(props.header.id, update)
           }
