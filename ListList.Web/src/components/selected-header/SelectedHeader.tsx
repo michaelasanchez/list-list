@@ -3,10 +3,11 @@ import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
 import { ApiHeaderPatch } from '../../contracts';
 import { Header } from '../../models';
 import { SortableTreeHooks } from '../tree/SortableTree';
+import { SelectedNode } from '../../views/app/App';
 
 export interface SelectedHeaderProps {
   token: string;
-  header: Header;
+  header: SelectedNode;
   listeners?: SortableTreeHooks;
   onBack?: () => void;
   onShare?: () => void;

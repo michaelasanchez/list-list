@@ -103,6 +103,7 @@ export interface SortableTreeHooks {
     overId: UniqueIdentifier,
     parentId: UniqueIdentifier
   ) => Promise<Succeeded>;
+  onSelect?: (id: UniqueIdentifier) => void;
   onUpdate?: (id: UniqueIdentifier, update: ItemUpdate) => Promise<Succeeded>;
 }
 
@@ -287,6 +288,7 @@ export function SortableTree({
               onRemove={
                 removable || pending ? () => handleRemove(id) : undefined
               }
+              onSelect={hooks?.onSelect ? () => hooks.onSelect(id) : undefined}
             />
           );
         })}

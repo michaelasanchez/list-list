@@ -1,7 +1,7 @@
-import { findIndex } from 'lodash';
+import { findIndex, head } from 'lodash';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
-import { Alert, Button, Container } from 'react-bootstrap';
+import { Alert, Container } from 'react-bootstrap';
 import { Router, useLocation, useRoute } from 'wouter';
 
 import cn from 'classnames';
@@ -31,7 +31,7 @@ import {
   useLocalStorage,
   useTheme,
 } from '../../hooks';
-import { Temp } from '../../mappers/TreeItemMapper';
+import { TreeMapper } from '../../mappers/TreeItemMapper';
 import { Header, Item } from '../../models';
 import { ListHeaderApi, ListItemApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
@@ -56,7 +56,16 @@ const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   };
 };
 
-export type RouteParams = { token: string; action?: string };
+export type RouteParams = {
+  token: string;
+  action?: string;
+  selectedId?: string;
+};
+
+export type SelectedNode = Pick<
+  Header,
+  'id' | 'label' | 'description' | 'isChecklist' | 'isReadonly' | 'shareLinks'
+> | null;
 
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
@@ -64,9 +73,11 @@ export const App: React.FC = () => {
 
   const [location, navigate] = useLocation();
 
-  const [match, params] = useRoute<RouteParams>('/:token/:action?');
+  const [match, params] = useRoute<RouteParams>(
+    '/:token/:action?/:selectedId?'
+  );
 
-  const { token } = match ? params : {};
+  const { token, action, selectedId } = match ? params : {};
 
   const localStorage = useLocalStorage(cacheKey);
 
@@ -211,18 +222,45 @@ export const App: React.FC = () => {
   );
 
   const selected = React.useMemo(() => {
-    const index = !token
+    const headerIndex = !token
       ? -1
       : findIndex(
           state.headers,
           (h) => h.id == token || h.tokens?.includes(token)
         );
 
-    const header = index >= 0 ? state.headers[index] : null;
-    const id = Boolean(header) ? header.id : null;
+    const header = headerIndex >= 0 ? state.headers[headerIndex] : null;
+    const headerId = Boolean(header) ? header.id : null;
 
-    const tree = Boolean(header)
-      ? Temp.buildTreeFromItems(header.items, state.expanded)
+    if (action == 'select') {
+      const header = state.headers[headerIndex];
+
+      const items = TreeMapper.buildTreeFromSubItems(
+        header?.items ?? [],
+        state.expanded,
+        selectedId
+      );
+
+      const selected = header?.items.find((i) => i.id == selectedId);
+
+      const root: SelectedNode = {
+        id: selected.id,
+        label: selected.label,
+        description: selected.description,
+        isChecklist: header.isChecklist,
+        isReadonly: header.isReadonly,
+        shareLinks: header.shareLinks,
+      };
+
+      return {
+        headerId: header.id,
+        root,
+        items,
+      };
+    }
+
+    const items = Boolean(header)
+      ? TreeMapper.buildTreeFromItems(header.items, state.expanded)
       : [];
 
     if (Boolean(header)) {
@@ -232,8 +270,19 @@ export const App: React.FC = () => {
       });
     }
 
-    return { header, id, tree };
-  }, [token, state.headers, state.expanded]);
+    const root: SelectedNode | null = !Boolean(header)
+      ? null
+      : {
+          id: header.id,
+          label: header.label,
+          description: header.description,
+          isChecklist: header.isChecklist,
+          isReadonly: header.isReadonly,
+          shareLinks: header.shareLinks,
+        };
+
+    return { headerId, root, items };
+  }, [token, selectedId, state.headers, state.expanded]);
 
   // Load header if not found from initial load
   useEffect(() => {
@@ -243,7 +292,7 @@ export const App: React.FC = () => {
   }, [selected, state.syncing]);
 
   const display = React.useMemo(() => {
-    if (Boolean(selected.header)) {
+    if (Boolean(selected.root)) {
       return selected;
     }
 
@@ -252,13 +301,13 @@ export const App: React.FC = () => {
       (h) => h.id == state.previousHeaderId
     );
 
-    const header = index >= 0 ? state.headers[index] : null;
-    const id = Boolean(header) ? header.id : null;
-    const tree = Boolean(header)
-      ? Temp.buildTreeFromItems(header.items, state.expanded)
+    const root = index >= 0 ? state.headers[index] : null;
+    const headerId = Boolean(root) ? root.id : null;
+    const items = Boolean(root)
+      ? TreeMapper.buildTreeFromItems(root.items, state.expanded)
       : [];
 
-    return { header, id, tree };
+    return { headerId, root, items };
   }, [selected, state.previousHeaderId]);
 
   const headersHooks = React.useMemo<Hooks>(
@@ -358,12 +407,12 @@ export const App: React.FC = () => {
             onClick: (itemId: string) => {
               dispatch({
                 type: ActionType.ToggleExpanded,
-                headerId: selected.id,
+                headerId: selected.headerId,
                 itemId,
               });
             },
             onCreate: (label, description, overId: string, parentId: string) =>
-              handleCreateItem(selected.id, {
+              handleCreateItem(selected.headerId, {
                 label,
                 description,
                 overId,
@@ -373,15 +422,18 @@ export const App: React.FC = () => {
               if (id == newNodeId) {
                 dispatch({
                   type: ActionType.CancelItemCreate,
-                  headerId: selected.id,
+                  headerId: selected.headerId,
                 });
 
                 return Promise.resolve(true);
               } else {
                 return apis.itemApi.Delete(id).then(() => {
-                  loadHeader(selected.id);
+                  loadHeader(selected.headerId);
 
-                  const item = selected.header.items.find((i) => i.id == id);
+                  const header = state.headers.find(
+                    (h) => h.id == selected.headerId
+                  );
+                  const item = header?.items.find((i) => i.id == id);
 
                   showItemUndoAlert(item, overId, parentId);
 
@@ -392,14 +444,21 @@ export const App: React.FC = () => {
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
               apis.itemApi
                 .Relocate(activeId, overId, parentId)
-                .then(() => loadHeader(selected.id)),
-            onUpdate: (id: string, update: ItemUpdate) =>
-              apis.itemApi
+                .then(() => loadHeader(selected.headerId)),
+            onUpdate: (id: string, update: ItemUpdate) => {
+              const header = state.headers.find(
+                (h) => h.id == selected.headerId
+              );
+              const item = head(header?.items.filter((i) => i.id == id));
+
+              return apis.itemApi
                 .Put(id, {
-                  ...selected.header.items.find((i) => i.id == id),
+                  ...item,
                   ...update,
                 })
-                .then(() => loadItem(id)),
+                .then(() => loadItem(id));
+            },
+            onSelect: (id: string) => navigate(`/${token}/select/${id}`),
           },
     [selected]
   );
@@ -407,8 +466,6 @@ export const App: React.FC = () => {
   const showListView = Boolean(token);
 
   const viewRef = React.useRef<HTMLDivElement>(null);
-
-  console.log('LOADING', state.syncing || state.loading);
 
   return (
     <Router>
@@ -426,7 +483,7 @@ export const App: React.FC = () => {
           <Container className="list-container">
             <SortableTree
               hooks={headersHooks}
-              defaultItems={Temp.buildTreeFromHeaders(
+              defaultItems={TreeMapper.buildTreeFromHeaders(
                 state.headers.filter((h) => !h.isNotOwned)
               )}
             />
@@ -439,38 +496,36 @@ export const App: React.FC = () => {
           <Container className="list-container">
             <SelectedHeader
               token={token}
-              header={display.header}
+              header={display.root}
               listeners={headersHooks}
-              onBack={() => navigate('/')}
+              onBack={() => window.history.back()}
               onPatch={(patch) =>
                 apis.headerApi
-                  .Patch(display.id, patch)
-                  .then(() => loadHeader(display.id))
+                  .Patch(display.headerId, patch)
+                  .then(() => loadHeader(display.headerId))
               }
               onShare={() => navigate(`/${token}/share`)}
             />
-            {!Boolean(display.header) && (
-              <>
-                <div className={styles.NotFound}>
-                  <h2>List not found!</h2>
-                  {/* <Button */}
-                  <IconButton iconType="backward"
-                    size="sm"
-                    variant="outline-secondary"
-                    onClick={() => navigate('/')}
-                  >
-                    Back
-                  </IconButton>
-                </div>
-              </>
+            {!Boolean(display.root) && (
+              <div className={styles.NotFound}>
+                <h2>List not found!</h2>
+                <IconButton
+                  iconType="backward"
+                  size="sm"
+                  variant="outline-secondary"
+                  onClick={() => navigate('/')}
+                >
+                  Back
+                </IconButton>
+              </div>
             )}
             <SortableTree
               collapsible
               indicator
               removable
-              checklist={display.header?.isChecklist}
-              readonly={display.header?.isReadonly}
-              defaultItems={display.tree}
+              checklist={display.root?.isChecklist}
+              readonly={display.root?.isReadonly}
+              defaultItems={display.items}
               hooks={selectedHooks}
             />
           </Container>
@@ -478,7 +533,7 @@ export const App: React.FC = () => {
       </main>
 
       <FloatingUi
-        selectedHeader={selected?.header}
+        selectedHeaderId={selected?.headerId}
         viewRef={viewRef}
         dispatch={dispatch}
         showAlert={showAlert}
@@ -487,21 +542,21 @@ export const App: React.FC = () => {
       {AlertList}
 
       <ShareModal
-        show={params?.action == 'share'}
-        shareLinks={selected.header?.shareLinks}
-        onClose={() => navigate(`/${token ?? selected.id}`)}
+        show={action == 'share'}
+        shareLinks={selected.root?.shareLinks}
+        onClose={() => navigate(`/${token ?? selected.headerId}`)}
         onDelete={(id: string) =>
-          apis.shareApi.Delete(id).then(() => loadHeader(selected.id))
+          apis.shareApi.Delete(id).then(() => loadHeader(selected.headerId))
         }
         onShare={(share) =>
           apis.shareApi
-            .Share(selected.id, share)
-            .then(() => loadHeader(selected.id))
+            .Share(selected.headerId, share)
+            .then(() => loadHeader(selected.headerId))
         }
         onUpdate={(id: string, put: MinimumLink) =>
           apis.shareApi
             .Put(id, { token: put.token ?? '', ...put })
-            .then(() => loadHeader(selected.id))
+            .then(() => loadHeader(selected.headerId))
         }
       />
     </Router>

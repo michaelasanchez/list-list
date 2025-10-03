@@ -1,6 +1,37 @@
 import { TreeItem, TreeItems } from '../components/tree/types';
 import { Header, Item } from '../models';
 
+interface TreeItemWithParentId extends TreeItem {
+  parentId: string;
+}
+
+function assignPaths(nodes: TreeItems, parentPath: number[] = []) {
+  nodes.forEach((node, idx) => {
+    node.path = [...parentPath, idx];
+    if (node.children?.length) {
+      assignPaths(node.children, node.path);
+    }
+  });
+}
+
+function findById(tree: TreeItems, id: string): TreeItem | null {
+  for (const node of tree) {
+    if (node.id === id) {
+      return node;
+    }
+
+    if (node.children?.length) {
+      const childPath = findById(node.children, id);
+
+      if (childPath) {
+        return childPath;
+      }
+    }
+  }
+
+  return null;
+}
+
 function buildTreeFromHeaders(headers: Header[]): TreeItems {
   return (
     headers.map<TreeItem>((header, index) => ({
@@ -25,10 +56,6 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
   );
 }
 
-interface TreeItemWithParentId extends TreeItem {
-  parentId: string;
-}
-
 function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
   if (!items?.length) return [];
 
@@ -41,6 +68,7 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
       collapsed: !expanded?.includes(i.id),
       children: [],
       parentId: i.parentId,
+      path: [],
       pending: i.pending,
       data: {
         label: i.label,
@@ -68,10 +96,25 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
     }
   });
 
+  assignPaths(roots);
+
   return roots;
 }
 
-export const Temp = {
+function buildTreeFromSubItems(
+  items: Item[],
+  expanded: string[],
+  selectedId: string
+): TreeItems {
+  const treeItems = buildTreeFromItems(items, expanded);
+
+  const selected = findById(treeItems, selectedId);
+
+  return selected?.children ?? [];
+}
+
+export const TreeMapper = {
   buildTreeFromHeaders,
   buildTreeFromItems,
+  buildTreeFromSubItems,
 };

@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import React, { ActionDispatch } from 'react';
 import { IconButton } from '../../components';
 import { AlertCreation } from '../../hooks';
-import { Header } from '../../models';
 import { AppStateActionType as ActionType, AppStateAction } from '../app';
 import * as styles from './FloatingUi.module.scss';
 
@@ -13,14 +12,14 @@ export enum UiMode {
 }
 
 interface FloatingUiProps {
-  selectedHeader: Header;
+  selectedHeaderId: string;
   viewRef: React.RefObject<HTMLDivElement>;
   dispatch: ActionDispatch<[action: AppStateAction]>;
   showAlert: (creation: AlertCreation) => void;
 }
 
 const calcUiMode = (props: FloatingUiProps): UiMode => {
-  if (props.selectedHeader) {
+  if (Boolean(props.selectedHeaderId)) {
     return UiMode.Default;
   }
 
@@ -28,15 +27,15 @@ const calcUiMode = (props: FloatingUiProps): UiMode => {
 };
 
 export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
-  const mode = React.useMemo(() => calcUiMode(props), [props.selectedHeader]);
+  const mode = React.useMemo(() => calcUiMode(props), [props.selectedHeaderId]);
 
   const handleCreate = () => {
     const index = getInsertIndex(props.viewRef.current);
 
-    if (props.selectedHeader) {
+    if (Boolean(props.selectedHeaderId)) {
       props.dispatch({
         type: ActionType.InitiateItemCreate,
-        headerId: props.selectedHeader.id,
+        headerId: props.selectedHeaderId,
         index,
       });
     } else {
@@ -75,6 +74,7 @@ function getInsertIndex(view: HTMLElement) {
 
   const items = view.querySelectorAll<HTMLLIElement>('.list-container > li');
 
+  // console.log('VIEW', view.clientHeight, view.scrollTop);
   // console.log('CENTER', centerY);
   // console.log('--------------------------');
 

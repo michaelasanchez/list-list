@@ -31,12 +31,7 @@ public class ExceptionHandler
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
 
-            var result = new
-            {
-                error = message
-            };
-
-            await context.Response.WriteAsJsonAsync(result);
+            await context.Response.WriteAsync(message);
         }
     }
 }

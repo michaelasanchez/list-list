@@ -4,7 +4,7 @@ import { AppState } from '.';
 import { flattenTree, removeChildrenOf } from '../../components';
 import { FlattenedItem } from '../../components/tree/types';
 import { ApiHeader, ApiItem, ApiListItemCreation } from '../../contracts';
-import { ListItemMapper, Temp } from '../../mappers';
+import { ListItemMapper, TreeMapper } from '../../mappers';
 import { Item } from '../../models';
 
 export enum AppStateActionType {
@@ -49,7 +49,7 @@ export interface AppStateAction {
 }
 
 function getFlattenedItems(items: Item[], expanded: string[]): FlattenedItem[] {
-  const tree = Temp.buildTreeFromItems(items, expanded);
+  const tree = TreeMapper.buildTreeFromItems(items, expanded);
 
   const flattenedTree = flattenTree(tree);
   const collapsedItems = flattenedTree.reduce<UniqueIdentifier[]>(
