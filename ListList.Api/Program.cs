@@ -2,6 +2,7 @@ using Auth;
 using ListList.Api.Guards;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Mappers.Profiles;
+using ListList.Api.Middleware;
 using ListList.Api.Services;
 using ListList.Api.Services.Interfaces;
 using ListList.Data;
@@ -84,6 +85,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Middleware
+app.UseMiddleware<ExceptionHandler>();
+
 // HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -95,9 +99,8 @@ app.UseHttpsRedirection();
 
 app.UseCors();
 
-app.UseAuthorization();
-
 app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

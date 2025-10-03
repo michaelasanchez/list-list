@@ -12,16 +12,7 @@ public class UserController(IUserService _userService) : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<Token?>> Login(AuthorizationCode authorizationCode)
     {
-        Token? token;
-
-        try
-        {
-            token = await _userService.LoginAsync(authorizationCode.Code);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var token = await _userService.LoginAsync(authorizationCode.Code);
 
         return Ok(token);
     }
@@ -29,17 +20,7 @@ public class UserController(IUserService _userService) : ControllerBase
     [HttpPost("refresh")]
     public async Task<ActionResult<Token?>> Refresh(RefreshToken refreshToken)
     {
-        Token? token;
-
-        try
-        {
-            token = await _userService.RefreshAsync(refreshToken.Token);
-        }
-        catch (Exception ex)
-        {
-
-            return BadRequest(ex.Message);
-        }
+        var token = await _userService.RefreshAsync(refreshToken.Token);
 
         return Ok(token);
     }

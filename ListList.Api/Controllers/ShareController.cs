@@ -13,14 +13,7 @@ public class ShareController(IShareService service) : Controller
     [HttpDelete("{shareLinkId}")]
     public async Task<IActionResult> DeleteLink([FromRoute] Guid shareLinkId)
     {
-        try
-        {
-            await service.DeleteLink(shareLinkId);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await service.DeleteLink(shareLinkId);
 
         return Ok();
     }
@@ -28,14 +21,7 @@ public class ShareController(IShareService service) : Controller
     [HttpPut("{shareLinkId}")]
     public async Task<IActionResult> PutLink([FromRoute] Guid shareLinkId, [FromBody] ShareLinkPut patch)
     {
-        try
-        {
-            await service.PutLink(shareLinkId, patch);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await service.PutLink(shareLinkId, patch);
 
         return Ok();
     }
@@ -43,19 +29,10 @@ public class ShareController(IShareService service) : Controller
     [HttpPost("{listHeaderId}")]
     public async Task<IActionResult> ShareHeader([FromRoute] Guid listHeaderId, HeaderShare listHeaderShare)
     {
-        ShareResult? result;
-
-        try
+        var result = new ShareResult
         {
-            result = new ShareResult
-            {
-                Path = await service.ShareHeader(listHeaderId, listHeaderShare)
-            };
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+            Path = await service.ShareHeader(listHeaderId, listHeaderShare)
+        };
 
         return Ok(result);
     }

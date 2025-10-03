@@ -14,16 +14,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpPost]
     public async Task<ActionResult<Guid>> CreateHeader(HeaderCreation headerCreation)
     {
-        Guid id;
-
-        try
-        {
-            id = await _service.CreateHeader(headerCreation, headerCreation.Order);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var id = await _service.CreateHeader(headerCreation, headerCreation.Order);
 
         return Ok(id);
     }
@@ -31,16 +22,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpPost("{headerId}")]
     public async Task<ActionResult<Guid>> CreateItem(Guid headerId, ItemCreation itemCreation)
     {
-        Guid id;
-
-        try
-        {
-            id = await _service.CreateItem(headerId, itemCreation);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var id = await _service.CreateItem(headerId, itemCreation);
 
         return Ok(id);
     }
@@ -48,14 +30,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpDelete("{headerId}")]
     public async Task<ActionResult> DeleteHeader(Guid headerId)
     {
-        try
-        {
-            await _service.DeleteHeader(headerId);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _service.DeleteHeader(headerId);
 
         return Ok();
     }
@@ -63,16 +38,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpGet("{headerId}")]
     public async Task<ActionResult<Header>> GetListHeaderAsync(string headerId)
     {
-        Header listHeader;
-
-        try
-        {
-            listHeader = await _service.GetHeader(headerId);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var listHeader = await _service.GetHeader(headerId);
 
         return Ok(listHeader);
     }
@@ -80,16 +46,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Header>>> GetListHeadersAsync()
     {
-        IEnumerable<Header> listHeaders;
-
-        try
-        {
-            listHeaders = await _service.GetHeaders();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var listHeaders = await _service.GetHeaders();
 
         return Ok(listHeaders);
     }
@@ -97,14 +54,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpPatch("{headerId}")]
     public async Task<ActionResult<Header>> PatchHeader(Guid headerId, HeaderPatch headerPatch)
     {
-        try
-        {
-            await _service.PatchHeader(headerId, headerPatch);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _service.PatchHeader(headerId, headerPatch);
 
         return Ok();
     }
@@ -112,14 +62,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpPut("{headerId}")]
     public async Task<ActionResult> PutListHeader(Guid headerId, HeaderPut headerPut)
     {
-        try
-        {
-            await _service.PutHeader(headerId, headerPut);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _service.PutHeader(headerId, headerPut);
 
         return Ok();
     }
@@ -127,14 +70,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpPost("{headerId}/relocate")]
     public async Task<ActionResult> RelocateListHeaderAsync(Guid headerId, HeaderRelocation listHeaderRelocation)
     {
-        try
-        {
-            await _service.RelocateHeader(headerId, listHeaderRelocation.Order);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _service.RelocateHeader(headerId, listHeaderRelocation.Order);
 
         return Ok();
     }
@@ -142,14 +78,7 @@ public class HeaderController(IHeaderService _service) : Controller
     [HttpPost("{headerId}/restore")]
     public async Task<ActionResult> RestoreListHeaderAsync(Guid headerId, HeaderRestoral? headerRestoral)
     {
-        try
-        {
-            await _service.RestoreHeader(headerId, headerRestoral?.Order);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _service.RestoreHeader(headerId, headerRestoral?.Order);
 
         return Ok();
     }
