@@ -27,16 +27,22 @@ export function useLongPress(
     [callback, onStart, threshold]
   );
 
-  const clear = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (isLongPressing) {
-      onFinish?.();
-      setIsLongPressing(false);
-    }
-  }, [isLongPressing, onFinish]);
+  const clear = useCallback(
+    (event: React.MouseEvent | React.TouchEvent) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (isLongPressing) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        onFinish?.();
+        setIsLongPressing(false);
+      }
+    },
+    [isLongPressing, onFinish]
+  );
 
   useEffect(() => {
     return () => {

@@ -6,7 +6,6 @@ export interface AppState {
   loading: boolean;
   expanded: string[];
   tokens: { [headerId: string]: string[] };
-  previousHeaderId?: string;
   headers?: Header[];
   headerCreation?: ApiListItemCreation;
 }

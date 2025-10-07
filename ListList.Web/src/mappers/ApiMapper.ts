@@ -14,7 +14,10 @@ const mapItems = (items: ApiItem[], expanded: string[]): Item[] =>
 
 const mapShareLinks = (links: ApiShareLink[]): ShareLink[] => links ?? [];
 
-const mapHeader = (header: ApiHeader, expanded: string[]): Header => ({
+const mapHeader = (
+  header: ApiHeader,
+  expanded: string[]
+): Header => ({
   id: header.id,
   tokens: !!header.token ? [header.token] : null,
   isChecklist: header.checklist,

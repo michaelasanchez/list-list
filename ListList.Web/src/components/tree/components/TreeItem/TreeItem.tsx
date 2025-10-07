@@ -6,7 +6,6 @@ import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
 import { Badge, Spinner } from 'react-bootstrap';
-import { useLongPress } from '../../../../hooks';
 import { Succeeded } from '../../../../network';
 import { DateUtils } from '../../../../shared';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
@@ -74,7 +73,8 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
     ref
   ) => {
     const [checkLoading, setCheckLoading] = React.useState<boolean>(false);
-    const longPressEvents = useLongPress(onSelect);
+    // const longPressEvents = useLongPress(onSelect);
+    // const
 
     return (
       <li
@@ -96,7 +96,8 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
           } as React.CSSProperties
         }
         {...props}
-        {...longPressEvents}
+        onDoubleClickCapture={onSelect}
+        // {...longPressEvents}
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />

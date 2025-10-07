@@ -1,23 +1,21 @@
 import React from 'react';
 import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
 import { ApiHeaderPatch } from '../../contracts';
-import { Header } from '../../models';
-import { SortableTreeHooks } from '../tree/SortableTree';
 import { SelectedNode } from '../../views/app/App';
+import { SortableTreeHooks } from '../tree/SortableTree';
 
-export interface SelectedHeaderProps {
-  token: string;
-  header: SelectedNode;
+export interface DetailsHeaderProps {
+  node: SelectedNode;
   listeners?: SortableTreeHooks;
   onBack?: () => void;
   onShare?: () => void;
   onPatch?: (patch: ApiHeaderPatch) => void;
 }
 
-export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
+export const DetailsHeader: React.FC<DetailsHeaderProps> = (props) => {
   const headerActions = React.useMemo(
     () =>
-      !Boolean(props.header) || props.header.isReadonly ? (
+      !Boolean(props.node) || props.node.isReadonly ? (
         <></>
       ) : (
         <>
@@ -30,8 +28,8 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
           <ActionDropdown
             size="sm"
             actionGroups={props.listeners?.actions?.({
-              id: props.header.id,
-              checklist: props.header.isChecklist,
+              id: props.node.id,
+              checklist: props.node.isChecklist,
             })}
           />
           <IconButton
@@ -41,19 +39,19 @@ export const SelectedHeader: React.FC<SelectedHeaderProps> = (props) => {
           />
         </>
       ),
-    [props.header]
+    [props.node]
   );
 
   return (
     <div className="selected-header">
       <div className="content">
         <LabelAndDescriptionEditor
-          name={props.header?.id ?? 'no-header-selected'}
-          label={props.header?.label ?? ''}
-          description={props.header?.description ?? ''}
-          disabled={!Boolean(props.header)}
+          name={props.node?.id ?? 'no-header-selected'}
+          label={props.node?.label ?? ''}
+          description={props.node?.description ?? ''}
+          disabled={!Boolean(props.node)}
           onUpdate={(update) =>
-            props.listeners?.onUpdate(props.header.id, update)
+            props.listeners?.onUpdate(props.node.id, update)
           }
         />
       </div>
