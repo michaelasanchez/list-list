@@ -12,7 +12,6 @@ export * from './LabelAndDescriptionEditor';
 export * from './LabelEditor';
 export * from './ListNodeCreation';
 export * from './modal';
-export * from './selected-header';
 export * from './share-modal';
 export * from './tree/components';
 export * from './tree/components/TreeItem';

@@ -70,9 +70,11 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
 };
 
 function getInsertIndex(view: HTMLElement) {
+  console.log('VIEW', view?.scrollTop, view?.clientHeight);
+
   const centerY = view.scrollTop + view.clientHeight / 2;
 
-  const items = view.querySelectorAll<HTMLLIElement>('.list-container > li');
+  const items = view.querySelectorAll<HTMLLIElement>('li');
 
   // console.log('VIEW', view.clientHeight, view.scrollTop);
   // console.log('CENTER', centerY);

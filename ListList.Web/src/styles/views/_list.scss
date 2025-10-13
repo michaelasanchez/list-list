@@ -1,33 +1,31 @@
-.list-view {
-  .selected-header {
-    display: flex;
-    justify-content: space-between;
+.selected-header {
+  display: flex;
+  justify-content: space-between;
 
-    position: sticky;
-    top: 0;
-    z-index: 1;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 
-    padding: 1rem 0 0.5rem;
-    margin: -1rem 0 0;
+  padding: 1rem 0 0.5rem;
+  margin: -1rem 0 0;
 
-    background: var(--bs-body-bg);
+  background: var(--bs-body-bg);
 
-    .content {
-      .label-editor {
-        &.label {
-          font-size: 2rem;
-        }
+  .content {
+    .label-editor {
+      &.label {
+        font-size: 2rem;
+      }
 
-        &.description {
-          font-size: 1rem;
-        }
+      &.description {
+        font-size: 1rem;
       }
     }
+  }
 
-    .actions {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
   }
 }

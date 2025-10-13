@@ -1,4 +1,4 @@
-import classNames from 'classnames';
+import cn from 'classnames';
 import { forwardRef, HTMLAttributes } from 'react';
 
 import { Action, Handle, Remove } from '../../../Item';
@@ -19,7 +19,8 @@ export interface Hooks {
   onUpdate?: (update: ItemUpdate) => Promise<Succeeded>;
 }
 
-export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
+export interface TreeItemProps
+  extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   checkbox?: boolean;
   childCount?: number;
   clone?: boolean;
@@ -44,7 +45,7 @@ export interface Props extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
   wrapperRef?(node: HTMLLIElement): void;
 }
 
-export const TreeItem = forwardRef<HTMLDivElement, Props>(
+export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
   (
     {
       childCount,
@@ -78,7 +79,7 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
 
     return (
       <li
-        className={classNames(
+        className={cn(
           styles.Wrapper,
           clone && styles.clone,
           ghost && styles.ghost,
@@ -96,7 +97,12 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
           } as React.CSSProperties
         }
         {...props}
-        onDoubleClickCapture={onSelect}
+        onDoubleClickCapture={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          onSelect?.();
+        }}
         // {...longPressEvents}
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
@@ -147,11 +153,11 @@ export const TreeItem = forwardRef<HTMLDivElement, Props>(
             )}
             {onCollapse ? (
               <Action
-                onClick={onCollapse}
-                className={classNames(
-                  styles.Collapse,
-                  collapsed && styles.collapsed
-                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCollapse?.();
+                }}
+                className={cn(styles.Collapse, collapsed && styles.collapsed)}
               >
                 <Icon type="collapsed" size={20} />
               </Action>

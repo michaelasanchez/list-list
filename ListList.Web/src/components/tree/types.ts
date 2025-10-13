@@ -14,7 +14,7 @@ export interface TreeItem {
   id: UniqueIdentifier;
   children: TreeItem[];
   collapsed?: boolean;
-  path?: number[];
+  // path?: number[];
   pending?: boolean;
   data: TreeItemData;
 }

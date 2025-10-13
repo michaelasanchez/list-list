@@ -86,7 +86,7 @@ export interface SortableTreeHooks {
   actions?: (props: ActionsProps) => DropdownAction[][];
   onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
   onClick?: (id: UniqueIdentifier) => void;
-  // onCreate?: (label: string, description: string) => Promise<Succeeded>;
+  onCollapse?: (id: UniqueIdentifier) => void;
   onCreate?: (
     label: string,
     description: string,
@@ -107,7 +107,7 @@ export interface SortableTreeHooks {
   onUpdate?: (id: UniqueIdentifier, update: ItemUpdate) => Promise<Succeeded>;
 }
 
-interface Props {
+export interface Props {
   checklist?: boolean;
   collapsible?: boolean;
   defaultItems: TreeItems;
@@ -389,16 +389,18 @@ export function SortableTree({
   async function handleRemove(id: UniqueIdentifier) {
     const index = flattenedItems.findIndex((i) => i.id == id);
 
-    setItems((items) => removeItem(items, id));
-
     await hooks.onDelete(
       id,
       flattenedItems[index + 1]?.id,
       flattenedItems[index]?.parentId
     );
+
+    // setItems((items) => removeItem(items, id));
   }
 
   function handleCollapse(id: UniqueIdentifier) {
+    hooks.onCollapse?.(id);
+
     setItems((items) =>
       setProperty(items, id, 'collapsed', (value) => {
         return !value;

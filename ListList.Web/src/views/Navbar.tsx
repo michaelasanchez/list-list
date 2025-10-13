@@ -13,8 +13,8 @@ import { AppTheme, strings } from '../shared';
 
 interface NavbarProps {
   authState: AuthState;
-  theme: AppTheme;
   syncing: boolean;
+  theme: AppTheme;
   onSetTheme: (theme: AppTheme) => void;
 }
 

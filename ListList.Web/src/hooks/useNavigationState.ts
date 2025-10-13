@@ -1,10 +1,11 @@
 import React from 'react';
-import { useLocation, useRoute } from 'wouter';
+import { useLocation, useRoute, useSearch } from 'wouter';
 
 interface NavigationState {
   current: RouteParameters;
   previous: RouteParameters;
   queryParams: Record<string, string>;
+  // TODO: it would be nice to reign this in a bit
   navigate: (to: string) => void;
   setQueryParams: (patch: Record<string, string | null>) => void;
 }
@@ -19,6 +20,8 @@ export function useNavigationState(): NavigationState | null {
 
   const [location, navigate] = useLocation();
 
+  const searchString = useSearch();
+
   const previous = React.useRef<RouteParameters>({});
 
   // Track previous route parameters
@@ -32,18 +35,19 @@ export function useNavigationState(): NavigationState | null {
   // Parse query parameters
   const queryParams = React.useMemo(() => {
     const paramsObj: Record<string, string> = {};
-    const searchParams = new URLSearchParams(location.split('?')[1] || '');
+    const searchParams = new URLSearchParams(searchString);
+
     for (const [key, value] of searchParams.entries()) {
       paramsObj[key] = value;
     }
 
     return paramsObj;
-  }, [location]);
+  }, [searchString]);
 
   // Function to update query parameters
   const setQueryParams = React.useCallback(
-    (patch: Record<string, string | null>) => {
-      const searchParams = new URLSearchParams(location.split('?')[1] || '');
+    (patch: Record<string, string | null>, replace = true) => {
+      const searchParams = new URLSearchParams(window.location.search);
 
       for (const [key, value] of Object.entries(patch)) {
         if (value == null) searchParams.delete(key);
@@ -51,12 +55,13 @@ export function useNavigationState(): NavigationState | null {
       }
 
       const basePath = location.split('?')[0];
-      const newSearch = searchParams.toString();
-      const newUrl = `${basePath}${newSearch ? '?' + newSearch : ''}`;
+      const newUrl = `${basePath}${
+        searchParams.toString() ? '?' + searchParams.toString() : ''
+      }`;
 
-      navigate(newUrl);
+      navigate(newUrl, { replace });
     },
-    [location, navigate]
+    [location, searchString, navigate]
   );
 
   // Compute derived state

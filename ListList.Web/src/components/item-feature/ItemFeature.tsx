@@ -1,21 +1,21 @@
 import React from 'react';
 import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
 import { ApiHeaderPatch } from '../../contracts';
-import { SelectedNode } from '../../views/app/App';
 import { SortableTreeHooks } from '../tree/SortableTree';
+import { Featured } from '../../views/app/App';
 
-export interface DetailsHeaderProps {
-  node: SelectedNode;
-  listeners?: SortableTreeHooks;
+export interface ItemFeatureProps {
+  node: Featured;
+  hooks?: SortableTreeHooks;
   onBack?: () => void;
   onShare?: () => void;
   onPatch?: (patch: ApiHeaderPatch) => void;
 }
 
-export const DetailsHeader: React.FC<DetailsHeaderProps> = (props) => {
+export const ItemFeature: React.FC<ItemFeatureProps> = (props) => {
   const headerActions = React.useMemo(
     () =>
-      !Boolean(props.node) || props.node.isReadonly ? (
+      !Boolean(props.node) || props.node.readonly ? (
         <></>
       ) : (
         <>
@@ -27,9 +27,9 @@ export const DetailsHeader: React.FC<DetailsHeaderProps> = (props) => {
           />
           <ActionDropdown
             size="sm"
-            actionGroups={props.listeners?.actions?.({
+            actionGroups={props.hooks?.actions?.({
               id: props.node.id,
-              checklist: props.node.isChecklist,
+              checklist: props.node.checklist,
             })}
           />
           <IconButton
@@ -50,9 +50,7 @@ export const DetailsHeader: React.FC<DetailsHeaderProps> = (props) => {
           label={props.node?.label ?? ''}
           description={props.node?.description ?? ''}
           disabled={!Boolean(props.node)}
-          onUpdate={(update) =>
-            props.listeners?.onUpdate(props.node.id, update)
-          }
+          onUpdate={(update) => props.hooks?.onUpdate(props.node.id, update)}
         />
       </div>
       <div className="actions">{headerActions}</div>

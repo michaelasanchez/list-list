@@ -1,4 +1,5 @@
 @use 'vars';
+@use 'global';
 
 @use 'components/navbar';
 @use 'components/label-and-description-editor';
@@ -9,6 +10,5 @@
 
 @use 'components/tree';
 
-@use 'views/app';
 @use 'views/header';
 @use 'views/list';

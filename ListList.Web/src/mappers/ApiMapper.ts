@@ -20,8 +20,8 @@ const mapHeader = (
 ): Header => ({
   id: header.id,
   tokens: !!header.token ? [header.token] : null,
-  isChecklist: header.checklist,
-  isReadonly: header.readonly,
+  checklist: header.checklist,
+  readonly: header.readonly,
   label: header.label,
   description: header.description,
   order: header.order,

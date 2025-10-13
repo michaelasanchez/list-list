@@ -1,8 +1,10 @@
-.ListView {
-  .NotFound {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2em;
-  }
+.ListContainer {
+  --item-gap: 1em;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--item-gap);
+
+  padding-top: var(--item-gap);
+  padding-bottom: 6em;
 }

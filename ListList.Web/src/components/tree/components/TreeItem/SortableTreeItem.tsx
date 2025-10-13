@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { CSSProperties } from 'react';
 
 import { iOS } from '../../utilities';
-import { TreeItem, Props as TreeItemProps } from './TreeItem';
+import { TreeItem, TreeItemProps as TreeItemProps } from './TreeItem';
 
 interface Props extends TreeItemProps {
   id: UniqueIdentifier;

@@ -1,0 +1,19 @@
+html,
+body,
+#app {
+  height: 100%;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+
+  main {
+    display: flex;
+    flex-direction: column;
+    
+    flex: 1;
+
+    overflow: hidden;
+  }
+}

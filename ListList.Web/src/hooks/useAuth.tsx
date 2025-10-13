@@ -9,7 +9,9 @@ const VERBOSE = true;
 
 const debug = (message: string, obj?: any) =>
   DEBUG &&
-  (Boolean(obj) && VERBOSE ? console.log(message, obj) : console.log(message));
+  (Boolean(obj) && VERBOSE
+    ? console.log(`${new Date().toISOString()}\n${message}`, obj)
+    : console.log(message));
 
 declare global {
   interface Window {

@@ -13,7 +13,7 @@ export enum AppStateActionType {
   CancelItemCreate,
   CancelItemDelete,
   // DeselectHeader,
-  FinalizeHeaderCreate,
+  // FinalizeHeaderCreate,
   FinalizeHeaderDelete,
   FinalizeItemCreate,
   FinalizeItemDelete,
@@ -85,9 +85,10 @@ export const AppStateReducer = (
 
       return { ...rest };
     }
-    case AppStateActionType.FinalizeHeaderCreate: {
-      return { ...state, headers: state.headers.filter((h) => !h.pending) };
-    }
+    // Found this to be the culprit in an animation stutter
+    // case AppStateActionType.FinalizeHeaderCreate: {
+    //   return { ...state, headers: state.headers.filter((h) => !h.pending) };
+    // }
     case AppStateActionType.FinalizeItemCreate: {
       return {
         ...state,
@@ -117,8 +118,8 @@ export const AppStateReducer = (
       const pendingHeader = {
         id: newNodeId,
         order: state.headers.length,
-        isChecklist: false,
-        isReadonly: false,
+        checklist: false,
+        readonly: false,
         label: '',
         description: '',
         items: [],
