@@ -1,8 +1,8 @@
 import React from 'react';
 import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
 import { ApiHeaderPatch } from '../../contracts';
-import { SortableTreeHooks } from '../tree/SortableTree';
 import { Featured } from '../../views/app/App';
+import { SortableTreeHooks } from '../tree/SortableTree';
 
 export interface ItemFeatureProps {
   node: Featured;
@@ -48,7 +48,8 @@ export const ItemFeature: React.FC<ItemFeatureProps> = (props) => {
         <LabelAndDescriptionEditor
           name={props.node?.id ?? 'no-header-selected'}
           label={props.node?.label ?? ''}
-          description={props.node?.description ?? ''}
+          description={props.node?.description}
+          placeholderDescription="Add note"
           disabled={!Boolean(props.node)}
           onUpdate={(update) => props.hooks?.onUpdate(props.node.id, update)}
         />

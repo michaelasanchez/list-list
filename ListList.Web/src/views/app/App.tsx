@@ -10,7 +10,14 @@ import {
   AppStateReducer,
   newNodeId,
 } from '.';
-import { DropdownAction, MinimumLink, ShareModal } from '../../components';
+import {
+  Breadcrumbs,
+  DropdownAction,
+  mapToLink,
+  MinimumLink,
+  PathItem,
+  ShareModal,
+} from '../../components';
 import { ItemFeature } from '../../components/item-feature';
 import { SlideTransition } from '../../components/slide-transition';
 import {
@@ -61,11 +68,13 @@ export type Featured = Pick<
 > | null;
 
 export interface ViewModel {
-  key: string;
+  renderKey: string;
   headerId: string;
+  selectedId?: string;
   featured: Featured;
   depth: number;
   items: TreeItems;
+  path?: PathItem[];
   treeProps?: Partial<SortableTreeProps>;
 }
 
@@ -223,27 +232,6 @@ export const App: React.FC = () => {
     }
   }, [current, state.syncing]);
 
-  // const display = React.useMemo(() => {
-  //   if (Boolean(selected.root)) {
-  //     return selected;
-  //   }
-
-  //   const index = findIndex(
-  //     state.headers,
-  //     (h) =>
-  //       h.id == navState.previous.token ||
-  //       h.tokens?.includes(navState.previous.token)
-  //   );
-
-  //   const root = index >= 0 ? state.headers[index] : null;
-  //   const headerId = Boolean(root) ? root.id : null;
-  //   const items = Boolean(root)
-  //     ? TreeMapper.buildTreeFromItems(root.items, state.expanded)
-  //     : [];
-
-  //   return { headerId, root, items };
-  // }, [selected, navState.previous.token]);
-
   const headerHooks = React.useMemo<Hooks>(
     (): Hooks | null => ({
       actions: ({
@@ -299,7 +287,7 @@ export const App: React.FC = () => {
           ],
         ];
       },
-      onClick: (headerId: string) => navigate(headerId),
+      onClick: (headerId: string) => navigate(`/${headerId}`),
       onCreate: async (label: string, description: string, overId: string) => {
         const order = state.headers.findIndex((h) => h.id == overId) - 1;
 
@@ -394,7 +382,7 @@ export const App: React.FC = () => {
     [current]
   );
 
-  const viewRef = React.useRef<HTMLDivElement>(null);
+  const mainRef = React.useRef<HTMLDivElement>(null);
 
   return (
     <Router>
@@ -404,16 +392,25 @@ export const App: React.FC = () => {
         theme={themeState.current}
         onSetTheme={themeState.setTheme}
       />
-      <main>
+      <main ref={mainRef}>
         <SlideTransition
           current={current}
           render={(vm) => (
-            <Container className={cn(styles.ListContainer)} ref={viewRef}>
-              {vm.featured && (
+            <Container className={cn(styles.ListContainer)}>
+              {Boolean(vm.path) && (
+                <Breadcrumbs path={vm.path} navigate={navigate} />
+              )}
+              {Boolean(vm.featured) && (
                 <ItemFeature
                   node={vm.featured}
                   hooks={headerHooks}
-                  onBack={() => window.history.back()}
+                  onBack={() =>
+                    navigate(
+                      Boolean(vm.path)
+                        ? mapToLink(vm.path[vm.path.length - 1])
+                        : '/'
+                    )
+                  }
                   onPatch={(patch) =>
                     // TODO: is this the same as what is on hooks.onUpdate?
                     //          ANSWER: no.... :'(
@@ -436,8 +433,9 @@ export const App: React.FC = () => {
       </main>
 
       <FloatingUi
-        selectedHeaderId={current?.headerId}
-        viewRef={viewRef}
+        headerId={current?.headerId}
+        selectedId={current?.selectedId}
+        viewRef={mainRef}
         dispatch={dispatch}
         showAlert={showAlert}
       />
@@ -539,7 +537,7 @@ function getViewModel(
     );
 
     return {
-      key: '__root__key__',
+      renderKey: '__root__key__',
       depth: 0,
       headerId: null,
       featured: null,
@@ -547,7 +545,7 @@ function getViewModel(
     };
   }
 
-  const sharedProps = {
+  const treeProps = {
     collapsible: true,
     indicator: true,
     removable: true,
@@ -569,12 +567,12 @@ function getViewModel(
     const items = TreeMapper.buildTreeFromItems(header.items, expanded);
 
     return {
-      key: headerId,
+      renderKey: headerId,
       depth: 1,
       headerId,
       featured,
       items,
-      treeProps: sharedProps,
+      treeProps,
     };
   }
 
@@ -596,12 +594,21 @@ function getViewModel(
     shareLinks: header.shareLinks,
   };
 
+  const path = [
+    { headerId: header.id, label: header.label },
+    ...treeResult.path.map((p) => ({ ...p, headerId: header.id })),
+  ];
+
+  path.pop();
+
   return {
-    key: selected.id,
+    renderKey: selected.id,
     depth: selected.depth + 2,
     headerId: header.id,
+    selectedId: selected.id,
     featured,
     items: treeResult.items,
-    treeProps: sharedProps,
+    path,
+    treeProps: treeProps,
   };
 }

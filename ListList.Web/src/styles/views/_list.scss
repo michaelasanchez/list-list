@@ -6,8 +6,10 @@
   top: 0;
   z-index: 1;
 
-  padding: 1rem 0 0.5rem;
-  margin: -1rem 0 0;
+  // provides visual buffer between feature & list
+  --buffer: 0.5em;
+  padding: 0 0 var(--buffer);
+  margin: 0 0 -var(--buffer);
 
   background: var(--bs-body-bg);
 

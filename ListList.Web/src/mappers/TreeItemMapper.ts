@@ -1,4 +1,5 @@
 import { UniqueIdentifier } from '@dnd-kit/core';
+import { PathItem } from '../components';
 import { TreeItem, TreeItems } from '../components/tree/types';
 import { Header, Item } from '../models';
 
@@ -6,27 +7,16 @@ interface TreeItemWithParentId extends TreeItem {
   parentId: string;
 }
 
-export interface PathItem {
-  id: UniqueIdentifier;
-  label: string;
-}
-
-// function assignPaths(nodes: TreeItems, parentPath: number[] = []) {
-//   nodes.forEach((node, idx) => {
-//     node.path = [...parentPath, idx];
-//     if (node.children?.length) {
-//       assignPaths(node.children, node.path);
-//     }
-//   });
-// }
-
 function findById(
   tree: TreeItems,
   id: UniqueIdentifier
 ): { item: TreeItem; path: PathItem[] } | null {
   for (const node of tree) {
     if (node.id === id) {
-      return { item: node, path: [{ id: node.id, label: node.data.label }] };
+      return {
+        item: node,
+        path: [{ selectedId: node.id, label: node.data.label }],
+      };
     }
 
     if (node.children?.length) {
@@ -34,7 +24,10 @@ function findById(
       if (result) {
         return {
           item: result.item,
-          path: [{ id: node.id, label: node.data.label }, ...result.path],
+          path: [
+            { selectedId: node.id, label: node.data.label },
+            ...result.path,
+          ],
         };
       }
     }

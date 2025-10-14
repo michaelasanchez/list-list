@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as styles from './SlideTransition.module.scss';
 
 interface ViewParams {
-  key: string;
+  renderKey: string;
   depth: number;
 }
 
@@ -13,7 +13,7 @@ interface SlideTransitionProps<T extends ViewParams> {
 }
 
 interface RenderedView {
-  key: string;
+  renderKey: string;
   view: React.ReactNode;
 }
 
@@ -27,10 +27,12 @@ export function SlideTransition<T extends ViewParams>({
   }>({
     prev: null,
     current:
-      current && render ? { key: current.key, view: render(current) } : null,
+      current && render
+        ? { renderKey: current.renderKey, view: render(current) }
+        : null,
   });
 
-  const prevParams = useRef<{ key: string; depth: number } | null>(null);
+  const prevParams = useRef<ViewParams | null>(null);
 
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const [animating, setAnimating] = useState(false);
@@ -38,9 +40,14 @@ export function SlideTransition<T extends ViewParams>({
   // Re-render (and detect change)
   useEffect(() => {
     const rendered =
-      current && render ? { key: current.key, view: render(current) } : null;
+      current && render
+        ? { renderKey: current.renderKey, view: render(current) }
+        : null;
 
-    if (prevParams.current !== null && prevParams.current.key !== current.key) {
+    if (
+      prevParams.current !== null &&
+      prevParams.current.renderKey !== current.renderKey
+    ) {
       const newDirection =
         current.depth > prevParams.current.depth ? 'left' : 'right';
 
@@ -86,7 +93,7 @@ export function SlideTransition<T extends ViewParams>({
     >
       {displayed.prev && (
         <div
-          key={displayed.prev.key}
+          key={displayed.prev.renderKey}
           className={cn(styles.SlideView, styles.prev)}
           onTransitionEnd={handleTransitionEnd}
         >
@@ -94,7 +101,7 @@ export function SlideTransition<T extends ViewParams>({
         </div>
       )}
       <div
-        key={displayed.current.key}
+        key={displayed.current.renderKey}
         className={cn(styles.SlideView, styles.current)}
       >
         {displayed.current.view}
