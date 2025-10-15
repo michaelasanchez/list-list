@@ -1,7 +1,8 @@
 import classNames from 'classnames';
 import React, { ActionDispatch } from 'react';
-import { IconButton } from '../../components';
+import { flattenTree, IconButton } from '../../components';
 import * as transitionStyles from '../../components/slide-transition/SlideTransition.module.scss';
+import { TreeItems } from '../../components/tree/types';
 import { AlertCreation } from '../../hooks';
 import { AppStateActionType as ActionType, AppStateAction } from '../app';
 import * as styles from './FloatingUi.module.scss';
@@ -15,7 +16,8 @@ export enum UiMode {
 interface FloatingUiProps {
   headerId: string;
   selectedId: string;
-  viewRef: React.RefObject<HTMLDivElement>;
+  items: TreeItems;
+  containerRef: React.RefObject<HTMLDivElement>;
   dispatch: ActionDispatch<[action: AppStateAction]>;
   showAlert: (creation: AlertCreation) => void;
 }
@@ -32,19 +34,22 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
   const mode = React.useMemo(() => calcUiMode(props), [props.headerId]);
 
   const handleCreate = () => {
-    console.log('UHHHH', props.viewRef);
-    const index = getInsertIndex(props.viewRef.current);
+    const insertIndex = getInsertIndex(props.containerRef.current);
+
+    const flattenedItems = flattenTree(props.items);
+
+    const itemId = flattenedItems[insertIndex].id as string;
 
     if (Boolean(props.headerId)) {
       props.dispatch({
         type: ActionType.InitiateItemCreate,
         headerId: props.headerId,
-        index,
+        itemId,
       });
-    } else {
+    } else if (insertIndex !== null) {
       props.dispatch({
         type: ActionType.InitiateHeaderCreate,
-        index,
+        index: insertIndex,
       });
     }
   };
@@ -73,35 +78,24 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
 };
 
 function getInsertIndex(view: HTMLElement) {
-  console.log('VIEW', view?.scrollTop, view?.clientHeight);
+  if (!Boolean(view)) return null;
 
   const centerY = view.scrollTop + view.clientHeight / 2;
 
+  // TODO: this is pretty brittle
   const items = view.querySelectorAll<HTMLLIElement>(
-    `${transitionStyles.current} li`
+    `.${transitionStyles.current} li`
   );
-
-  // console.log('VIEW', view.clientHeight, view.scrollTop);
-  // console.log('CENTER', centerY);
-  // console.log('--------------------------');
 
   for (let i = 0; i < items.length; i++) {
     const el = items[i];
     const top = el.offsetTop;
     const bottom = top + el.offsetHeight;
 
-    // console.log(
-    //   top,
-    //   bottom,
-    //   el.querySelector('.label-editor.label span').textContent
-    // );
-
     if (centerY <= bottom || top > centerY) {
-      // console.log(' -> index', i);
       return i;
     }
   }
 
-  // console.log(' -> last', items.length);
-  return items.length;
+  return items.length - 1;
 }

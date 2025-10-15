@@ -435,7 +435,8 @@ export const App: React.FC = () => {
       <FloatingUi
         headerId={current?.headerId}
         selectedId={current?.selectedId}
-        viewRef={mainRef}
+        items={current.items}
+        containerRef={mainRef}
         dispatch={dispatch}
         showAlert={showAlert}
       />

@@ -47,6 +47,7 @@ export interface AppStateAction {
   itemId?: string;
 }
 
+// TODO: UTILITY
 function getFlattenedItems(items: Item[], expanded: string[]): FlattenedItem[] {
   const tree = TreeMapper.buildTreeFromItems(items, expanded);
 
@@ -58,6 +59,34 @@ function getFlattenedItems(items: Item[], expanded: string[]): FlattenedItem[] {
   );
 
   return removeChildrenOf(flattenedTree, collapsedItems);
+}
+
+// TODO: UTILITY
+function getDescendants(items: Item[], targetId) {
+  const byId = new Map(items.map((it) => [it.id, it]));
+
+  // start with the immediate children of target (so target itself isn't included)
+  const startChildren = byId.get(targetId)?.childrenIds || [];
+
+  const visited = new Set();
+  const stack = [...startChildren]; // use stack or queue; order here doesn't matter because we'll preserve original order when filtering
+
+  while (stack.length) {
+    const id = stack.pop();
+    if (!id || visited.has(id)) continue;
+    visited.add(id);
+
+    const node = byId.get(id);
+    if (node && Array.isArray(node.childrenIds) && node.childrenIds.length) {
+      // push children so we discover deeper descendants
+      for (const childId of node.childrenIds) {
+        if (!visited.has(childId)) stack.push(childId);
+      }
+    }
+  }
+
+  // Now filter original items to preserve input ordering, exclude the target itself
+  return items.filter((it) => it.id !== targetId && visited.has(it.id));
 }
 
 export const AppStateReducer = (
@@ -147,28 +176,18 @@ export const AppStateReducer = (
     case AppStateActionType.InitiateItemCreate: {
       const activeHeader = state.headers.find((h) => h.id == action.headerId);
 
-      // TODO: remove this limit?
+      // Remove pending item if exists
+      // (helps when pending item is left in another view)
       if (activeHeader.items.some((i) => i.id == newNodeId)) {
-        // return state;
         activeHeader.items = activeHeader.items.filter(
           (i) => i.id != newNodeId
         );
       }
 
-      const flattenedItems = getFlattenedItems(
-        activeHeader.items,
-        state.expanded
+      const itemIndex = activeHeader.items.findIndex(
+        (i) => i.id == action.itemId
       );
-
-      // console.log(activeHeader, flattenedItems);
-      // console.log('ACTION INDEX', action.index);
-
-      const overId = flattenedItems[action.index]?.id;
-
-      const overIndex = activeHeader.items.findIndex((i) => i.id == overId);
-      const over = activeHeader.items[overIndex];
-
-      // console.log('...OVER', over);
+      const item = activeHeader.items[itemIndex];
 
       const pending = {
         id: newNodeId,
@@ -178,18 +197,19 @@ export const AppStateReducer = (
         completedOn: null,
         left: 0,
         right: 0,
-        depth: over?.depth ?? 0,
+        depth: item?.depth ?? 0,
         index: 0,
         headerId: action.headerId,
         isParent: false,
         childCount: 0,
+        childrenIds: [],
         descendantCount: 0,
         expanded: false,
         pending: true,
-        parentId: over?.parentId as string,
+        parentId: item?.parentId as string,
       };
 
-      activeHeader.items.splice(overIndex, 0, pending);
+      activeHeader.items.splice(itemIndex, 0, pending);
 
       return {
         ...state,

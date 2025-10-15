@@ -26,6 +26,8 @@ const Crumb: React.FC<CrumbProps> = ({ path, onClick }) => (
   </Button>
 );
 
+const Separator: React.FC = () => <span className={styles.Separator}> / </span>;
+
 export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
   const ref = React.useRef<HTMLDivElement>(null);
 
@@ -42,25 +44,10 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
 
   return (
     <div className={cn(styles.Breadcrumbs)} ref={ref}>
-      {props.path
-        .map((p, i) => (
-          <Crumb
-            path={p}
-            key={i}
-            onClick={() => props.navigate(mapToLink(p))}
-          />
-        ))
-        .flatMap((button, i) =>
-          i < props.path.length - 1
-            ? [
-                button,
-                <span key={`sep-${i}`} className={styles.Separator}>
-                  {' '}
-                  /{' '}
-                </span>,
-              ]
-            : [button]
-        )}
+      {props.path.flatMap((p, i) => [
+        <Separator key={`sep-${i}`} />,
+        <Crumb key={i} path={p} onClick={() => props.navigate(mapToLink(p))} />,
+      ])}
     </div>
   );
 };

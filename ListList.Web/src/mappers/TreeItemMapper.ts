@@ -7,6 +7,7 @@ interface TreeItemWithParentId extends TreeItem {
   parentId: string;
 }
 
+// TODO: UTILITY
 function findById(
   tree: TreeItems,
   id: UniqueIdentifier
@@ -72,7 +73,6 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
       collapsed: !expanded?.includes(i.id),
       children: [],
       parentId: i.parentId,
-      // path: [],
       pending: i.pending,
       data: {
         label: i.label,
@@ -100,8 +100,6 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
     }
   });
 
-  // assignPaths(roots);
-
   return roots;
 }
 
@@ -123,4 +121,6 @@ export const TreeMapper = {
   buildTreeFromHeaders,
   buildTreeFromItems,
   buildTreeFromSubItems,
+  // TODO: UTILITY
+  findById
 };

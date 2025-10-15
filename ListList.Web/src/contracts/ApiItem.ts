@@ -14,5 +14,6 @@ export interface ApiItem {
 
   isParent: boolean;
   childCount: number;
+  childrenIds: string[]
   descendantCount: number;
 }
