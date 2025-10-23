@@ -1,8 +1,13 @@
 import React from 'react';
 import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
 import { ApiHeaderPatch } from '../../contracts';
-import { Featured } from '../../views/app/App';
+import { Header } from '../../models';
 import { SortableTreeHooks } from '../tree/SortableTree';
+
+export type Featured = Pick<
+  Header,
+  'id' | 'label' | 'description' | 'checklist' | 'readonly' | 'shareLinks'
+> | null;
 
 export interface ItemFeatureProps {
   node: Featured;

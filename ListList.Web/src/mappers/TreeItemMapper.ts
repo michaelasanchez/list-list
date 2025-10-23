@@ -7,7 +7,13 @@ interface TreeItemWithParentId extends TreeItem {
   parentId: string;
 }
 
-// TODO: UTILITY
+function toPathItem(treeItem: TreeItem): PathItem {
+  return {
+    selectedId: treeItem.id as string,
+    label: treeItem.data.label,
+  };
+}
+
 function findById(
   tree: TreeItems,
   id: UniqueIdentifier
@@ -16,19 +22,17 @@ function findById(
     if (node.id === id) {
       return {
         item: node,
-        path: [{ selectedId: node.id, label: node.data.label }],
+        path: [toPathItem(node)],
       };
     }
 
     if (node.children?.length) {
       const result = findById(node.children, id);
+
       if (result) {
         return {
           item: result.item,
-          path: [
-            { selectedId: node.id, label: node.data.label },
-            ...result.path,
-          ],
+          path: [toPathItem(node), ...result.path],
         };
       }
     }
@@ -122,5 +126,5 @@ export const TreeMapper = {
   buildTreeFromItems,
   buildTreeFromSubItems,
   // TODO: UTILITY
-  findById
+  findById,
 };

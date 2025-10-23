@@ -76,7 +76,7 @@ const updateAlerts = (data: AlertData[], newAlert: AlertData, max: number) => {
 
 export const useAlerts = ({
   max = 3,
-  duration = 10000,
+  duration = 15000,
 }: AlertsOptions = {}): AlertsState => {
   const [alerts, setAlerts] = React.useState<AlertData[]>([]);
 

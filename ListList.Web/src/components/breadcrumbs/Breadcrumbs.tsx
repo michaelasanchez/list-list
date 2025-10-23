@@ -1,18 +1,19 @@
-import { UniqueIdentifier } from '@dnd-kit/core';
 import cn from 'classnames';
 import React from 'react';
 import { Button } from 'react-bootstrap';
+import { Icon } from '../icon';
 import * as styles from './Breadcrumbs.module.scss';
 
 export interface PathItem {
-  headerId?: UniqueIdentifier;
-  selectedId?: UniqueIdentifier;
-  label: string;
+  headerId?: string;
+  selectedId?: string;
+  label?: string;
+  icon?: never;
 }
 
 export interface BreadcrumbsProps {
   path: PathItem[];
-  navigate: (to: string) => void;
+  navigate: (token?: string, selectedId?: string) => void;
 }
 
 interface CrumbProps {
@@ -23,6 +24,7 @@ interface CrumbProps {
 const Crumb: React.FC<CrumbProps> = ({ path, onClick }) => (
   <Button className={styles.Crumb} size="sm" variant="link" onClick={onClick}>
     {path.label}
+    {Boolean(path.icon) && <Icon type={path.icon} />}
   </Button>
 );
 
@@ -42,16 +44,21 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
     }
   }, [props.path?.length]);
 
+  const crumbs = props.path.map((p, i) => (
+    <Crumb
+      key={i}
+      path={p}
+      onClick={() => props.navigate(p.headerId, p.selectedId)}
+    />
+  ));
+
   return (
     <div className={cn(styles.Breadcrumbs)} ref={ref}>
-      {props.path.flatMap((p, i) => [
-        <Separator key={`sep-${i}`} />,
-        <Crumb key={i} path={p} onClick={() => props.navigate(mapToLink(p))} />,
-      ])}
+      {crumbs.flatMap((crumb, i) =>
+        i < crumbs.length - 1
+          ? [crumb, <Separator key={`sep-${i}`} />]
+          : [crumb]
+      )}
     </div>
   );
 };
-
-export function mapToLink(p: PathItem): string {
-  return `/${p.headerId}${Boolean(p.selectedId) ? `/${p.selectedId}` : ''}`;
-}

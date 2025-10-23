@@ -13,9 +13,7 @@ import {
 import {
   Breadcrumbs,
   DropdownAction,
-  mapToLink,
   MinimumLink,
-  PathItem,
   ShareModal,
 } from '../../components';
 import { ItemFeature } from '../../components/item-feature';
@@ -24,20 +22,17 @@ import {
   SortableTreeHooks as Hooks,
   ItemUpdate,
   SortableTree,
-  Props as SortableTreeProps,
 } from '../../components/tree/SortableTree';
-import { TreeItems } from '../../components/tree/types';
 import { ApiListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
-  RouteParameters,
   useAlerts,
   useAuth,
   useLocalStorage,
   useNavigationState,
   useTheme,
 } from '../../hooks';
-import { TreeMapper } from '../../mappers/TreeItemMapper';
+import { ViewMapper } from '../../mappers';
 import { Header, Item } from '../../models';
 import { ListHeaderApi, ListItemApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
@@ -62,22 +57,6 @@ const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   };
 };
 
-export type Featured = Pick<
-  Header,
-  'id' | 'label' | 'description' | 'checklist' | 'readonly' | 'shareLinks'
-> | null;
-
-export interface ViewModel {
-  renderKey: string;
-  headerId: string;
-  selectedId?: string;
-  featured: Featured;
-  depth: number;
-  items: TreeItems;
-  path?: PathItem[];
-  treeProps?: Partial<SortableTreeProps>;
-}
-
 export const App: React.FC = () => {
   const authState = useAuth(config.clientId);
   const themeState = useTheme(themeKey);
@@ -88,9 +67,13 @@ export const App: React.FC = () => {
     getDefaultAppState(localStorage)
   );
 
-  const { navigate, setQueryParams, ...navState } = useNavigationState();
+  const {
+    navigate: navigateBase,
+    setQueryParams,
+    ...navState
+  } = useNavigationState();
 
-  const { AlertList, hideAlert, showAlert } = useAlerts({ duration: 15000 });
+  const { AlertList, hideAlert, showAlert } = useAlerts();
 
   // Keep local storage up-to-date
   useEffect(() => {
@@ -113,6 +96,16 @@ export const App: React.FC = () => {
       }
     }
   }, [authState.initialized, authState.authenticated, authState.loading]);
+
+  const navigate = useCallback(
+    (token?: string, selectedId?: string) => {
+      const parts = [token, selectedId].filter(Boolean);
+      const route = parts.length ? parts.join('/') : '';
+
+      navigateBase(`/${route}`);
+    },
+    [navigateBase]
+  );
 
   const finishSyncing = () =>
     state.syncing &&
@@ -221,14 +214,24 @@ export const App: React.FC = () => {
   );
 
   const current = React.useMemo(
-    () => getViewModel(navState.current, state.headers, state.expanded),
-    [navState.current, state.headers, state.expanded]
+    () =>
+      ViewMapper.map(
+        navState.token,
+        navState.selectedId,
+        state.headers,
+        state.expanded
+      ),
+    [navState.token, navState.selectedId, state.headers, state.expanded]
   );
 
   // Load header if not found from initial load
   useEffect(() => {
-    if (!state.syncing && !current && !!navState.current.token) {
-      loadHeader(navState.current.token);
+    if (
+      !state.syncing &&
+      Boolean(navState.token) &&
+      !Boolean(current.headerId)
+    ) {
+      loadHeader(navState.token);
     }
   }, [current, state.syncing]);
 
@@ -287,7 +290,7 @@ export const App: React.FC = () => {
           ],
         ];
       },
-      onClick: (headerId: string) => navigate(`/${headerId}`),
+      onClick: (headerId: string) => navigate(headerId),
       onCreate: async (label: string, description: string, overId: string) => {
         const order = state.headers.findIndex((h) => h.id == overId) - 1;
 
@@ -298,6 +301,26 @@ export const App: React.FC = () => {
         });
 
         return loadHeaders();
+      },
+      onDelete: async (activeId: string) => {
+        if (activeId == newNodeId) {
+          dispatch({
+            type: ActionType.CancelHeaderCreate,
+          });
+        } else {
+          await apis.headerApi.Delete(activeId);
+
+          const header = state.headers.find((h) => h.id == activeId);
+
+          dispatch({
+            type: ActionType.FinalizeHeaderDelete,
+            headerId: activeId,
+          });
+
+          showHeaderUndoAlert(header);
+
+          return true;
+        }
       },
       onDragEnd: async (headerId: string, destinationId: string) => {
         const order = state.headers.findIndex((h) => h.id == destinationId);
@@ -324,8 +347,7 @@ export const App: React.FC = () => {
         : {
             onCheck: (itemId: string) =>
               apis.itemApi.Complete(itemId).then(() => loadItem(itemId)),
-            onClick: (id: string) =>
-              navigate(`/${navState.current.token}/${id}`),
+            onClick: (id: string) => navigate(navState.token, id),
             onCollapse: (itemId: string) => {
               dispatch({
                 type: ActionType.ToggleExpanded,
@@ -396,7 +418,7 @@ export const App: React.FC = () => {
         <SlideTransition
           current={current}
           render={(vm) => (
-            <Container className={cn(styles.ListContainer)}>
+            <Container className={cn(styles.ViewContainer)}>
               {Boolean(vm.path) && (
                 <Breadcrumbs path={vm.path} navigate={navigate} />
               )}
@@ -404,13 +426,13 @@ export const App: React.FC = () => {
                 <ItemFeature
                   node={vm.featured}
                   hooks={headerHooks}
-                  onBack={() =>
-                    navigate(
-                      Boolean(vm.path)
-                        ? mapToLink(vm.path[vm.path.length - 1])
-                        : '/'
-                    )
-                  }
+                  onBack={() => {
+                    const parent = Boolean(vm.path)
+                      ? vm.path[vm.path.length - 1]
+                      : null;
+
+                    navigate(parent?.headerId, parent?.selectedId);
+                  }}
                   onPatch={(patch) =>
                     // TODO: is this the same as what is on hooks.onUpdate?
                     //          ANSWER: no.... :'(
@@ -516,100 +538,4 @@ function getItem(
   const header = headers?.find((h) => h.id == headerId);
 
   return header?.items?.find((i) => i.id == itemId) ?? null;
-}
-
-function getViewModel(
-  params: RouteParameters,
-  headers: Header[],
-  expanded: string[]
-): ViewModel {
-  const { token, selectedId } = params ?? {};
-
-  const header = token
-    ? headers.find((h) => h.id === token || h.tokens?.includes(token)) ?? null
-    : null;
-
-  const headerId = header?.id ?? null;
-
-  // Header
-  if (!Boolean(header)) {
-    const items = TreeMapper.buildTreeFromHeaders(
-      headers.filter((h) => !h.isNotOwned)
-    );
-
-    return {
-      renderKey: '__root__key__',
-      depth: 0,
-      headerId: null,
-      featured: null,
-      items,
-    };
-  }
-
-  const treeProps = {
-    collapsible: true,
-    indicator: true,
-    removable: true,
-    checklist: header.checklist,
-    readonly: header.readonly,
-  };
-
-  // Surface
-  if (!Boolean(selectedId)) {
-    const featured = {
-      id: header.id,
-      label: header.label,
-      description: header.description,
-      checklist: header.checklist,
-      readonly: header.readonly,
-      shareLinks: header.shareLinks,
-    };
-
-    const items = TreeMapper.buildTreeFromItems(header.items, expanded);
-
-    return {
-      renderKey: headerId,
-      depth: 1,
-      headerId,
-      featured,
-      items,
-      treeProps,
-    };
-  }
-
-  // Nested
-  const treeResult = TreeMapper.buildTreeFromSubItems(
-    header.items ?? [],
-    expanded,
-    selectedId
-  );
-
-  const selected = header.items.find((i) => i.id == selectedId);
-
-  const featured = {
-    id: selected.id,
-    label: selected.label,
-    description: selected.description,
-    checklist: header.checklist,
-    readonly: header.readonly,
-    shareLinks: header.shareLinks,
-  };
-
-  const path = [
-    { headerId: header.id, label: header.label },
-    ...treeResult.path.map((p) => ({ ...p, headerId: header.id })),
-  ];
-
-  path.pop();
-
-  return {
-    renderKey: selected.id,
-    depth: selected.depth + 2,
-    headerId: header.id,
-    selectedId: selected.id,
-    featured,
-    items: treeResult.items,
-    path,
-    treeProps: treeProps,
-  };
 }

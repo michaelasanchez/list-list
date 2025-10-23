@@ -389,13 +389,15 @@ export function SortableTree({
   async function handleRemove(id: UniqueIdentifier) {
     const index = flattenedItems.findIndex((i) => i.id == id);
 
-    await hooks.onDelete(
-      id,
-      flattenedItems[index + 1]?.id,
-      flattenedItems[index]?.parentId
-    );
-
-    // setItems((items) => removeItem(items, id));
+    if (Boolean(hooks.onDelete)) {
+      await hooks.onDelete?.(
+        id,
+        flattenedItems[index + 1]?.id,
+        flattenedItems[index]?.parentId
+      );
+    } else {
+      setItems((items) => removeItem(items, id));
+    }
   }
 
   function handleCollapse(id: UniqueIdentifier) {

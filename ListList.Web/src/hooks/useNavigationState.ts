@@ -2,18 +2,15 @@ import React from 'react';
 import { useLocation, useRoute, useSearch } from 'wouter';
 
 interface NavigationState {
-  current: RouteParameters;
-  previous: RouteParameters;
+  token?: string;
+  selectedId?: string;
   queryParams: Record<string, string>;
   // TODO: it would be nice to reign this in a bit
   navigate: (to: string) => void;
   setQueryParams: (patch: Record<string, string | null>) => void;
 }
 
-export interface RouteParameters extends Record<string, string | undefined> {
-  token?: string;
-  selectedId?: string;
-}
+export interface RouteParameters extends Record<string, string | undefined> {}
 
 export function useNavigationState(): NavigationState | null {
   const [match, params] = useRoute<RouteParameters>('/:token/:selectedId?');
@@ -21,16 +18,6 @@ export function useNavigationState(): NavigationState | null {
   const [location, navigate] = useLocation();
 
   const searchString = useSearch();
-
-  const previous = React.useRef<RouteParameters>({});
-
-  // Track previous route parameters
-  React.useEffect(() => {
-    previous.current = {
-      token: params?.token,
-      selectedId: params?.selectedId,
-    };
-  }, [params?.token, params?.selectedId]);
 
   // Parse query parameters
   const queryParams = React.useMemo(() => {
@@ -71,8 +58,7 @@ export function useNavigationState(): NavigationState | null {
       : {};
 
     return {
-      current,
-      previous: previous.current,
+      ...current,
       queryParams,
       navigate,
       setQueryParams,

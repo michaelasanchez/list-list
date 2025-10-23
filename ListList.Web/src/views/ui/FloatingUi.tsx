@@ -1,10 +1,10 @@
 import classNames from 'classnames';
 import React, { ActionDispatch } from 'react';
-import { flattenTree, IconButton } from '../../components';
-import * as transitionStyles from '../../components/slide-transition/SlideTransition.module.scss';
+import { flattenTree, IconButton, removeChildrenOf } from '../../components';
 import { TreeItems } from '../../components/tree/types';
 import { AlertCreation } from '../../hooks';
 import { AppStateActionType as ActionType, AppStateAction } from '../app';
+import * as appStyles from '../app/App.module.scss';
 import * as styles from './FloatingUi.module.scss';
 
 export enum UiMode {
@@ -36,15 +36,27 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
   const handleCreate = () => {
     const insertIndex = getInsertIndex(props.containerRef.current);
 
-    const flattenedItems = flattenTree(props.items);
-
-    const itemId = flattenedItems[insertIndex].id as string;
-
     if (Boolean(props.headerId)) {
+      // TODO: this one is a toughy. it's all computed state
+      //  hate to do all this twice, but at least it's only on click
+      const flattenedItems = flattenTree(props.items);
+
+      const collapsedItemIds = flattenedItems
+        .filter((i) => i.collapsed)
+        .map((i) => i.id);
+
+      const remaining = removeChildrenOf(flattenedItems, collapsedItemIds);
+
+      const itemId =
+        insertIndex < remaining.length
+          ? (remaining[insertIndex]?.id as string)
+          : null;
+
       props.dispatch({
         type: ActionType.InitiateItemCreate,
         headerId: props.headerId,
-        itemId,
+        itemId: itemId ?? props.selectedId,
+        asChild: !Boolean(itemId),
       });
     } else if (insertIndex !== null) {
       props.dispatch({
@@ -78,24 +90,56 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
 };
 
 function getInsertIndex(view: HTMLElement) {
-  if (!Boolean(view)) return null;
+  if (!view) return null;
 
-  const centerY = view.scrollTop + view.clientHeight / 2;
-
-  // TODO: this is pretty brittle
   const items = view.querySelectorAll<HTMLLIElement>(
-    `.${transitionStyles.current} li`
+    `.${appStyles.ViewContainer} li`
   );
 
-  for (let i = 0; i < items.length; i++) {
-    const el = items[i];
-    const top = el.offsetTop;
-    const bottom = top + el.offsetHeight;
+  const centerY = window.innerHeight / 2;
 
-    if (centerY <= bottom || top > centerY) {
+  for (let i = 0; i < items.length; i++) {
+    const elRect = items[i].getBoundingClientRect();
+    const bottom = elRect.bottom;
+
+    if (centerY <= bottom) {
       return i;
     }
   }
 
-  return items.length - 1;
+  return items.length;
+}
+
+function drawDebugLines(view: HTMLElement) {
+  if (!view) return;
+
+  const rect = view.getBoundingClientRect();
+
+  // addLine(rect, rect.top, 'red');
+  // addLine(rect, rect.top + rect.height / 2, 'red');
+
+  // addLine(rect, 1);
+  addLine(rect, window.innerHeight / 2);
+  // addLine(rect, rect.top + rect.height - 1);
+
+  // Optional: auto-remove after 3 seconds
+  // setTimeout(() => line.remove(), 3000);
+}
+
+function addLine(rect: DOMRect, top: number, color: string = 'green') {
+  const line = document.createElement('div');
+
+  Object.assign(line.style, {
+    position: 'absolute',
+    left: `${rect.left + window.scrollX}px`,
+    top: `${top}px`,
+    width: `${rect.width}px`,
+    height: '1px',
+    background: color,
+    opacity: 0.5,
+    zIndex: '9999',
+    pointerEvents: 'none',
+  });
+
+  document.body.appendChild(line);
 }
