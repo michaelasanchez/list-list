@@ -7,5 +7,5 @@ public interface IShareRepository
 {
     Task DeleteLink(Guid shareLinkId);
     Task PutLink(Guid shareLinkId, ShareLinkResource resource);
-    Task<string> ShareList(Guid headerId, SharedPermission permission, string? token, DateTimeOffset? expireOn);
+    Task<string> ShareList(string token, SharedPermission permission, string? newToken, DateTimeOffset? expireOn);
 }

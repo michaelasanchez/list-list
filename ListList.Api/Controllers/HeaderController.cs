@@ -19,26 +19,26 @@ public class HeaderController(IHeaderService _service) : Controller
         return Ok(id);
     }
 
-    [HttpPost("{headerId}")]
-    public async Task<ActionResult<Guid>> CreateItem(Guid headerId, ItemCreation itemCreation)
+    [HttpPost("{token}")]
+    public async Task<ActionResult<Guid>> CreateItem(string token, ItemCreation itemCreation)
     {
-        var id = await _service.CreateItem(headerId, itemCreation);
+        var id = await _service.CreateItem(token, itemCreation);
 
         return Ok(id);
     }
 
-    [HttpDelete("{headerId}")]
-    public async Task<ActionResult> DeleteHeader(Guid headerId)
+    [HttpDelete("{token}")]
+    public async Task<ActionResult> DeleteHeader(string token)
     {
-        await _service.DeleteHeader(headerId);
+        await _service.DeleteHeader(token);
 
         return Ok();
     }
 
-    [HttpGet("{headerId}")]
-    public async Task<ActionResult<Header>> GetListHeaderAsync(string headerId)
+    [HttpGet("{token}")]
+    public async Task<ActionResult<Header>> GetListHeaderAsync(string token)
     {
-        var listHeader = await _service.GetHeader(headerId);
+        var listHeader = await _service.GetHeader(token);
 
         return Ok(listHeader);
     }
@@ -51,34 +51,34 @@ public class HeaderController(IHeaderService _service) : Controller
         return Ok(listHeaders);
     }
 
-    [HttpPatch("{headerId}")]
-    public async Task<ActionResult<Header>> PatchHeader(Guid headerId, HeaderPatch headerPatch)
+    [HttpPatch("{token}")]
+    public async Task<ActionResult<Header>> PatchHeader(string token, HeaderPatch headerPatch)
     {
-        await _service.PatchHeader(headerId, headerPatch);
+        await _service.PatchHeader(token, headerPatch);
 
         return Ok();
     }
 
-    [HttpPut("{headerId}")]
-    public async Task<ActionResult> PutListHeader(Guid headerId, HeaderPut headerPut)
+    [HttpPut("{token}")]
+    public async Task<ActionResult> PutListHeader(string token, HeaderPut headerPut)
     {
-        await _service.PutHeader(headerId, headerPut);
+        await _service.PutHeader(token, headerPut);
 
         return Ok();
     }
 
-    [HttpPost("{headerId}/relocate")]
-    public async Task<ActionResult> RelocateListHeaderAsync(Guid headerId, HeaderRelocation listHeaderRelocation)
+    [HttpPost("{token}/relocate")]
+    public async Task<ActionResult> RelocateListHeaderAsync(string token, HeaderRelocation listHeaderRelocation)
     {
-        await _service.RelocateHeader(headerId, listHeaderRelocation.Order);
+        await _service.RelocateHeader(token, listHeaderRelocation.Order);
 
         return Ok();
     }
 
-    [HttpPost("{headerId}/restore")]
-    public async Task<ActionResult> RestoreListHeaderAsync(Guid headerId, HeaderRestoral? headerRestoral)
+    [HttpPost("{token}/restore")]
+    public async Task<ActionResult> RestoreListHeaderAsync(string token, HeaderRestoral? headerRestoral)
     {
-        await _service.RestoreHeader(headerId, headerRestoral?.Order);
+        await _service.RestoreHeader(token, headerRestoral?.Order);
 
         return Ok();
     }

@@ -7,23 +7,23 @@ namespace ListList.Api.Guards.Interfaces;
 
 public interface IGuard
 {
-    Task<ValidationResult> AgainstInvalidItemComplete(Guid? userId, Guid listItemId);
-    Task<ValidationResult> AgainstInvalidHeaderCreation(Guid? userId, int? order);
-    Task<ValidationResult> AgainstInvalidHeaderDelete(Guid? userId, Guid listHeaderId);
-    Task<ValidationResult> AgainstInvalidHeaderGet(Guid? userId, Guid listHeaderId);
-    Task<ValidationResult> AgainstInvalidHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch);
-    Task<ValidationResult> AgainstInvalidHeaderRelocation(Guid? userId, Guid listHeaderId, int index);
-    Task<ValidationResult> AgainstInvalidHeaderRestoral(Guid? userId, Guid headerId, int? order);
+    Task<ValidationResult> AgainstInvalidHeaderCreation(Guid? userId, int? index);
+    Task<ValidationResult> AgainstInvalidHeaderDelete(Guid? userId, string token);
+    Task<ValidationResult> AgainstInvalidHeaderGet(Guid? userId, string token);
+    Task<ValidationResult> AgainstInvalidHeaderPatch(Guid? userId, string token, HeaderPatch patch);
+    Task<ValidationResult> AgainstInvalidHeaderRelocation(Guid? userId, string token, int index);
+    Task<ValidationResult> AgainstInvalidHeaderRestoral(Guid? userId, string token, int? index);
+    Task<ValidationResult> AgainstInvalidItemCreation(Guid? userId, string token);
 
-    Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid? userId, Guid parentId);
-    Task<ValidationResult> AgainstInvalidListItemDeleteAsync(Guid? userId, Guid listItemId);
-    Task<ValidationResult> AgainstInvalidListGet(Guid? userId, Guid listItemId);
-    Task<ValidationResult> AgainstInvalidListItemPatchAsync(Guid? userId, Guid listItemId);
-    Task<ValidationResult> AgainstInvalidListItemPutAsync(Guid? userId, Guid listItemId);
-    Task<ValidationResult> AgainstInvalidListItemRelocation(Guid? userId, Guid listItemId, Guid? parentId);
+    Task<ValidationResult> AgainstInvalidItemComplete(Guid? userId, string token, Guid itemId);
+    Task<ValidationResult> AgainstInvalidItemDelete(Guid? userId, string token, Guid itemId);
+    Task<ValidationResult> AgainstInvalidItemGet(Guid? userId, string token, Guid itemId);
+    Task<ValidationResult> AgainstInvalidItemPatch(Guid? userId, string token, Guid itemId);
+    Task<ValidationResult> AgainstInvalidItemPut(Guid? userId, string token, Guid itemId);
+    Task<ValidationResult> AgainstInvalidItemRelocation(Guid? userId, string token, Guid itemId, Guid? parentId);
+    Task<ValidationResult> AgainstInvalidItemRestoral(Guid? userId, string token, Guid itemId, Guid? overId, Guid? parentId);
 
+    Task<ValidationResult> AgainstInvalidShare(Guid? userId, string token, HeaderShare listHeaderShare);
     Task<ValidationResult> AgainstInvalidShareLinkDelete(Guid? userId, Guid linkId);
     Task<ValidationResult> AgainstInvalidShareLinkPut(Guid? userId, Guid linkId, ShareLinkPut shareLinkPatch);
-    Task<ValidationResult> AgainstInvalidShare(Guid? userId, Guid listHeaderId, HeaderShare listHeaderShare);
-    Task<ValidationResult> AgainstInvalidItemRestoral(Guid? userId, Guid itemId, Guid? overId, Guid? parentId);
 }

@@ -34,6 +34,7 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
   const mode = React.useMemo(() => calcUiMode(props), [props.headerId]);
 
   const handleCreate = () => {
+    console.log('FloatingUi: handleCreate');
     const insertIndex = getInsertIndex(props.containerRef.current);
 
     if (Boolean(props.headerId)) {

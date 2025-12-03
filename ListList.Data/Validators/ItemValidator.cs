@@ -7,7 +7,7 @@ namespace ListList.Data.Validators;
 
 public class ItemValidator(IListListContext _context) : IItemValidator
 {
-    public async Task ListItemIsDeletedAsync(Guid itemId, ValidationResult result)
+    public async Task IsDeleted(Guid itemId, ValidationResult result)
     {
         var itemIsNotDeleted = await _context.Items
             .AnyAsync(z => z.Id == itemId && !z.Deleted);
@@ -18,7 +18,7 @@ public class ItemValidator(IListListContext _context) : IItemValidator
         }
     }
 
-    public async Task ListItemIsEmptyAsync(Guid itemId, ValidationResult result)
+    public async Task IsEmpty(Guid itemId, ValidationResult result)
     {
         var targetNode = await _context.Items
             .Where(z => z.Id == itemId)
@@ -40,7 +40,7 @@ public class ItemValidator(IListListContext _context) : IItemValidator
         }
     }
 
-    public async Task ListItemIsNotDeletedAsync(Guid? itemId, ValidationResult result)
+    public async Task IsNotDeleted(Guid? itemId, ValidationResult result)
     {
         var listItemIsDeleted = await _context.Items
             .AnyAsync(z => z.Id == itemId && z.Deleted);
@@ -51,24 +51,7 @@ public class ItemValidator(IListListContext _context) : IItemValidator
         }
     }
 
-    public async Task ListItemIsOwnedByUserAsync(Guid? userId, Guid itemId, ValidationResult result)
-    {
-        var test = await _context.Items
-            .Include(z => z.Header)
-            .Where(z => z.Id == itemId)
-            .SingleOrDefaultAsync();
-
-        var userOwnsListHeader = await _context.Items
-            .Include(z => z.Header)
-            .AnyAsync(z => z.Id == itemId && z.Header.OwnerId == userId);
-
-        if (!userOwnsListHeader)
-        {
-            result.AddError("User does not own this list.");
-        }
-    }
-
-    public async Task ListItemRelativeIndexIsValidAsync(Guid destinationParentId, int relativeIndex, ValidationResult result)
+    public async Task IsValidIndex(Guid destinationParentId, int relativeIndex, ValidationResult result)
     {
         var parentQuery = from listItem in _context.Items
                           where listItem.Id == destinationParentId

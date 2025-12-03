@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
-import { Alert, Container } from 'react-bootstrap';
+import { Alert, Container, Spinner } from 'react-bootstrap';
 import { Router } from 'wouter';
 
 import cn from 'classnames';
@@ -75,14 +75,16 @@ export const App: React.FC = () => {
 
   const { AlertList, hideAlert, showAlert } = useAlerts();
 
+  // TODO: finish implementing "tokens"
   // Keep local storage up-to-date
   useEffect(() => {
     const json = JSON.stringify({
       expanded: state.expanded,
+      // tokens: state.tokens,
       headers: state.headers,
     });
     localStorage.commit(json);
-  }, [state.expanded, state.headers]);
+  }, [state.expanded, /*state.tokens,*/ state.headers]);
 
   // Load/unload headers
   useEffect(() => {
@@ -161,11 +163,11 @@ export const App: React.FC = () => {
   );
 
   const loadItem = useCallback(
-    async (itemId: string): Promise<Succeeded> => {
+    async (token: string, itemId: string): Promise<Succeeded> => {
       dispatch({ type: ActionType.SetLoading, loading: true });
 
       try {
-        const item = await apis.itemApi.GetById(itemId);
+        const item = await apis.itemApi.GetById(token, itemId);
 
         dispatch({ type: ActionType.SetLoading, loading: false });
         dispatch({ type: ActionType.SetItem, item });
@@ -346,7 +348,9 @@ export const App: React.FC = () => {
         ? null
         : {
             onCheck: (itemId: string) =>
-              apis.itemApi.Complete(itemId).then(() => loadItem(itemId)),
+              apis.itemApi
+                .Complete(current.token, itemId)
+                .then(() => loadItem(current.token, itemId)),
             onClick: (id: string) => navigate(navState.token, id),
             onCollapse: (itemId: string) => {
               dispatch({
@@ -375,30 +379,30 @@ export const App: React.FC = () => {
 
                 return Promise.resolve(true);
               } else {
-                await apis.itemApi.Delete(activeId);
+                await apis.itemApi.Delete(current.token, activeId);
 
                 loadHeader(current.headerId);
 
                 const item = getItem(state.headers, current.headerId, activeId);
 
-                showItemUndoAlert(item, overId, parentId);
+                showItemUndoAlert(current.token, item, overId, parentId);
 
                 return true;
               }
             },
             onDragEnd: (activeId: string, overId: string, parentId: string) =>
               apis.itemApi
-                .Relocate(activeId, overId, parentId)
+                .Relocate(current.token, activeId, overId, parentId)
                 .then(() => loadHeader(current.headerId)),
             onUpdate: async (activeId: string, update: ItemUpdate) => {
               const item = getItem(state.headers, current.headerId, activeId);
 
-              await apis.itemApi.Put(activeId, {
+              await apis.itemApi.Put(current.token, activeId, {
                 ...item,
                 ...update,
               });
 
-              return await loadItem(activeId);
+              return await loadItem(current.token,activeId);
             },
           },
     [current]
@@ -444,11 +448,20 @@ export const App: React.FC = () => {
                   onShare={() => setQueryParams({ share: 'true' })}
                 />
               )}
-              <SortableTree
-                {...vm.treeProps}
-                defaultItems={vm.items}
-                hooks={vm.depth === 0 ? headerHooks : itemHooks}
-              />
+
+              {Boolean(vm.items) ? (
+                <SortableTree
+                  {...vm.treeProps}
+                  defaultItems={vm.items}
+                  hooks={vm.depth === 0 ? headerHooks : itemHooks}
+                />
+              ) : Boolean(state.loading || state.syncing) ? (
+                <Spinner animation="border" />
+              ) : (
+                <div className={cn(styles.NotFound)}>
+                  {Boolean(vm.token) ? 'List not found' : 'No lists available'}
+                </div>
+              )}
             </Container>
           )}
         />
@@ -509,17 +522,24 @@ export const App: React.FC = () => {
     });
   }
 
-  function showItemUndoAlert(item: Item, overId: string, parentId: string) {
+  function showItemUndoAlert(
+    token: string,
+    item: Item,
+    overId: string,
+    parentId: string
+  ) {
     const alertId = showAlert({
       content: (
         <>
           <strong>"{item.label}"</strong> was deleted.{' '}
           <Alert.Link
             onClick={() =>
-              apis.itemApi.Restore(item.id, overId, parentId).then(() => {
-                loadHeader(item.headerId);
-                hideAlert(alertId);
-              })
+              apis.itemApi
+                .Restore(token, item.id, overId, parentId)
+                .then(() => {
+                  loadHeader(item.headerId);
+                  hideAlert(alertId);
+                })
             }
           >
             Undo
@@ -532,7 +552,7 @@ export const App: React.FC = () => {
 
 function getItem(
   headers: Header[],
-  headerId: string,
+  headerId: string,  
   itemId: string
 ): Item | null {
   const header = headers?.find((h) => h.id == headerId);

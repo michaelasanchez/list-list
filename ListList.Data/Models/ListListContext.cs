@@ -73,8 +73,8 @@ public class ListListContext(DbContextOptions<ListListContext> options) : DbCont
 
             entity.HasKey(p => p.Id);
 
-            entity.HasIndex(p => new { p.HeaderId, p.Token })
-            .IsUnique();
+            entity.HasIndex(p => new { p.Token })
+                .IsUnique();
         });
 
         builder.Entity<UserEntity>(entity =>

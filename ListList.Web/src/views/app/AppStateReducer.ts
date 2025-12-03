@@ -196,6 +196,14 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.SetHeaders: {
+      // console.log(state);
+
+      // const pendingHeaderIndex = state.headers.findIndex(h => h.id == newNodeId);
+
+      // if (Boolean(pendingHeaderIndex)) {
+        
+      // }
+
       return {
         ...state,
         headers: ListItemMapper.mapHeaders(action.headers, state.expanded),

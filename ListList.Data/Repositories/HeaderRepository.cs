@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ListList.Data.Repositories;
 
-public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHeaderRepository
+public class HeaderRepository(ListListContext context, IMapper mapper) : BaseRepository(context, mapper), IHeaderRepository
 {
     public async Task CreateHeader(Guid ownerId, HeaderEntity creation, int? order)
     {
@@ -32,8 +32,10 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteHeader(Guid headerId)
+    public async Task DeleteHeader(string token)
     {
+        var headerId = await GetHeaderId(token);
+
         var entity = await _context.Headers
             .SingleAsync(z => z.Id == headerId);
 
@@ -51,16 +53,18 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
-    public async Task<HeaderResource> GetHeaderById(Guid? ownerId, Guid listHeaderId)
-    {
-        var entity = await GetQuery(ownerId)
-            .Where(z => z.Id == listHeaderId)
-            .SingleAsync();
+    //public async Task<HeaderResource> GetHeaderById(Guid? ownerId, string token)
+    //{
+    //    var headerId = await GetHeaderId(token);
 
-        return _mapper.Map<HeaderResource>(entity);
-    }
+    //    var entity = await GetQuery(ownerId)
+    //        .Where(z => z.Id == headerId)
+    //        .SingleAsync();
 
-    public async Task<HeaderResource> GetHeaderByToken(string token)
+    //    return _mapper.Map<HeaderResource>(entity);
+    //}
+
+    public async Task<HeaderResource> GetHeader(string token)
     {
         var entity = await GetQuery()
             .Where(z => z.ShareLinks.Any(y => y.Token == token))
@@ -84,8 +88,10 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         return _mapper.Map<List<HeaderResource>>(entities);
     }
 
-    public async Task PatchHeader(Guid headerId, HeaderResource resource)
+    public async Task PatchHeader(string token, HeaderResource resource)
     {
+        var headerId = await GetHeaderId(token);
+
         var entity = await _context.Headers
             .SingleAsync(z => z.Id == headerId);
 
@@ -114,10 +120,12 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
-    public async Task PutHeader(Guid listHeaderId, HeaderEntity listHeaderPut)
+    public async Task PutHeader(string token, HeaderEntity listHeaderPut)
     {
+        var headerId = await GetHeaderId(token);
+
         var existing = await _context.Headers
-            .SingleOrDefaultAsync(z => z.Id == listHeaderId);
+            .SingleOrDefaultAsync(z => z.Id == headerId);
 
         if (existing != null)
         {
@@ -128,16 +136,19 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
-    public async Task RelocateHeader(Guid ownerId, Guid listHeaderId, int destinationIndex)
+    public async Task RelocateHeader(Guid ownerId, string token, int destinationIndex)
     {
+        var headerId = await GetHeaderId(token);
+
         var listHeaders = await _context.Headers
             .Where(z => z.OwnerId == ownerId && !z.Deleted)
             .OrderBy(z => z.Order)
             .ToListAsync();
 
-        var sourceIndex = listHeaders.FindIndex(z => z.Id == listHeaderId);
+        var sourceIndex = listHeaders.FindIndex(z => z.Id == headerId);
+
         if (sourceIndex == -1)
-            throw new InvalidOperationException($"ListHeader with ID {listHeaderId} not found for user {ownerId}");
+            throw new InvalidOperationException($"ListHeader with ID {headerId} not found for user {ownerId}");
 
         var source = listHeaders[sourceIndex];
 
@@ -150,8 +161,10 @@ public class HeaderRepository(ListListContext _context, IMapper _mapper) : IHead
         await _context.SaveChangesAsync();
     }
 
-    public async Task RestoreHeader(Guid ownerId, Guid headerId, int? order)
+    public async Task RestoreHeader(Guid ownerId, string token, int? order)
     {
+        var headerId = await GetHeaderId(token);
+
         var entity = await _context.Headers
             .SingleAsync(z =>
                 z.Id == headerId &&

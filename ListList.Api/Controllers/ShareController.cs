@@ -26,12 +26,12 @@ public class ShareController(IShareService service) : Controller
         return Ok();
     }
 
-    [HttpPost("{listHeaderId}")]
-    public async Task<IActionResult> ShareHeader([FromRoute] Guid listHeaderId, HeaderShare listHeaderShare)
+    [HttpPost("{token}")]
+    public async Task<IActionResult> ShareHeader([FromRoute] string token, HeaderShare listHeaderShare)
     {
         var result = new ShareResult
         {
-            Path = await service.ShareHeader(listHeaderId, listHeaderShare)
+            Path = await service.ShareHeader(token, listHeaderShare)
         };
 
         return Ok(result);

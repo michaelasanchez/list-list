@@ -8,7 +8,6 @@ using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Entities;
 using ListList.Data.Models.Interfaces;
 using ListList.Data.Models.Resources;
-using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Api.Services;
 
@@ -18,8 +17,6 @@ public class HeaderService(
     IMapper _mapper,
     IGuard _guard) : BaseService, IHeaderService
 {
-    private readonly IHeaderRepository _headerRepository = _unitOfWork.HeaderRepository;
-
     public async Task<Guid> CreateHeader(HeaderCreation listHeader, int? order)
     {
         var userId = await _userService.GetUserId();
@@ -28,95 +25,88 @@ public class HeaderService(
 
         var creation = _mapper.Map<HeaderEntity>(listHeader);
 
-        await _headerRepository.CreateHeader(userId.Value, creation, order);
+        await _unitOfWork.HeaderRepository.CreateHeader(userId.Value, creation, order);
 
         return creation.Id;
     }
 
-    public async Task<Guid> CreateItem(Guid headerId, ItemCreation creation)
+    public async Task<Guid> CreateItem(string token, ItemCreation creation)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListItemCreationAsync(userId, headerId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemCreation(userId, token));
 
         var resource = _mapper.Map<ItemResource>(creation);
 
-        return await _unitOfWork.ItemRepository.CreateListItem(resource, headerId, creation.OverId, creation.ParentId);
+        return await _unitOfWork.ItemRepository.CreateListItem(resource, token, creation.OverId, creation.ParentId);
     }
 
-    public async Task DeleteHeader(Guid headerId)
+    public async Task DeleteHeader(string token)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidHeaderDelete(userId, headerId));
+        await InvokeGuard(() => _guard.AgainstInvalidHeaderDelete(userId, token));
 
-        await _headerRepository.DeleteHeader(headerId);
+        await _unitOfWork.HeaderRepository.DeleteHeader(token);
     }
 
     public async Task<Header> GetHeader(string token)
     {
         var userId = await _userService.GetUserId();
 
-        if (Guid.TryParse(token, out var listHeaderId))
+        if (Guid.TryParse(token, out var headerId))
         {
-            await InvokeGuard(() => _guard.AgainstInvalidHeaderGet(userId, listHeaderId));
+            await InvokeGuard(() => _guard.AgainstInvalidHeaderGet(userId, token));
 
         }
 
-        var listHeader = listHeaderId == default
-            ? await _headerRepository.GetHeaderByToken(token)
-            : await _headerRepository.GetHeaderById(userId, listHeaderId);
+        var header = await _unitOfWork.HeaderRepository.GetHeader(token);
 
-        return _mapper.Map<Header>(listHeader);
-    }
-
-    public Task<Header> GetListHeaderByToken(string token)
-    {
-        throw new NotImplementedException();
+        return _mapper.Map<Header>(header);
     }
 
     public async Task<IEnumerable<Header>> GetHeaders()
     {
         var userId = await _userService.GetUserId();
 
-        var listHeaders = await _headerRepository.GetHeaders(userId);
+        var listHeaders = await _unitOfWork.HeaderRepository.GetHeaders(userId);
 
         return _mapper.Map<IEnumerable<Header>>(listHeaders);
     }
 
-    public async Task PatchHeader(Guid headerId, HeaderPatch headerPatch)
+    public async Task PatchHeader(string token, HeaderPatch headerPatch)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidHeaderPatch(userId, headerId, headerPatch));
+        await InvokeGuard(() => _guard.AgainstInvalidHeaderPatch(userId, token, headerPatch));
 
         var resource = _mapper.Map<HeaderResource>(headerPatch);
 
-        await _headerRepository.PatchHeader(headerId, resource);
+        await _unitOfWork.HeaderRepository.PatchHeader(token, resource);
     }
 
-    public async Task PutHeader(Guid listHeaderId, HeaderPut listHeaderPut)
+    public async Task PutHeader(string token, HeaderPut listHeaderPut)
     {
         var entityUpdate = _mapper.Map<HeaderEntity>(listHeaderPut);
 
-        await _headerRepository.PutHeader(listHeaderId, entityUpdate);
+        await _unitOfWork.HeaderRepository.PutHeader(token, entityUpdate);
     }
 
-    public async Task RelocateHeader(Guid listHeaderId, int index)
+    public async Task RelocateHeader(string token, int index)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidHeaderRelocation(userId, listHeaderId, index));
+        await InvokeGuard(() => _guard.AgainstInvalidHeaderRelocation(userId, token, index));
 
-        await _headerRepository.RelocateHeader(userId.Value, listHeaderId, index);
+        await _unitOfWork.HeaderRepository.RelocateHeader(userId.Value, token, index);
     }
 
-    public async Task RestoreHeader(Guid headerId, int? order)
+    public async Task RestoreHeader(string token, int? order)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidHeaderRestoral(userId, headerId, order));
+        await InvokeGuard(() => _guard.AgainstInvalidHeaderRestoral(userId, token, order));
 
-        await _headerRepository.RestoreHeader(userId.Value, headerId, order);
+        await _unitOfWork.HeaderRepository.RestoreHeader(userId.Value, token, order);
     }
 }

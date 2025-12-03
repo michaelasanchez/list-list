@@ -6,11 +6,11 @@ namespace ListList.Api.Services.Interfaces;
 
 public interface IItemService
 {
-    Task CompleteListItemAsync(Guid listItemId);
-    Task DeleteListItemAsync(Guid listItemId);
-    Task<Item> GetItemById(Guid listItemId);
-    Task PatchItemAsync(Guid listItemId, ItemPatch itemPatch, bool? recursive);
-    Task PutListItemAsync(Guid listItemId, ItemPut listItemPut);
-    Task RelocateListItemAsync(Guid activeId, Guid overId, Guid? parentId);
-    Task RestoreListItemAsync(Guid itemId, Guid? overId, Guid? parentId);
+    Task CompleteListItemAsync(string token, Guid listItemId);
+    Task DeleteListItemAsync(string token, Guid listItemId);
+    Task<Item> GetItemById(string token, Guid listItemId);
+    Task PatchItemAsync(string token, Guid listItemId, ItemPatch itemPatch, bool? recursive);
+    Task PutListItemAsync(string token, Guid listItemId, ItemPut listItemPut);
+    Task RelocateListItemAsync(string token, Guid activeId, Guid overId, Guid? parentId);
+    Task RestoreListItemAsync(string token, Guid itemId, Guid? overId, Guid? parentId);
 }

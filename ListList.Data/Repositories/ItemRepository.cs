@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ListList.Data.Repositories;
 
-public class ItemRepository(ListListContext _context, IMapper _mapper) : IItemRepository
+public class ItemRepository(ListListContext context, IMapper mapper) : BaseRepository(context, mapper), IItemRepository
 {
     public async Task CompleteListItem(Guid listItemId)
     {
@@ -26,11 +26,11 @@ public class ItemRepository(ListListContext _context, IMapper _mapper) : IItemRe
         }
     }
 
-    public async Task<Guid> CreateListItem(ItemResource creation, Guid headerId, Guid? overId, Guid? parentId)
+    public async Task<Guid> CreateListItem(ItemResource creation, string token, Guid? overId, Guid? parentId)
     {
         var active = _mapper.Map<ItemEntity>(creation);
 
-        active.HeaderId = headerId;
+        active.HeaderId = await GetHeaderId(token);
         active.Left = 1;
         active.Right = 2;
 

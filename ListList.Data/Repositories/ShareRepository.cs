@@ -5,21 +5,21 @@ using ListList.Data.Models.Resources;
 using ListList.Data.Repositories.Interfaces;
 
 namespace ListList.Data.Repositories;
-public class ShareRepository(ListListContext context) : IShareRepository
+public class ShareRepository(ListListContext context) : BaseRepository(context, null), IShareRepository
 {
     public Task DeleteLink(Guid shareLinkId)
     {
         var entity = new ShareLinkEntity { Id = shareLinkId };
 
-        context.ShareLinks.Attach(entity);
-        context.ShareLinks.Remove(entity);
+        _context.ShareLinks.Attach(entity);
+        _context.ShareLinks.Remove(entity);
 
         return context.SaveChangesAsync();
     }
 
     public async Task PutLink(Guid shareLinkId, ShareLinkResource resource)
     {
-        var entity = await context.ShareLinks.FindAsync(shareLinkId);
+        var entity = await _context.ShareLinks.FindAsync(shareLinkId);
 
         if (entity is not null)
         {
@@ -27,24 +27,24 @@ public class ShareRepository(ListListContext context) : IShareRepository
             entity.Permission = resource.Permission;
             entity.ExpiresOn = resource.ExpiresOn?.ToUniversalTime();
 
-            context.ShareLinks.Update(entity);
+            _context.ShareLinks.Update(entity);
 
-            await context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
     }
 
-    public async Task<string> ShareList(Guid headerId, SharedPermission permission, string? token, DateTimeOffset? expireOn)
+    public async Task<string> ShareList(string token, SharedPermission permission, string? newToken, DateTimeOffset? expireOn)
     {
         var share = new ShareLinkEntity
         {
-            HeaderId = headerId,
+            HeaderId = await GetHeaderId(token),
             Permission = permission,
-            Token = token ?? GenerateToken(),
+            Token = newToken ?? GenerateToken(),
             ExpiresOn = expireOn?.ToUniversalTime()
         };
 
-        await context.ShareLinks.AddAsync(share);
-        await context.SaveChangesAsync();
+        await _context.ShareLinks.AddAsync(share);
+        await _context.SaveChangesAsync();
 
         return share.Token;
     }

@@ -19,75 +19,75 @@ public class ItemService(
 {
     private readonly IItemRepository _listItemRepository = _unitOfWork.ItemRepository;
 
-    public async Task CompleteListItemAsync(Guid listItemId)
+    public async Task CompleteListItemAsync(string token, Guid listItemId)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidItemComplete(userId, listItemId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemComplete(userId, token, listItemId));
 
         await _listItemRepository.CompleteListItem(listItemId);
 
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task DeleteListItemAsync(Guid listItemId)
+    public async Task DeleteListItemAsync(string token, Guid listItemId)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListItemDeleteAsync(userId, listItemId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemDelete(userId, token, listItemId));
 
         await _listItemRepository.DeleteListItem(listItemId);
 
         await _unitOfWork.SaveChangesAsync();
     }
 
-    public async Task<Item> GetItemById(Guid listItemId)
+    public async Task<Item> GetItemById(string token, Guid listItemId)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListGet(userId, listItemId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemGet(userId, token, listItemId));
 
         var listItem = await _listItemRepository.GetItemById(listItemId);
 
         return _mapper.Map<Item>(listItem);
     }
 
-    public async Task PatchItemAsync(Guid listItemId, ItemPatch itemPatch, bool? recursive)
+    public async Task PatchItemAsync(string token, Guid listItemId, ItemPatch itemPatch, bool? recursive)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListItemPatchAsync(userId, listItemId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemPatch(userId, token, listItemId));
 
         var resource = _mapper.Map<ItemResource>(itemPatch);
 
         await _listItemRepository.PatchListItem(listItemId, resource, recursive);
     }
 
-    public async Task PutListItemAsync(Guid listItemId, ItemPut listItemPut)
+    public async Task PutListItemAsync(string token, Guid listItemId, ItemPut listItemPut)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListItemPutAsync(userId, listItemId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemPut(userId, token, listItemId));
 
         var entityPut = _mapper.Map<ItemEntity>(listItemPut);
 
         await _listItemRepository.PutListItem(listItemId, entityPut);
     }
 
-    public async Task RelocateListItemAsync(Guid activeId, Guid overId, Guid? parentId)
+    public async Task RelocateListItemAsync(string token, Guid activeId, Guid overId, Guid? parentId)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidListItemRelocation(userId, activeId, parentId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemRelocation(userId, token, activeId, parentId));
 
         await _listItemRepository.RelocateListItem(activeId, overId, parentId);
     }
 
-    public async Task RestoreListItemAsync(Guid itemId, Guid? overId, Guid? parentId)
+    public async Task RestoreListItemAsync(string token, Guid itemId, Guid? overId, Guid? parentId)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidItemRestoral(userId, itemId, overId, parentId));
+        await InvokeGuard(() => _guard.AgainstInvalidItemRestoral(userId, token, itemId, overId, parentId));
 
         await _listItemRepository.RestoreListItem(itemId, overId, parentId);
     }

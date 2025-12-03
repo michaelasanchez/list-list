@@ -6,12 +6,11 @@ namespace ListList.Data.Repositories.Interfaces;
 public interface IHeaderRepository
 {
     Task CreateHeader(Guid ownerId, HeaderEntity creation, int? order);
-    Task DeleteHeader(Guid headerId);
-    Task<HeaderResource> GetHeaderById(Guid? ownerId, Guid listHeaderId);
-    Task<HeaderResource> GetHeaderByToken(string token);
+    Task DeleteHeader(string token);
+    Task<HeaderResource> GetHeader(string token);
     Task<List<HeaderResource>> GetHeaders(Guid? ownerId);
-    Task PatchHeader(Guid headerId, HeaderResource resource);
-    Task PutHeader(Guid listHeaderId, HeaderEntity update);
-    Task RelocateHeader(Guid ownerId, Guid listHeaderId, int index);
-    Task RestoreHeader(Guid value, Guid headerId, int? order);
+    Task PatchHeader(string token, HeaderResource resource);
+    Task PutHeader(string token, HeaderEntity update);
+    Task RelocateHeader(Guid ownerId, string token, int index);
+    Task RestoreHeader(Guid value, string token, int? order);
 }

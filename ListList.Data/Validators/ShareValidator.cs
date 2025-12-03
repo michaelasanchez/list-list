@@ -7,7 +7,7 @@ namespace ListList.Data.Validators;
 
 public class ShareValidator(IListListContext context) : IShareValidator
 {
-    public async Task TokenIsAvailable(Guid? linkId, string token, ValidationResult result)
+    public async Task TokenIsAvailable(Guid? linkId, string? token, ValidationResult result)
     {
         var shareLinkNameExists = context.ShareLinks
             .AsNoTracking()

@@ -5,9 +5,11 @@ const formApiRequestPath = (
   actionPath?: string,
   queryParams?: string
 ): string => {
-  return `${config.apiUrl}${basePath}${actionPath ? `/${actionPath}` : ''}${
+  const path = `${basePath}${actionPath ? `/${actionPath}` : ''}${
     queryParams ? `?${queryParams}` : ''
   }`;
+
+  return `${config.apiUrl}${path.startsWith('/') ? path.slice(1) : path}`;
 };
 
 export type QueryParameters = { [key: string]: any };

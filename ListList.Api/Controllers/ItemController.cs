@@ -8,61 +8,61 @@ using Microsoft.AspNetCore.Mvc;
 namespace ListList.Api.Controllers;
 
 [ApiController]
-[Route("api/item")]
+[Route("api")]
 public class ItemController(IItemService _service) : Controller
 {
-    [HttpPost("{itemId}/complete")]
-    public async Task<ActionResult> CompleteItem(Guid itemId)
+    [HttpPost("{token}/item/{itemId}/complete")]
+    public async Task<ActionResult> CompleteItem(string token, Guid itemId)
     {
-        await _service.CompleteListItemAsync(itemId);
+        await _service.CompleteListItemAsync(token, itemId);
 
         return Ok();
     }
 
-    [HttpDelete("{itemId}")]
-    public async Task<ActionResult> DeleteItem([FromRoute] Guid itemId)
+    [HttpDelete("{token}/item/{itemId}")]
+    public async Task<ActionResult> DeleteItem(string token, Guid itemId)
     {
-        await _service.DeleteListItemAsync(itemId);
+        await _service.DeleteListItemAsync(token, itemId);
 
         return Ok();
     }
 
-    [HttpGet("{itemId}")]
-    public async Task<ActionResult<Item>> GetItemById([FromRoute] Guid itemId)
+    [HttpGet("{token}/item/{itemId}")]
+    public async Task<ActionResult<Item>> GetItemById(string token, Guid itemId)
     {
-        var listItem = await _service.GetItemById(itemId);
+        var listItem = await _service.GetItemById(token, itemId);
 
         return Ok(listItem);
     }
 
-    [HttpPatch("{itemId}")]
-    public async Task<ActionResult> PatchItem(Guid itemId, ItemPatch itemPatch, [FromQuery] bool? recursive)
+    [HttpPatch("{token}/item/{itemId}")]
+    public async Task<ActionResult> PatchItem(string token, Guid itemId, ItemPatch itemPatch, [FromQuery] bool? recursive)
     {
-        await _service.PatchItemAsync(itemId, itemPatch, recursive);
+        await _service.PatchItemAsync(token, itemId, itemPatch, recursive);
 
         return Ok();
     }
 
-    [HttpPut("{itemId}")]
-    public async Task<ActionResult> PutItem(Guid itemId, ItemPut listItemPut)
+    [HttpPut("{token}/item/{itemId}")]
+    public async Task<ActionResult> PutItem(string token, Guid itemId, ItemPut listItemPut)
     {
-        await _service.PutListItemAsync(itemId, listItemPut);
+        await _service.PutListItemAsync(token, itemId, listItemPut);
 
         return Ok();
     }
 
-    [HttpPost("{activeId}/relocate")]
-    public async Task<IActionResult> RelocateItem(Guid activeId, ItemRelocation listItemRelocation)
+    [HttpPost("{token}/item/{activeId}/relocate")]
+    public async Task<IActionResult> RelocateItem(string token, Guid activeId, ItemRelocation listItemRelocation)
     {
-        await _service.RelocateListItemAsync(activeId, listItemRelocation.OverId, listItemRelocation.ParentId);
+        await _service.RelocateListItemAsync(token, activeId, listItemRelocation.OverId, listItemRelocation.ParentId);
 
         return Ok();
     }
 
-    [HttpPost("{itemId}/restore")]
-    public async Task<ActionResult> RestoreItem(Guid itemId, ItemRestoral? itemRestoral)
+    [HttpPost("{token}/item/{itemId}/restore")]
+    public async Task<ActionResult> RestoreItem(string token, Guid itemId, ItemRestoral? itemRestoral)
     {
-        await _service.RestoreListItemAsync(itemId, itemRestoral?.OverId, itemRestoral?.ParentId);
+        await _service.RestoreListItemAsync(token, itemId, itemRestoral?.OverId, itemRestoral?.ParentId);
 
         return Ok();
     }

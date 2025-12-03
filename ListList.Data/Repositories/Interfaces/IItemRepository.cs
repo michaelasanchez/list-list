@@ -6,7 +6,7 @@ namespace ListList.Data.Repositories.Interfaces;
 public interface IItemRepository
 {
     Task CompleteListItem(Guid listItemId);
-    Task<Guid> CreateListItem(ItemResource creation, Guid headerId, Guid? overId, Guid? parentId);
+    Task<Guid> CreateListItem(ItemResource creation, string token, Guid? overId, Guid? parentId);
     Task DeleteListItem(Guid listItemId);
     Task<ItemResource> GetItemById(Guid listItemId);
     Task PatchListItem(Guid listItemId, ItemResource resource, bool? recursive);

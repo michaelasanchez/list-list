@@ -8,11 +8,11 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
-    public async Task<ValidationResult> AgainstInvalidShare(Guid? userId, Guid headerId, HeaderShare headerShare)
+    public async Task<ValidationResult> AgainstInvalidShare(Guid? userId, string token, HeaderShare headerShare)
     {
         var result = new ValidationResult();
 
-        await headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
+        await headerValidator.IsOwnedByUser(userId, token, result);
 
         await shareValidator.TokenIsAvailable(null, headerShare.Token, result);
 

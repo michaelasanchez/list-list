@@ -7,4 +7,16 @@
 
   padding-top: var(--item-gap);
   padding-bottom: 6em;
+
+  &:has(.NotFound) {
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+  }
+
+  .NotFound {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.25rem;
+    padding: 1rem 2rem;
+  }
 }

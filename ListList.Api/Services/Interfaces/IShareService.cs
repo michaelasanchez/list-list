@@ -7,5 +7,5 @@ public interface IShareService
 {
     Task DeleteLink(Guid shareLinkId);
     Task PutLink(Guid shareLinkId, ShareLinkPut patch);
-    Task<string> ShareHeader(Guid listHeaderId, HeaderShare listHeaderShare);
+    Task<string> ShareHeader(string token, HeaderShare listHeaderShare);
 }

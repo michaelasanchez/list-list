@@ -10,69 +10,69 @@ public partial class Guard : IGuard
     {
         var result = new ValidationResult();
 
-        await headerValidator.IsValidHeaderIndexAsync(userId, order, result);
+        await headerValidator.IsValidIndex(userId, order, result);
 
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidListItemCreationAsync(Guid? userId, Guid headerId)
+    public async Task<ValidationResult> AgainstInvalidHeaderDelete(Guid? userId, string token)
     {
         var result = new ValidationResult();
 
-        await headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
+        await headerValidator.IsOwnedByUser(userId, token, result);
+
+        await headerValidator.IsNotDeleted(token, result);
 
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidHeaderDelete(Guid? userId, Guid listHeaderId)
+    public async Task<ValidationResult> AgainstInvalidHeaderGet(Guid? userId, string token)
     {
         var result = new ValidationResult();
 
-        await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
-
-        await headerValidator.HeaderIsNotDeleted(userId, listHeaderId, result);
+        await headerValidator.CanView(userId, token, result);
 
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidHeaderGet(Guid? userId, Guid listHeaderId)
+    public async Task<ValidationResult> AgainstInvalidHeaderPatch(Guid? userId, string token, HeaderPatch patch)
     {
         var result = new ValidationResult();
 
-        await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
+        await headerValidator.CanUpdate(userId, token, result);
 
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidHeaderPatch(Guid? userId, Guid headerId, HeaderPatch patch)
+    public async Task<ValidationResult> AgainstInvalidHeaderRelocation(Guid? userId, string token, int index)
     {
         var result = new ValidationResult();
 
-        await headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
+        await headerValidator.IsOwnedByUser(userId, token, result);
+
+        await headerValidator.IsValidIndex(userId, index, result);
 
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidHeaderRelocation(Guid? userId, Guid listHeaderId, int index)
+    public async Task<ValidationResult> AgainstInvalidHeaderRestoral(Guid? userId, string token, int? order)
     {
         var result = new ValidationResult();
 
-        await headerValidator.UserOwnsListHeaderAsync(userId, listHeaderId, result);
+        await headerValidator.IsOwnedByUser(userId, token, result);
 
-        await headerValidator.IsValidHeaderIndexAsync(userId, index, result);
+        await headerValidator.IsDeleted(token, result);
+
+        await headerValidator.IsValidIndex(userId, order, result);
 
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidHeaderRestoral(Guid? userId, Guid headerId, int? order)
+    public async Task<ValidationResult> AgainstInvalidItemCreation(Guid? userId, string token)
     {
         var result = new ValidationResult();
 
-        await headerValidator.UserOwnsListHeaderAsync(userId, headerId, result);
-
-        await headerValidator.HeaderIsDeleted(userId, headerId, result);
-
-        await headerValidator.IsValidHeaderIndexAsync(userId, order, result);
+        await headerValidator.CanUpdate(userId, token, result);
 
         return result;
     }

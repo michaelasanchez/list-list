@@ -37,12 +37,12 @@ public class ShareService(
         await _shareRepository.PutLink(linkId, resource);
     }
 
-    public async Task<string> ShareHeader(Guid listHeaderId, HeaderShare listHeaderShare)
+    public async Task<string> ShareHeader(string token, HeaderShare listHeaderShare)
     {
         var userId = await _userService.GetUserId();
 
-        await InvokeGuard(() => _guard.AgainstInvalidShare(userId, listHeaderId, listHeaderShare));
+        await InvokeGuard(() => _guard.AgainstInvalidShare(userId, token, listHeaderShare));
 
-        return await _shareRepository.ShareList(listHeaderId, listHeaderShare.Permission, listHeaderShare.Token, listHeaderShare.ExpiresOn);
+        return await _shareRepository.ShareList(token, listHeaderShare.Permission, listHeaderShare.Token, listHeaderShare.ExpiresOn);
     }
 }

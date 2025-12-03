@@ -6,13 +6,14 @@ import { TreeMapper } from '../views';
 
 export interface ViewModel {
   renderKey: string;
+  token: string | null;
   headerId: string | null;
   selectedId: string | null;
   featured: Featured | null;
+  items: TreeItems | null;
   depth: number;
-  items: TreeItems;
   path?: PathItem[];
-  treeProps?: Partial<SortableTreeProps>;
+  treeProps?: Omit<SortableTreeProps, 'defaultItems'>;
 }
 
 function getViewModel(
@@ -21,13 +22,21 @@ function getViewModel(
   headers: Header[],
   expanded: string[]
 ): ViewModel {
-  // console.log('TOKEN', token);
-  // console.log('HEADERS', headers);
   const header = token
     ? headers.find((h) => h.id === token || h.tokens?.includes(token)) ?? null
     : null;
 
-  const headerId = header?.id ?? null;
+  if (!Boolean(header)) {
+    return {
+      renderKey: '__not__found__key__',
+      depth: -1,
+      token: token === undefined ? null : token,
+      headerId: null,
+      selectedId: null,
+      featured: null,
+      items: null,
+    };
+  }
 
   // Header
   if (!Boolean(token)) {
@@ -38,6 +47,7 @@ function getViewModel(
     return {
       renderKey: '__root__key__',
       depth: 0,
+      token: null,
       headerId: null,
       selectedId: null,
       featured: null,
@@ -45,7 +55,7 @@ function getViewModel(
     };
   }
 
-  const treeProps = {
+  const treeProps: Omit<SortableTreeProps, 'defaultItems'> = {
     collapsible: true,
     indicator: true,
     removable: true,
@@ -69,9 +79,10 @@ function getViewModel(
     const items = TreeMapper.buildTreeFromItems(header?.items, expanded);
 
     return {
-      renderKey: headerId ?? token,
+      renderKey: header.id,
       depth: 1,
-      headerId,
+      token,
+      headerId: header.id,
       selectedId: null,
       featured,
       items,
@@ -108,12 +119,13 @@ function getViewModel(
   return {
     renderKey: selected.id,
     depth: selected.depth + 2,
+    token,
     headerId: header.id,
     selectedId: selected.id,
     featured,
     items: treeResult.items,
     path,
-    treeProps: treeProps,
+    treeProps,
   };
 }
 
