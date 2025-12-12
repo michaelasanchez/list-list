@@ -64,18 +64,28 @@ public class HeaderRepository(ListListContext context, IMapper mapper) : BaseRep
     //    return _mapper.Map<HeaderResource>(entity);
     //}
 
-    public async Task<HeaderResource> GetHeader(string token)
+    public async Task<HeaderResource> GetHeader(Guid? userId, string token)
     {
-        var entity = await GetQuery()
-            .Where(z => z.ShareLinks.Any(y => y.Token == token))
-            .SingleAsync();
+        var query = GetQuery();
 
-        var shareLink = entity.ShareLinks.Single(y => y.Token == token);
+        var parsed = Guid.TryParse(token, out var id);
+
+        query = parsed ? 
+            query.Where(z => z.Id == id) : 
+            query.Where(z => z.ShareLinks.Any(y => y.Token == token));
+
+        var entity = await query.SingleAsync();
+
+        var shareLink = entity.ShareLinks.SingleOrDefault(y => y.Token == token);
 
         var resource = _mapper.Map<HeaderResource>(entity);
 
+        var isOwner = userId == entity.OwnerId;
+        var canEdit = isOwner || (shareLink is not null && shareLink.Permission is Models.Enums.SharedPermission.Edit);
+
         resource.Token = token;
-        resource.ReadOnly = shareLink.Permission is not Models.Enums.SharedPermission.Edit;
+        resource.Owned = isOwner;
+        resource.ReadOnly = !canEdit;
 
         return resource;
     }

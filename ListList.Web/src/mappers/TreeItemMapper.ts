@@ -84,8 +84,6 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
         complete: i.complete,
         completedOn: i.completedOn,
         index: i.index,
-        // TODO: DEBUG
-        // numbered: true,
       },
     });
   });

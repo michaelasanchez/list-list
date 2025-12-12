@@ -16,6 +16,7 @@ export enum UiMode {
 interface FloatingUiProps {
   headerId: string;
   selectedId: string;
+  readonly: boolean;
   items: TreeItems;
   containerRef: React.RefObject<HTMLDivElement>;
   dispatch: ActionDispatch<[action: AppStateAction]>;
@@ -69,7 +70,7 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
 
   return (
     <div className={styles.FloatingUi}>
-      <div className={classNames(styles.Layer, styles.Active)}>
+      <div className={classNames(styles.Layer, !props.readonly && styles.Active)}>
         <IconButton
           iconType="create"
           size="lg"

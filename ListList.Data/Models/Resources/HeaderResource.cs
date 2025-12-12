@@ -9,6 +9,7 @@ public class HeaderResource
 
     public bool? Checklist { get; set; }
     public bool? ReadOnly { get; set; }
+    public bool? Owned { get; set; }
 
     public string? Label { get; set; }
     public string? Description { get; set; }

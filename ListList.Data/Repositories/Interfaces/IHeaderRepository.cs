@@ -7,7 +7,7 @@ public interface IHeaderRepository
 {
     Task CreateHeader(Guid ownerId, HeaderEntity creation, int? order);
     Task DeleteHeader(string token);
-    Task<HeaderResource> GetHeader(string token);
+    Task<HeaderResource> GetHeader(Guid? userId, string token);
     Task<List<HeaderResource>> GetHeaders(Guid? ownerId);
     Task PatchHeader(string token, HeaderResource resource);
     Task PutHeader(string token, HeaderEntity update);

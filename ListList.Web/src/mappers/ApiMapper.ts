@@ -21,6 +21,7 @@ const mapHeader = (
   id: header.id,
   tokens: !!header.token ? [header.token] : null,
   checklist: header.checklist,
+  owned: header.owned,
   readonly: header.readonly,
   label: header.label,
   description: header.description,

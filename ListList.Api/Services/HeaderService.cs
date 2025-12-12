@@ -60,7 +60,7 @@ public class HeaderService(
 
         }
 
-        var header = await _unitOfWork.HeaderRepository.GetHeader(token);
+        var header = await _unitOfWork.HeaderRepository.GetHeader(userId, token);
 
         return _mapper.Map<Header>(header);
     }

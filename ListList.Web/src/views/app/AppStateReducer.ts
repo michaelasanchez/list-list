@@ -92,6 +92,7 @@ export const AppStateReducer = (
         id: newNodeId,
         order: state.headers.length,
         checklist: false,
+        owned: true,
         readonly: false,
         label: '',
         description: '',
@@ -196,17 +197,11 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.SetHeaders: {
-      // console.log(state);
-
-      // const pendingHeaderIndex = state.headers.findIndex(h => h.id == newNodeId);
-
-      // if (Boolean(pendingHeaderIndex)) {
-        
-      // }
+      const headers = ListItemMapper.mapHeaders(action.headers, state.expanded);
 
       return {
         ...state,
-        headers: ListItemMapper.mapHeaders(action.headers, state.expanded),
+        headers,
       };
     }
     case AppStateActionType.SetItem: {

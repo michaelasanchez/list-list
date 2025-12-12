@@ -6,6 +6,7 @@ export interface ApiHeader {
   token?: string;
   order: number;
   checklist: boolean;
+  owned: boolean;
   readonly: boolean;
   label: string;
   description: string;

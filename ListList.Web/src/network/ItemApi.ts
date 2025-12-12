@@ -47,7 +47,7 @@ export class ListItemApi extends Api {
   ): Promise<void> => {
     this.setActionPath(`${token}/item/${itemId}`);
 
-    return this.executePut(put, itemId);
+    return this.executePut(put);
   };
 
   public Relocate = (

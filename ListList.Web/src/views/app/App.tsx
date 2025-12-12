@@ -402,14 +402,14 @@ export const App: React.FC = () => {
                 ...update,
               });
 
-              return await loadItem(current.token,activeId);
+              return await loadItem(current.token, activeId);
             },
           },
     [current]
   );
 
   const mainRef = React.useRef<HTMLDivElement>(null);
-
+  
   return (
     <Router>
       <Navbar
@@ -468,8 +468,9 @@ export const App: React.FC = () => {
       </main>
 
       <FloatingUi
-        headerId={current?.headerId}
-        selectedId={current?.selectedId}
+        headerId={current.headerId}
+        selectedId={current.selectedId}
+        readonly={current.readonly}
         items={current.items}
         containerRef={mainRef}
         dispatch={dispatch}
@@ -552,7 +553,7 @@ export const App: React.FC = () => {
 
 function getItem(
   headers: Header[],
-  headerId: string,  
+  headerId: string,
   itemId: string
 ): Item | null {
   const header = headers?.find((h) => h.id == headerId);

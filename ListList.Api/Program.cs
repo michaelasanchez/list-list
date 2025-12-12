@@ -6,8 +6,13 @@ using ListList.Api.Middleware;
 using ListList.Api.Services;
 using ListList.Api.Services.Interfaces;
 using ListList.Data;
+using ListList.Data.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.OpenApi.Models;
+
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.RegisterDataServices(builder.Configuration.GetConnectionString("ListListContext"));
@@ -103,5 +108,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ListListContext>();
+    db.Database.GetService<Microsoft.EntityFrameworkCore.Metadata.IModel>();
+}
 
 app.Run();

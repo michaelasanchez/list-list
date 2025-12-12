@@ -8,7 +8,8 @@ public class Header
     public int Order { get; set; }
 
     public bool Checklist { get; set; } = false;
-    public bool ReadOnly { get; set; } = true;
+    public bool Owned { get; set; } = false;
+    public bool Readonly { get; set; } = true;
 
     public string Label { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;

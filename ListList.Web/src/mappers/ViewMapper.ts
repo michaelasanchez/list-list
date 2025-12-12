@@ -13,6 +13,7 @@ export interface ViewModel {
   items: TreeItems | null;
   depth: number;
   path?: PathItem[];
+  readonly?: boolean;
   treeProps?: Omit<SortableTreeProps, 'defaultItems'>;
 }
 
@@ -26,7 +27,7 @@ function getViewModel(
     ? headers.find((h) => h.id === token || h.tokens?.includes(token)) ?? null
     : null;
 
-  if (!Boolean(header)) {
+  if (Boolean(token) && !Boolean(header)) {
     return {
       renderKey: '__not__found__key__',
       depth: -1,
@@ -38,7 +39,7 @@ function getViewModel(
     };
   }
 
-  // Header
+  // Headers (Top-Level)
   if (!Boolean(token)) {
     const items = TreeMapper.buildTreeFromHeaders(
       headers.filter((h) => !h.isNotOwned)
@@ -81,6 +82,7 @@ function getViewModel(
     return {
       renderKey: header.id,
       depth: 1,
+      readonly: header.readonly,
       token,
       headerId: header.id,
       selectedId: null,
@@ -119,6 +121,7 @@ function getViewModel(
   return {
     renderKey: selected.id,
     depth: selected.depth + 2,
+    readonly: header.readonly,
     token,
     headerId: header.id,
     selectedId: selected.id,
