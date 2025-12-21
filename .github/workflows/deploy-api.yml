@@ -49,8 +49,13 @@ jobs:
         run: dotnet build ./ListList.Api/ListList.Api.csproj --configuration Release
 
       - name: Publish project
-        run: dotnet publish ./ListList.Api/ListList.Api.csproj --configuration Release --output ./publish
-
+        run: dotnet publish ./ListList.Api/ListList.Api.csproj `
+             --configuration Release `
+             /p:WebPublishMethod=Package `
+             /p:PackageAsSingleFile=true `
+             /p:SkipInvalidConfigurations=true `
+             /p:PackageLocation=./publish/api.zip
+             
       - name: Upload published API
         uses: actions/upload-artifact@v4
         with:
@@ -75,5 +80,5 @@ jobs:
           msdeploy-service-url: ${{ secrets.DEPLOY_PUBLISH_URL }}
           msdeploy-username: ${{ secrets.DEPLOY_USERNAME }}
           msdeploy-password: ${{ secrets.DEPLOY_PASSWORD }}
-          source-path: ./publish
+          source-path: ./publish/api.zip
 

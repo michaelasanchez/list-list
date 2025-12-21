@@ -2,16 +2,12 @@ using Auth;
 using ListList.Api.Guards;
 using ListList.Api.Guards.Interfaces;
 using ListList.Api.Mappers.Profiles;
-using ListList.Api.Middleware;
 using ListList.Api.Services;
 using ListList.Api.Services.Interfaces;
 using ListList.Data;
 using ListList.Data.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.OpenApi.Models;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,9 +86,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Middleware
-app.UseMiddleware<ExceptionHandler>();
-
 // HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -100,9 +93,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 app.UseCors();
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
