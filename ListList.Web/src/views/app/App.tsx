@@ -64,7 +64,7 @@ export const App: React.FC = () => {
   const localStorage = useLocalStorage(cacheKey);
 
   const [state, dispatch] = useReducer(AppStateReducer, null, () =>
-    getDefaultAppState(localStorage)
+    getDefaultAppState(localStorage),
   );
 
   const {
@@ -106,7 +106,7 @@ export const App: React.FC = () => {
 
       navigateBase(`/${route}`);
     },
-    [navigateBase]
+    [navigateBase],
   );
 
   const finishSyncing = () =>
@@ -122,7 +122,7 @@ export const App: React.FC = () => {
       itemApi: new ListItemApi(authState.token),
       shareApi: new ShareApi(authState.token),
     }),
-    [authState]
+    [authState],
   );
 
   const loadHeaders = useCallback(async (): Promise<Succeeded> => {
@@ -159,7 +159,7 @@ export const App: React.FC = () => {
         finishSyncing();
       }
     },
-    [apis]
+    [apis],
   );
 
   const loadItem = useCallback(
@@ -177,7 +177,7 @@ export const App: React.FC = () => {
         return false;
       }
     },
-    [apis]
+    [apis],
   );
 
   const createItem = useCallback(
@@ -212,7 +212,7 @@ export const App: React.FC = () => {
         return false;
       }
     },
-    [apis]
+    [apis],
   );
 
   const current = React.useMemo(
@@ -221,9 +221,9 @@ export const App: React.FC = () => {
         navState.token,
         navState.selectedId,
         state.headers,
-        state.expanded
+        state.expanded,
       ),
-    [navState.token, navState.selectedId, state.headers, state.expanded]
+    [navState.token, navState.selectedId, state.headers, state.expanded],
   );
 
   // Load header if not found from initial load
@@ -339,10 +339,10 @@ export const App: React.FC = () => {
           })
           .then(() => loadHeader(id)),
     }),
-    [authState?.token, state.headers]
+    [authState?.token, state.headers],
   );
 
-  const itemHooks = React.useMemo<Hooks>(
+  const itemHooks = React.useMemo<Hooks | null>(
     (): Hooks | null =>
       !current
         ? null
@@ -351,7 +351,6 @@ export const App: React.FC = () => {
               apis.itemApi
                 .Complete(current.token, itemId)
                 .then(() => loadItem(current.token, itemId)),
-            onClick: (id: string) => navigate(navState.token, id),
             onCollapse: (itemId: string) => {
               dispatch({
                 type: ActionType.ToggleExpanded,
@@ -369,7 +368,7 @@ export const App: React.FC = () => {
             onDelete: async (
               activeId: string,
               overId: string,
-              parentId: string
+              parentId: string,
             ) => {
               if (activeId == newNodeId) {
                 dispatch({
@@ -394,6 +393,7 @@ export const App: React.FC = () => {
               apis.itemApi
                 .Relocate(current.token, activeId, overId, parentId)
                 .then(() => loadHeader(current.headerId)),
+            onSelect: (activeId: string) => navigate(navState.token, activeId),
             onUpdate: async (activeId: string, update: ItemUpdate) => {
               const item = getItem(state.headers, current.headerId, activeId);
 
@@ -405,11 +405,11 @@ export const App: React.FC = () => {
               return await loadItem(current.token, activeId);
             },
           },
-    [current]
+    [current],
   );
 
   const mainRef = React.useRef<HTMLDivElement>(null);
-  
+
   return (
     <Router>
       <Navbar
@@ -527,7 +527,7 @@ export const App: React.FC = () => {
     token: string,
     item: Item,
     overId: string,
-    parentId: string
+    parentId: string,
   ) {
     const alertId = showAlert({
       content: (
@@ -554,7 +554,7 @@ export const App: React.FC = () => {
 function getItem(
   headers: Header[],
   headerId: string,
-  itemId: string
+  itemId: string,
 ): Item | null {
   const header = headers?.find((h) => h.id == headerId);
 

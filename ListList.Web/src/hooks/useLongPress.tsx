@@ -7,7 +7,7 @@ type UseLongPressOptions = {
 };
 
 export function useLongPress(
-  callback: () => void,
+  callback: (() => void) | undefined,
   { onStart, onFinish, threshold = 500 }: UseLongPressOptions = {}
 ) {
   const [isLongPressing, setIsLongPressing] = useState(false);

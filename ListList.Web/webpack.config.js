@@ -82,6 +82,7 @@ module.exports = (_, argv) => {
       hot: true,
       historyApiFallback: true,
       port: 9000,
+      server: 'https'
     },
   };
 };

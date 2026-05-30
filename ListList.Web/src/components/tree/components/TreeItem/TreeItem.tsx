@@ -13,14 +13,17 @@ import { ActionDropdown, DropdownAction } from '../../../action-dropdown';
 import { Icon } from '../../../icon';
 import { ItemUpdate } from '../../SortableTree';
 import { TreeItemData } from '../../types';
+import { useLongPress } from '../../../../hooks';
 
 export interface Hooks {
   actions?: DropdownAction[][];
   onUpdate?: (update: ItemUpdate) => Promise<Succeeded>;
 }
 
-export interface TreeItemProps
-  extends Omit<HTMLAttributes<HTMLLIElement>, 'id'> {
+export interface TreeItemProps extends Omit<
+  HTMLAttributes<HTMLLIElement>,
+  'id'
+> {
   checkbox?: boolean;
   childCount?: number;
   clone?: boolean;
@@ -71,11 +74,16 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
       wrapperRef,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [checkLoading, setCheckLoading] = React.useState<boolean>(false);
-    // const longPressEvents = useLongPress(onSelect);
-    // const
+
+    const longPressEvents = useLongPress(onSelect);
+
+    const handleCollapse = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+
+    }, []);
 
     return (
       <li
@@ -88,7 +96,7 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
           pending && styles.pending,
           disableSelection && styles.disableSelection,
           disableInteraction && styles.disableInteraction,
-          data.complete && styles.complete
+          data.complete && styles.complete,
         )}
         ref={wrapperRef}
         style={
@@ -103,7 +111,7 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
 
           onSelect?.();
         }}
-        // {...longPressEvents}
+        {...longPressEvents}
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
@@ -116,7 +124,7 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
               autoFocus={pending}
               name={name}
               label={data.label}
-              placeholderLabel={pending ? 'New Item' : null}
+              placeholderLabel={pending ? 'New Item' : undefined}
               description={data.description}
               placeholderDescription="Add note"
               onUpdate={hooks?.onUpdate}
@@ -126,9 +134,13 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
             )}
           </div>
           <div className={styles.Actions}>
-            {hooks?.actions?.length > 0 && (
-              <ActionDropdown actionGroups={hooks.actions} variant="none" />
+            {!!hooks?.actions && (
+              <ActionDropdown
+                actionGroups={hooks.actions}
+                variant="none"
+              />
             )}
+            {/* Checkbox */}
             {checkbox && (
               <Action
                 onClick={(e) => {
@@ -151,11 +163,12 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
                 )}
               </Action>
             )}
+            {/* Collapse */}
             {onCollapse ? (
               <Action
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCollapse?.();
+                  onCollapse();
                 }}
                 className={cn(styles.Collapse, collapsed && styles.collapsed)}
               >
@@ -178,5 +191,5 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
         </div>
       </li>
     );
-  }
+  },
 );

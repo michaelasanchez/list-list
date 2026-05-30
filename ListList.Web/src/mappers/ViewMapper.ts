@@ -21,10 +21,10 @@ function getViewModel(
   token: string,
   selectedId: string,
   headers: Header[],
-  expanded: string[]
+  expanded: string[],
 ): ViewModel {
   const header = token
-    ? headers.find((h) => h.id === token || h.tokens?.includes(token)) ?? null
+    ? (headers.find((h) => h.id === token || h.tokens?.includes(token)) ?? null)
     : null;
 
   if (Boolean(token) && !Boolean(header)) {
@@ -42,7 +42,7 @@ function getViewModel(
   // Headers (Top-Level)
   if (!Boolean(token)) {
     const items = TreeMapper.buildTreeFromHeaders(
-      headers.filter((h) => !h.isNotOwned)
+      headers.filter((h) => !h.isNotOwned),
     );
 
     return {
@@ -96,7 +96,7 @@ function getViewModel(
   const treeResult = TreeMapper.buildTreeFromSubItems(
     header.items ?? [],
     expanded,
-    selectedId
+    selectedId,
   );
 
   const selected = header.items.find((i) => i.id == selectedId);
