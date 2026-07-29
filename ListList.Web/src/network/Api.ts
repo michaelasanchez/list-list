@@ -3,7 +3,7 @@ import { config } from '../shared';
 const formApiRequestPath = (
   basePath: string,
   actionPath?: string,
-  queryParams?: string
+  queryParams?: string,
 ): string => {
   const path = `${basePath}${actionPath ? `/${actionPath}` : ''}${
     queryParams ? `?${queryParams}` : ''
@@ -17,68 +17,42 @@ export type QueryParameters = { [key: string]: any };
 export type Succeeded = boolean;
 
 export class Api {
-  private _token: string;
-
   private _basePath: string;
   private _actionPath: string;
   private _queryParameters: string;
 
-  constructor(basePath: string, token?: string) {
+  constructor(basePath: string) {
     this._basePath = basePath;
-
-    if (token) this._token = token;
   }
 
   private async execute(
-    init: RequestInit = null,
-    toJson: boolean = true
+    init: RequestInit | null = null,
+    toJson: boolean = true,
   ): Promise<any> {
-    const requestPath = formApiRequestPath(
+    const path = formApiRequestPath(
       this._basePath,
       this._actionPath,
-      this._queryParameters
+      this._queryParameters,
     );
-
-    if (this._token) {
-      const authHeaders = new Headers({
-        Authorization: `Bearer ${this._token}`,
-      });
-
-      if (init) {
-        if (init.headers) {
-          (init.headers as Headers).append(
-            'Authorization',
-            `Bearer ${this._token}`
-          );
-        } else {
-          init.headers = authHeaders;
-        }
-      } else {
-        init = {
-          headers: authHeaders,
-        };
-      }
-    }
-
-    const fetchPath = init ? fetch(requestPath, init) : fetch(requestPath);
 
     this._actionPath = null;
     this._queryParameters = null;
 
-    return fetchPath.then((result) =>
-      result.ok && result.status >= 200 && result.status < 300
-        ? toJson
-          ? result.json()
-          : result
-        : result.text().then((text) => {
-            throw new Error(text);
-          })
+    return fetch(path, { ...(init ?? {}), credentials: 'include' }).then(
+      (result) =>
+        result.ok && result.status >= 200 && result.status < 300
+          ? toJson
+            ? result.json()
+            : result
+          : result.text().then((text) => {
+              throw new Error(text);
+            }),
     );
   }
 
   protected executeDelete(
     id: string,
-    params: RequestInit = null
+    params: RequestInit = null,
   ): Promise<void> {
     this.setActionPath(`${id}`);
 
@@ -87,13 +61,13 @@ export class Api {
         ...params,
         method: 'DELETE',
       },
-      false
+      false,
     );
   }
 
   protected executeGet(
     queryParams?: QueryParameters,
-    init: RequestInit = null
+    init: RequestInit = null,
   ): Promise<any> {
     if (!!queryParams) this.setQueryParameters(queryParams);
 
@@ -103,7 +77,7 @@ export class Api {
   protected executePatch(
     id: string,
     obj: any,
-    init: RequestInit = null
+    init: RequestInit = null,
   ): Promise<any> {
     this.setActionPath(`${id}`);
     return this.execute(
@@ -115,14 +89,14 @@ export class Api {
         }),
         body: JSON.stringify(obj),
       },
-      false
+      false,
     );
   }
 
   protected executePost(
-    obj: any,
-    init: RequestInit = null,
-    toJson?: boolean
+    obj: any | null = null,
+    init: RequestInit | null = null,
+    toJson: boolean = false,
   ): Promise<any> {
     return this.execute(
       {
@@ -133,7 +107,7 @@ export class Api {
         }),
         body: JSON.stringify(obj),
       },
-      toJson
+      toJson,
     );
   }
 
@@ -147,7 +121,7 @@ export class Api {
         }),
         body: JSON.stringify(obj),
       },
-      false
+      false,
     );
   }
 

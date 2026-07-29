@@ -1,10 +1,11 @@
 ﻿using ListList.Data.Models.Entities;
+using ListList.Data.Models.Resources;
 
 namespace ListList.Data.Repositories.Interfaces;
 
 public interface IUserRepository
 {
-    Task CreateUserAsync(string subject);
-    Task<Guid?> GetUserIdAsync(string subject);
-    Task<bool> UserExistsAsync(string subject);
+    Task<UserEntity?> GetUserByGoogleSubAsync(string googleSub);
+    Task UpdateRefreshTokenAsync(Guid id, string refreshToken);
+    Task<UserEntity> UpsertUserAsync(UserResource user);
 }

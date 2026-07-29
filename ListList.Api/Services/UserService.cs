@@ -1,85 +1,43 @@
 ﻿using Auth.Services.Interfaces;
-using ListList.Api.Contracts;
+using AutoMapper;
 using ListList.Api.Services.Interfaces;
 using ListList.Data.Models.Interfaces;
-using Microsoft.Extensions.Caching.Memory;
-using System.Security.Claims;
-using static Google.Apis.Auth.GoogleJsonWebSignature;
+using ListList.Data.Models.Resources;
 
 namespace ListList.Api.Services;
 
-public class UserService(IHttpContextAccessor _httpContextAccessor, IMemoryCache _cache, ITokenService _tokenService, IUnitOfWork _unitOfWork) : IUserService
+public class UserService(
+    IMapper _mapper,
+    ITokenService _tokenService,
+    IUnitOfWork _unitOfWork) : IUserService
 {
-    private readonly MemoryCacheEntryOptions _cacheOptions = new MemoryCacheEntryOptions()
-        .SetSlidingExpiration(TimeSpan.FromDays(7));
-
-    public async Task<Guid?> GetUserId()
+    public async Task<UserResource?> GetUserBySubject(string subject)
     {
-        if (_httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated is false)
-        {
-            return null;
-        }
+        var entity = await _unitOfWork.UserRepository.GetUserByGoogleSubAsync(subject);
 
-        var userClaims = _httpContextAccessor.HttpContext?.User.Identities.Single().Claims;
-
-        var subject = userClaims?.FirstOrDefault(z => z.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        if (subject is null)
-        {
-            return null;
-        }
-
-        if (_cache.TryGetValue<Guid?>(subject, out var userId))
-        {
-            return userId;
-        }
-
-        userId = await _unitOfWork.UserRepository.GetUserIdAsync(subject);
-
-        if (userId is null)
-        {
-            throw new Exception("User is not registered.");
-        }
-
-        _cache.Set(subject, userId.Value, _cacheOptions);
-
-        return userId.Value;
+        return _mapper.Map<UserResource>(entity);
     }
 
-    public async Task<Token?> LoginAsync(string authorizationCode)
+    public async Task<UserResource> Login(string code)
     {
-        var tokenResponse = await _tokenService.ExchangeTokenAsync(authorizationCode);
+        var tokenResponse = await _tokenService.ExchangeTokenAsync(code);
 
-        Payload payload = await ValidateAsync(tokenResponse.IdToken);
+        var payload = await _tokenService.ValidateTokenAsync(tokenResponse);
 
-        string subject = payload.Subject;
-
-        var userExists = await _unitOfWork.UserRepository.UserExistsAsync(subject);
-
-        if (!userExists)
+        var entity = await _unitOfWork.UserRepository.UpsertUserAsync(new UserResource
         {
-            await _unitOfWork.UserRepository.CreateUserAsync(subject);
-
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        return new Token
-        {
-            IdToken = tokenResponse.IdToken,
-            Expiry = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds!.Value),
-            RefreshToken = tokenResponse.RefreshToken,
-        };
-    }
-
-    public async Task<Token?> RefreshAsync(string refreshToken)
-    {
-        var tokenResponse = await _tokenService.RefreshTokenAsync(refreshToken);
-
-        return new Token
-        {
-            IdToken = tokenResponse.IdToken,
-            Expiry = tokenResponse.IssuedUtc.AddSeconds(tokenResponse.ExpiresInSeconds!.Value),
+            Subject = payload.Subject,
+            Email = payload.Email,
+            Name = payload.Name,
+            PictureUrl = payload.Picture,
             RefreshToken = tokenResponse.RefreshToken
-        };
+        });
+
+        return _mapper.Map<UserResource>(entity);
+    }
+
+    public async Task UpdateRefreshToken(Guid userId, string refreshToken)
+    {
+        await _unitOfWork.UserRepository.UpdateRefreshTokenAsync(userId, refreshToken);
     }
 }

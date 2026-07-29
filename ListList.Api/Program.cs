@@ -18,6 +18,7 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(HeaderProfile).Assembly);
 
 builder.Services.AddScoped<IGuard, Guard>();
 
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IHeaderService, HeaderService>();
 builder.Services.AddScoped<IItemService, ItemService>();
 builder.Services.AddScoped<IShareService, ShareService>();
@@ -26,14 +27,16 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddHttpContextAccessor();
 
 // Authentication
-builder.Services.AddAuthServices(builder.Configuration);
+builder.Services.AddAuthServices(builder.Configuration, builder.Environment);
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(
         builder =>
         {
-            builder.AllowAnyOrigin()
+            builder
+                .WithOrigins(["http://localhost:9000", "https://localhost:9000"])
+                .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });

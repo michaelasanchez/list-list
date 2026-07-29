@@ -1,10 +1,10 @@
-﻿using ListList.Api.Contracts;
+﻿using ListList.Data.Models.Resources;
 
 namespace ListList.Api.Services.Interfaces;
 
 public interface IUserService
 {
-    Task<Guid?> GetUserId();
-    Task<Token?> LoginAsync(string authorizationCode);
-    Task<Token?> RefreshAsync(string refreshToken);
+    Task<UserResource> Login(string code);
+    Task<UserResource?> GetUserBySubject(string subject);
+    Task UpdateRefreshToken(Guid userId, string refreshToken);
 }

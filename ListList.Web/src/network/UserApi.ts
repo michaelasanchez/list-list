@@ -1,18 +1,28 @@
 import { Api } from '.';
-import { ApiToken } from '../contracts';
+import { UserProfile } from '../auth';
 
 export class UserApi extends Api {
-  constructor(token?: string) {
-    super('user', token);
+  constructor() {
+    super('user');
   }
 
-  public Login = (authorizationCode: string): Promise<ApiToken> => {
-    this.setActionPath('login');
-    return this.executePost({ code: authorizationCode });
+  public Me = (): Promise<UserProfile> => {
+    this.setActionPath('me');
+    return this.executeGet();
   };
 
-  public Refresh = (refreshToken: string): Promise<ApiToken> => {
+  public Login = (code: string): Promise<UserProfile> => {
+    this.setActionPath('login');
+    return this.executePost(code);
+  };
+
+  public Logout = (): Promise<void> => {
+    this.setActionPath('logout');
+    return this.executePost();
+  };
+
+  public Refresh = (): Promise<void> => {
     this.setActionPath('refresh');
-    return this.executePost({ token: refreshToken });
-  }
+    return this.executePost();
+  };
 }

@@ -11,7 +11,7 @@ namespace ListList.Api.Services;
 
 public class ShareService(
     IUnitOfWork _unitOfWork,
-    IUserService _userService,
+    ICurrentUserService _userService,
     IMapper _mapper,
     IGuard _guard) : BaseService, IShareService
 {
@@ -19,7 +19,7 @@ public class ShareService(
 
     public async Task DeleteLink(Guid shareLinkId)
     {
-        var userId = _userService.GetUserId().Result;
+        var userId = await _userService.GetUserId();
 
         await InvokeGuard(() => _guard.AgainstInvalidShareLinkDelete(userId, shareLinkId));
 

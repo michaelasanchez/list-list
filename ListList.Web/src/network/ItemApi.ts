@@ -3,8 +3,8 @@ import { ApiItem, ApiListItemPut as ApiItemPut } from '../contracts';
 import { ApiItemPatch } from '../contracts/patch/ApiItemPatch';
 
 export class ListItemApi extends Api {
-  constructor(token?: string) {
-    super('', token);
+  constructor() {
+    super('');
   }
 
   public Complete = (token: string, itemId: string): Promise<void> => {

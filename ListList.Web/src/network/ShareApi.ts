@@ -3,8 +3,8 @@ import { ApiHeaderShare, ShareResult } from '../contracts';
 import { ApiShareLinkPut } from '../contracts/put';
 
 export class ShareApi extends Api {
-  constructor(token?: string) {
-    super('share', token);
+  constructor() {
+    super('share');
   }
 
   public Delete = (shareLinkId: string): Promise<void> =>

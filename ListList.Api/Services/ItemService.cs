@@ -13,7 +13,7 @@ namespace ListList.Api.Services;
 
 public class ItemService(
     IUnitOfWork _unitOfWork,
-    IUserService _userService,
+    ICurrentUserService _userService,
     IMapper _mapper,
     IGuard _guard) : BaseService, IItemService
 {

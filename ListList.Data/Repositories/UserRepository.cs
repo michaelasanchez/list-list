@@ -1,29 +1,56 @@
-﻿using ListList.Data.Models.Entities;
-using ListList.Data.Models.Interfaces;
+﻿using ListList.Data.Models;
+using ListList.Data.Models.Entities;
+using ListList.Data.Models.Resources;
 using ListList.Data.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ListList.Data.Repositories;
 
-public class UserRepository(IListListContext _context) : IUserRepository
+public class UserRepository(ListListContext _context) : IUserRepository
 {
-    public async Task CreateUserAsync(string subject)
+    public Task<UserEntity?> GetUserByGoogleSubAsync(string googleSub)
     {
-        var user = new UserEntity { Subject = subject };
-
-        await _context.Users.AddAsync(user);
+        return _context.Users.FirstOrDefaultAsync(u => u.Subject == googleSub);
     }
 
-    public async Task<Guid?> GetUserIdAsync(string subject)
+    public Task UpdateRefreshTokenAsync(Guid id, string refreshToken)
     {
-        return await _context.Users
-            .Where(z => z.Subject == subject)
-            .Select(z => z.Id)
-            .SingleOrDefaultAsync();
+        return _context.Users
+            .Where(u => u.Id == id)
+            .ExecuteUpdateAsync(u => u.SetProperty(x => x.RefreshToken, refreshToken));
     }
 
-    public async Task<bool> UserExistsAsync(string subject)
+    public async Task<UserEntity> UpsertUserAsync(UserResource dto)
     {
-        return await _context.Users.AnyAsync(z => z.Subject == subject);
+        var existing = await _context.Users.FirstOrDefaultAsync(u => u.Subject == dto.Subject);
+
+        if (existing == null)
+        {
+            existing = new UserEntity
+            {
+                Id = Guid.NewGuid(),
+                Subject = dto.Subject,
+                Email = dto.Email,
+                Name = dto.Name,
+                PictureUrl = dto.PictureUrl,
+                RefreshToken = dto.RefreshToken
+            };
+
+            _context.Users.Add(existing);
+        }
+        else
+        {
+            existing.Name = dto.Name;
+            existing.PictureUrl = dto.PictureUrl;
+
+            if (!string.IsNullOrEmpty(dto.RefreshToken))
+            {
+                existing.RefreshToken = dto.RefreshToken;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        return existing;
     }
 }

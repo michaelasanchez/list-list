@@ -88,8 +88,8 @@ export const App: React.FC = () => {
 
   // Load/unload headers
   useEffect(() => {
-    if (authState.initialized && !authState.loading) {
-      if (authState.authenticated) {
+    if (!authState.loading){
+      if (authState.user) {
         loadHeaders();
       } else {
         dispatch({ type: ActionType.SetHeaders, headers: [] });
@@ -97,7 +97,7 @@ export const App: React.FC = () => {
         finishSyncing();
       }
     }
-  }, [authState.initialized, authState.authenticated, authState.loading]);
+  }, [authState.loading, authState.user]);
 
   const navigate = useCallback(
     (token?: string, selectedId?: string) => {
@@ -118,9 +118,9 @@ export const App: React.FC = () => {
 
   const apis = useMemo(
     () => ({
-      headerApi: new ListHeaderApi(authState.token),
-      itemApi: new ListItemApi(authState.token),
-      shareApi: new ShareApi(authState.token),
+      headerApi: new ListHeaderApi(),
+      itemApi: new ListItemApi(),
+      shareApi: new ShareApi(),
     }),
     [authState],
   );
@@ -339,7 +339,7 @@ export const App: React.FC = () => {
           })
           .then(() => loadHeader(id)),
     }),
-    [authState?.token, state.headers],
+    [authState.user, state.headers],
   );
 
   const itemHooks = React.useMemo<Hooks | null>(

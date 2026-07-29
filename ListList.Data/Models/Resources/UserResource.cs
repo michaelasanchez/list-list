@@ -1,8 +1,9 @@
-﻿namespace ListList.Api.Contracts;
+﻿namespace ListList.Data.Models.Resources;
 
-public class User
+public class UserResource
 {
-    public string GoogleSub { get; set; }
+    public Guid? Id { get; set; }
+    public string Subject { get; set; }
     public string Email { get; set; }
     public string Name { get; set; }
     public string PictureUrl { get; set; }

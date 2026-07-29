@@ -53,25 +53,14 @@ public class HeaderRepository(ListListContext context, IMapper mapper) : BaseRep
         await _context.SaveChangesAsync();
     }
 
-    //public async Task<HeaderResource> GetHeaderById(Guid? ownerId, string token)
-    //{
-    //    var headerId = await GetHeaderId(token);
-
-    //    var entity = await GetQuery(ownerId)
-    //        .Where(z => z.Id == headerId)
-    //        .SingleAsync();
-
-    //    return _mapper.Map<HeaderResource>(entity);
-    //}
-
     public async Task<HeaderResource> GetHeader(Guid? userId, string token)
     {
         var query = GetQuery();
 
         var parsed = Guid.TryParse(token, out var id);
 
-        query = parsed ? 
-            query.Where(z => z.Id == id) : 
+        query = parsed ?
+            query.Where(z => z.Id == id) :
             query.Where(z => z.ShareLinks.Any(y => y.Token == token));
 
         var entity = await query.SingleAsync();

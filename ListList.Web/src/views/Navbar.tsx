@@ -26,9 +26,9 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
           {strings.components.navbar.brand}
         </BSNavbar.Brand>
         <span className="group">
-          {!props.authState.initialized || props.authState.loading ? (
+          {props.authState.loading ? (
             <Spinner animation="border" size="sm" />
-          ) : props.authState.authenticated ? (
+          ) : props.authState.user ? (
             <>
               <div className={`syncing${props.syncing ? ' show' : ''}`}>
                 Syncing <Spinner animation="border" size="sm" />
@@ -40,14 +40,14 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
                   props.onSetTheme(
                     props.theme == AppTheme.Light
                       ? AppTheme.Dark
-                      : AppTheme.Light
+                      : AppTheme.Light,
                   )
                 }
               >
                 <Icon type={props.theme == AppTheme.Light ? 'light' : 'dark'} />
               </Button>
               <DropdownButton
-                title={<img src={props.authState.picture} />}
+                title={<img src={props.authState.user?.pictureUrl} />}
                 variant="dark"
                 align="end"
               >

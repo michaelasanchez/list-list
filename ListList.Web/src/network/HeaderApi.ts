@@ -10,8 +10,8 @@ import {
 } from '../contracts';
 
 export class ListHeaderApi extends Api {
-  constructor(token?: string) {
-    super('header', token);
+  constructor() {
+    super('header');
   }
 
   public CreateHeader = (creation: ApiListHeaderCreation): Promise<string> => {
