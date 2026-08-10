@@ -110,7 +110,7 @@ export interface SortableTreeHooks {
 export interface Props {
   checklist?: boolean;
   collapsible?: boolean;
-  defaultItems: TreeItems;
+  defaultItems: TreeItems | null;
   indentationWidth?: number;
   indicator?: boolean;
   maxDepth?: number | null;

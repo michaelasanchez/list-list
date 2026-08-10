@@ -5,5 +5,5 @@ export interface AppState {
   loading: boolean;
   expanded: string[];
   tokens: { [headerId: string]: string[] };
-  headers?: Header[];
+  headers: Header[];
 }

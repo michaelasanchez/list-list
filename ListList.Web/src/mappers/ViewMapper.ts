@@ -12,14 +12,14 @@ export interface ViewModel {
   featured: Featured | null;
   items: TreeItems | null;
   depth: number;
-  path?: PathItem[];
-  readonly?: boolean;
-  treeProps?: Omit<SortableTreeProps, 'defaultItems'>;
+  path: PathItem[] | null;
+  readonly: boolean | null;
+  treeProps: Omit<SortableTreeProps, 'defaultItems'> | null;
 }
 
 function getViewModel(
-  token: string,
-  selectedId: string,
+  token: string | null,
+  selectedId: string | null,
   headers: Header[],
   expanded: string[],
 ): ViewModel {
@@ -30,12 +30,15 @@ function getViewModel(
   if (Boolean(token) && !Boolean(header)) {
     return {
       renderKey: '__not__found__key__',
-      depth: -1,
       token: token === undefined ? null : token,
       headerId: null,
       selectedId: null,
       featured: null,
       items: null,
+      depth: -1,
+      path: null,
+      readonly: null,
+      treeProps: null,
     };
   }
 
@@ -47,12 +50,15 @@ function getViewModel(
 
     return {
       renderKey: '__root__key__',
-      depth: 0,
       token: null,
       headerId: null,
       selectedId: null,
       featured: null,
       items,
+      depth: 0,
+      path: null,
+      readonly: null,
+      treeProps: null,
     };
   }
 
@@ -65,70 +71,86 @@ function getViewModel(
   };
 
   // Surface
-  if (!Boolean(selectedId)) {
-    const featured = !Boolean(header)
-      ? null
-      : {
-          id: header.id,
-          label: header.label,
-          description: header.description,
-          checklist: header.checklist,
-          readonly: header.readonly,
-          shareLinks: header.shareLinks,
-        };
+  if (!Boolean(selectedId) && header) {
+    const featured = {
+      id: header.id,
+      label: header.label,
+      description: header.description,
+      checklist: header.checklist,
+      readonly: header.readonly,
+      shareLinks: header.shareLinks,
+    };
 
     const items = TreeMapper.buildTreeFromItems(header?.items, expanded);
 
     return {
       renderKey: header.id,
-      depth: 1,
-      readonly: header.readonly,
       token,
       headerId: header.id,
       selectedId: null,
       featured,
       items,
+      depth: 1,
+      path: null,
+      readonly: header.readonly,
       treeProps,
     };
   }
 
   // Nested
-  const treeResult = TreeMapper.buildTreeFromSubItems(
-    header.items ?? [],
-    expanded,
-    selectedId,
-  );
+  if (header) {
+    const treeResult = TreeMapper.buildTreeFromSubItems(
+      header.items,
+      expanded,
+      selectedId,
+    );
 
-  const selected = header.items.find((i) => i.id == selectedId);
+    const selected = header.items.find((i) => i.id == selectedId);
 
-  const featured = {
-    id: selected.id,
-    label: selected.label,
-    description: selected.description,
-    checklist: header.checklist,
-    readonly: header.readonly,
-    shareLinks: header.shareLinks,
-  };
+    if (treeResult && selected) {
+      const featured: Featured = {
+        id: selected.id,
+        label: selected.label,
+        description: selected.description,
+        checklist: header.checklist,
+        readonly: header.readonly,
+        shareLinks: header.shareLinks,
+      };
 
-  const path = [
-    { icon: 'home' } as PathItem,
-    { headerId: header.id, label: header.label },
-    ...treeResult.path.map((p) => ({ ...p, headerId: header.id })),
-  ];
+      const path = [
+        { icon: 'home' } as PathItem,
+        { headerId: header.id, label: header.label },
+        ...treeResult.path.map((p) => ({ ...p, headerId: header.id })),
+      ];
 
-  path.pop();
+      path.pop();
+
+      return {
+        renderKey: selected.id,
+        depth: selected.depth + 2,
+        readonly: header.readonly,
+        token,
+        headerId: header.id,
+        selectedId: selected.id,
+        featured,
+        items: treeResult.items,
+        path,
+        treeProps,
+      };
+    }
+  }
 
   return {
-    renderKey: selected.id,
-    depth: selected.depth + 2,
-    readonly: header.readonly,
-    token,
-    headerId: header.id,
-    selectedId: selected.id,
-    featured,
-    items: treeResult.items,
-    path,
-    treeProps,
+    renderKey: '',
+    token: null,
+    headerId: null,
+    selectedId: null,
+    featured: null,
+    items: null,
+    depth: 0,
+    path: null,
+    readonly: null,
+    treeProps: null,
   };
 }
 

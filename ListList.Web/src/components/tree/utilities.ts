@@ -13,7 +13,7 @@ interface Projection {
   depth: number;
   maxDepth: number;
   minDepth: number;
-  parentId: UniqueIdentifier;
+  parentId: UniqueIdentifier | null;
 }
 
 export function getProjection(
@@ -21,7 +21,7 @@ export function getProjection(
   activeId: UniqueIdentifier,
   overId: UniqueIdentifier,
   dragOffset: number,
-  indentationWidth: number
+  indentationWidth: number,
 ): Projection {
   const overItemIndex = items.findIndex(({ id }) => id === overId);
   const activeItemIndex = items.findIndex(({ id }) => id === activeId);
@@ -84,9 +84,9 @@ function getMinDepth({ nextItem }: { nextItem: FlattenedItem }) {
 }
 
 function flatten(
-  items: TreeItems,
+  items: TreeItems | null,
   parentId: UniqueIdentifier | null = null,
-  depth = 0
+  depth = 0,
 ): FlattenedItem[] {
   return (
     items?.reduce<FlattenedItem[]>((acc, item, index) => {
@@ -99,7 +99,7 @@ function flatten(
   );
 }
 
-export function flattenTree(items: TreeItems): FlattenedItem[] {
+export function flattenTree(items: TreeItems | null): FlattenedItem[] {
   return flatten(items);
 }
 
@@ -134,7 +134,7 @@ export function findItem(items: TreeItem[], itemId: UniqueIdentifier) {
 
 export function findItemDeep(
   items: TreeItems,
-  itemId: UniqueIdentifier
+  itemId: UniqueIdentifier,
 ): TreeItem | undefined {
   for (const item of items) {
     const { id, children } = item;
@@ -177,7 +177,7 @@ export function setProperty<T extends keyof TreeItem>(
   items: TreeItems,
   id: UniqueIdentifier,
   property: T,
-  setter: (value: TreeItem[T]) => TreeItem[T]
+  setter: (value: TreeItem[T]) => TreeItem[T],
 ) {
   for (const item of items) {
     if (item.id === id) {
@@ -211,7 +211,7 @@ export function getChildCount(items: TreeItems, id: UniqueIdentifier) {
 
 export function removeChildrenOf(
   items: FlattenedItem[],
-  ids: UniqueIdentifier[]
+  ids: UniqueIdentifier[],
 ) {
   const excludeParentIds = [...ids];
 

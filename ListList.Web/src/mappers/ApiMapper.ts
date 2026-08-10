@@ -2,24 +2,21 @@ import { map } from 'lodash';
 import { ApiHeader, ApiItem, ApiShareLink } from '../contracts';
 import { Header, Item, ShareLink } from '../models';
 
-const mapItem = (item: ApiItem, expanded: string[] = null): Item => ({
+const mapItem = (item: ApiItem, expanded?: string[]): Item => ({
   ...item,
   completedOn: item.completedOn,
-  expanded: !expanded ? expanded.includes(item.id) : false,
+  expanded: expanded ? expanded.includes(item.id) : false,
   pending: false,
 });
 
-const mapItems = (items: ApiItem[], expanded: string[]): Item[] =>
+const mapItems = (items: ApiItem[], expanded?: string[]): Item[] =>
   items?.map((i) => mapItem(i, expanded)) ?? [];
 
 const mapShareLinks = (links: ApiShareLink[]): ShareLink[] => links ?? [];
 
-const mapHeader = (
-  header: ApiHeader,
-  expanded: string[]
-): Header => ({
+const mapHeader = (header: ApiHeader, expanded?: string[]): Header => ({
   id: header.id,
-  tokens: !!header.token ? [header.token] : null,
+  tokens: header.token ? [header.token] : null,
   checklist: header.checklist,
   owned: header.owned,
   readonly: header.readonly,

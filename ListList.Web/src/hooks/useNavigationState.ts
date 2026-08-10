@@ -12,7 +12,7 @@ interface NavigationState {
 
 export interface RouteParameters extends Record<string, string | undefined> {}
 
-export function useNavigationState(): NavigationState | null {
+export function useNavigationState(): NavigationState {
   const [match, params] = useRoute<RouteParameters>('/:token/:selectedId?');
 
   const [location, navigate] = useLocation();
@@ -48,17 +48,14 @@ export function useNavigationState(): NavigationState | null {
 
       navigate(newUrl, { replace });
     },
-    [location, searchString, navigate]
+    [location, searchString, navigate],
   );
 
   // Compute derived state
-  const navigationState = React.useMemo<NavigationState | null>(() => {
-    const current: RouteParameters = match
-      ? { token: params?.token, selectedId: params?.selectedId }
-      : {};
-
+  const navigationState = React.useMemo<NavigationState>(() => {
     return {
-      ...current,
+      token: match ? params?.token : undefined,
+      selectedId: match ? params?.selectedId : undefined,
       queryParams,
       navigate,
       setQueryParams,

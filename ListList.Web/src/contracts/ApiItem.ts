@@ -10,7 +10,7 @@ export interface ApiItem {
   index: number;
 
   headerId: string;
-  parentId?: string;
+  parentId: string | null;
 
   isParent: boolean;
   childCount: number;

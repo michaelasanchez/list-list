@@ -41,7 +41,7 @@ const mapAlert = (creation: AlertCreation) => ({
 
 const mapAlertList = (
   data?: AlertData[] | null,
-  hideAlert?: () => void
+  hideAlert?: () => void,
 ): ReactElement => (
   <div className={styles.Container}>
     {data?.map((d, i) => (
@@ -97,7 +97,7 @@ export const useAlerts = ({
   });
 
   React.useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: number;
 
     // Set first fade timeout
     if (alerts?.length > 0) {
@@ -110,7 +110,7 @@ export const useAlerts = ({
 
             return [...d];
           }),
-        delay
+        delay,
       );
     }
 
@@ -127,7 +127,9 @@ export const useAlerts = ({
       },
     });
 
-    return () => Boolean(timeout) && clearTimeout(timeout);
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
   }, [alerts]);
 
   return state;

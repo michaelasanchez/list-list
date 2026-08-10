@@ -23,7 +23,7 @@ import {
   ItemUpdate,
   SortableTree,
 } from '../../components/tree/SortableTree';
-import { ApiListItemCreation } from '../../contracts';
+import { ApiListHeaderPut, ApiListItemCreation } from '../../contracts';
 import {
   LocalStorageState,
   useAlerts,
@@ -45,7 +45,7 @@ const cacheKey = 'll-data';
 
 const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
   const defaultState = localStorage.exists()
-    ? JSON.parse(localStorage.fetch())
+    ? JSON.parse(localStorage.fetch()!)
     : {};
 
   return {
@@ -88,7 +88,7 @@ export const App: React.FC = () => {
 
   // Load/unload headers
   useEffect(() => {
-    if (!authState.loading){
+    if (!authState.loading) {
       if (authState.user) {
         loadHeaders();
       } else {
@@ -182,7 +182,10 @@ export const App: React.FC = () => {
 
   const createItem = useCallback(
     async (headerId: string, raw: ApiListItemCreation): Promise<Succeeded> => {
-      if (raw.label?.trim().length > 0 || raw.description?.trim().length > 0) {
+      if (
+        (raw.label && raw.label?.trim().length > 0) ||
+        (raw.description && raw.description?.trim().length > 0)
+      ) {
         const creation: ApiListItemCreation = {
           // ...raw,
           label: raw.label?.trim(),
@@ -218,9 +221,9 @@ export const App: React.FC = () => {
   const current = React.useMemo(
     () =>
       ViewMapper.map(
-        navState.token,
-        navState.selectedId,
-        state.headers,
+        navState.token ?? null,
+        navState.selectedId ?? null,
+        state.headers ?? [],
         state.expanded,
       ),
     [navState.token, navState.selectedId, state.headers, state.expanded],
@@ -228,17 +231,13 @@ export const App: React.FC = () => {
 
   // Load header if not found from initial load
   useEffect(() => {
-    if (
-      !state.syncing &&
-      Boolean(navState.token) &&
-      !Boolean(current.headerId)
-    ) {
+    if (!state.syncing && navState.token && !current.headerId) {
       loadHeader(navState.token);
     }
   }, [current, state.syncing]);
 
   const headerHooks = React.useMemo<Hooks>(
-    (): Hooks | null => ({
+    (): Hooks => ({
       actions: ({
         id: headerId,
         checklist,
@@ -280,11 +279,13 @@ export const App: React.FC = () => {
               action: async () => {
                 await apis.headerApi.Delete(headerId);
 
-                const header = state.headers.find((h) => h.id == headerId);
+                const header = state.headers?.find((h) => h.id == headerId);
 
                 dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
 
-                showHeaderUndoAlert(header);
+                if (header) {
+                  showHeaderUndoAlert(header);
+                }
 
                 return true;
               },
@@ -292,9 +293,10 @@ export const App: React.FC = () => {
           ],
         ];
       },
-      onClick: (headerId: string) => navigate(headerId),
-      onCreate: async (label: string, description: string, overId: string) => {
-        const order = state.headers.findIndex((h) => h.id == overId) - 1;
+      onClick: (headerId) => navigate(headerId as string),
+      onCreate: async (label: string, description: string, overId) => {
+        const order =
+          (state.headers?.findIndex((h) => h.id == overId) ?? 0) - 1;
 
         await apis.headerApi.CreateHeader({
           label,
@@ -304,40 +306,54 @@ export const App: React.FC = () => {
 
         return loadHeaders();
       },
-      onDelete: async (activeId: string) => {
+      onDelete: async (activeId) => {
         if (activeId == newNodeId) {
           dispatch({
             type: ActionType.CancelHeaderCreate,
           });
-        } else {
-          await apis.headerApi.Delete(activeId);
 
-          const header = state.headers.find((h) => h.id == activeId);
+          return Promise.resolve(true);
+        } else {
+          await apis.headerApi.Delete(activeId as string);
 
           dispatch({
             type: ActionType.FinalizeHeaderDelete,
-            headerId: activeId,
+            headerId: activeId as string,
           });
 
-          showHeaderUndoAlert(header);
+          const header = state.headers?.find((h) => h.id == activeId);
 
-          return true;
+          if (header) {
+            showHeaderUndoAlert(header);
+          }
+
+          return Promise.resolve(true);
         }
       },
-      onDragEnd: async (headerId: string, destinationId: string) => {
-        const order = state.headers.findIndex((h) => h.id == destinationId);
+      onDragEnd: async (headerId, destinationId) => {
+        const order =
+          state.headers?.findIndex((h) => h.id == destinationId) ?? 0;
 
-        await apis.headerApi.Relocate(headerId, { order });
+        await apis.headerApi.Relocate(headerId as string, { order });
 
         return loadHeaders();
       },
-      onUpdate: async (id: string, update: ItemUpdate) =>
-        apis.headerApi
-          .Put(id, {
-            ...state.headers.find((h) => h.id == id),
+      onUpdate: async (headerId, update: ItemUpdate) => {
+        const header = state.headers?.find((h) => h.id == headerId);
+
+        if (header) {
+          const put: ApiListHeaderPut = {
+            ...header,
             ...update,
-          })
-          .then(() => loadHeader(id)),
+          };
+
+          return apis.headerApi
+            .Put(headerId as string, put)
+            .then(() => loadHeader(headerId as string));
+        }
+
+        return Promise.resolve(false);
+      },
     }),
     [authState.user, state.headers],
   );
@@ -347,62 +363,81 @@ export const App: React.FC = () => {
       !current
         ? null
         : {
-            onCheck: (itemId: string) =>
+            onCheck: (itemId) =>
               apis.itemApi
-                .Complete(current.token, itemId)
-                .then(() => loadItem(current.token, itemId)),
-            onCollapse: (itemId: string) => {
+                .Complete(current.token!, itemId as string)
+                .then(() => loadItem(current.token!, itemId as string)),
+            onCollapse: (itemId) =>
               dispatch({
                 type: ActionType.ToggleExpanded,
-                headerId: current.headerId,
-                itemId,
-              });
-            },
-            onCreate: (label, description, overId: string, parentId: string) =>
-              createItem(current.headerId, {
+                headerId: current.headerId!,
+                itemId: itemId as string,
+              }),
+            onCreate: (label, description, overId, parentId) =>
+              createItem(current.headerId!, {
                 label,
                 description,
-                overId,
-                parentId,
+                overId: overId as string,
+                parentId: parentId as string,
               }),
-            onDelete: async (
-              activeId: string,
-              overId: string,
-              parentId: string,
-            ) => {
+            onDelete: async (activeId, overId, parentId) => {
               if (activeId == newNodeId) {
                 dispatch({
                   type: ActionType.CancelItemCreate,
-                  headerId: current.headerId,
+                  headerId: current.headerId!,
                 });
-
-                return Promise.resolve(true);
               } else {
-                await apis.itemApi.Delete(current.token, activeId);
+                await apis.itemApi.Delete(current.token!, activeId as string);
 
-                loadHeader(current.headerId);
+                loadHeader(current.headerId!);
 
-                const item = getItem(state.headers, current.headerId, activeId);
+                const item = getItem(
+                  state.headers ?? [],
+                  current.headerId!,
+                  activeId as string,
+                );
 
-                showItemUndoAlert(current.token, item, overId, parentId);
-
-                return true;
+                if (item) {
+                  showItemUndoAlert(
+                    current.token!,
+                    item,
+                    overId as string,
+                    parentId as string,
+                  );
+                }
               }
+              return Promise.resolve(true);
             },
-            onDragEnd: (activeId: string, overId: string, parentId: string) =>
+            onDragEnd: (activeId, overId, parentId) =>
               apis.itemApi
-                .Relocate(current.token, activeId, overId, parentId)
-                .then(() => loadHeader(current.headerId)),
-            onSelect: (activeId: string) => navigate(navState.token, activeId),
-            onUpdate: async (activeId: string, update: ItemUpdate) => {
-              const item = getItem(state.headers, current.headerId, activeId);
+                .Relocate(
+                  current.token!,
+                  activeId as string,
+                  overId as string,
+                  parentId as string,
+                )
+                .then(() => loadHeader(current.headerId!)),
+            onSelect: (activeId) =>
+              navigate(navState.token, activeId as string),
+            onUpdate: async (activeId, update: ItemUpdate) => {
+              if (current.headerId) {
+                const item = getItem(
+                  state.headers,
+                  current.headerId,
+                  activeId as string,
+                );
 
-              await apis.itemApi.Put(current.token, activeId, {
-                ...item,
-                ...update,
-              });
+                if (item && current.token) {
+                  await apis.itemApi.Put(current.token, activeId as string, {
+                    ...item,
+                    ...update,
+                  });
 
-              return await loadItem(current.token, activeId);
+                  return await loadItem(current.token, activeId as string);
+                }
+              }
+
+              return Promise.resolve(false);
             },
           },
     [current],
@@ -423,15 +458,13 @@ export const App: React.FC = () => {
           current={current}
           render={(vm) => (
             <Container className={cn(styles.ViewContainer)}>
-              {Boolean(vm.path) && (
-                <Breadcrumbs path={vm.path} navigate={navigate} />
-              )}
-              {Boolean(vm.featured) && (
+              {vm.path && <Breadcrumbs path={vm.path} navigate={navigate} />}
+              {vm.featured && (
                 <ItemFeature
                   node={vm.featured}
                   hooks={headerHooks}
                   onBack={() => {
-                    const parent = Boolean(vm.path)
+                    const parent = vm.path?.length
                       ? vm.path[vm.path.length - 1]
                       : null;
 
@@ -441,9 +474,10 @@ export const App: React.FC = () => {
                     // TODO: is this the same as what is on hooks.onUpdate?
                     //          ANSWER: no.... :'(
                     //            but we'll get to this later
-                    apis.headerApi
-                      .Patch(vm.headerId, patch)
-                      .then(() => loadHeader(vm.headerId))
+                    vm.headerId &&
+                    apis.headerApi.Patch(vm.headerId, patch).then(() => {
+                      if (vm.headerId) loadHeader(vm.headerId);
+                    })
                   }
                   onShare={() => setQueryParams({ share: 'true' })}
                 />
@@ -453,7 +487,10 @@ export const App: React.FC = () => {
                 <SortableTree
                   {...vm.treeProps}
                   defaultItems={vm.items}
-                  hooks={vm.depth === 0 ? headerHooks : itemHooks}
+                  hooks={
+                    // TODO: typescript
+                    vm.depth === 0 ? headerHooks : (itemHooks ?? undefined)
+                  }
                 />
               ) : Boolean(state.loading || state.syncing) ? (
                 <Spinner animation="border" />
@@ -470,7 +507,7 @@ export const App: React.FC = () => {
       <FloatingUi
         headerId={current.headerId}
         selectedId={current.selectedId}
-        readonly={current.readonly}
+        readonly={current.readonly ?? false}
         items={current.items}
         containerRef={mainRef}
         dispatch={dispatch}
@@ -484,17 +521,17 @@ export const App: React.FC = () => {
         shareLinks={current.featured?.shareLinks}
         onClose={() => setQueryParams({ share: null })}
         onDelete={(id: string) =>
-          apis.shareApi.Delete(id).then(() => loadHeader(current.headerId))
+          apis.shareApi.Delete(id).then(() => loadHeader(current.headerId!))
         }
         onShare={(share) =>
           apis.shareApi
-            .Share(current.headerId, share)
-            .then(() => loadHeader(current.headerId))
+            .Share(current.headerId!, share)
+            .then(() => loadHeader(current.headerId!))
         }
         onUpdate={(id: string, put: MinimumLink) =>
           apis.shareApi
             .Put(id, { token: put.token ?? '', ...put })
-            .then(() => loadHeader(current.headerId))
+            .then(() => loadHeader(current.headerId!))
         }
       />
     </Router>

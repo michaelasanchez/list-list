@@ -14,17 +14,17 @@ export enum UiMode {
 }
 
 interface FloatingUiProps {
-  headerId: string;
-  selectedId: string;
+  headerId: string | null;
+  selectedId: string | null;
   readonly: boolean;
-  items: TreeItems;
-  containerRef: React.RefObject<HTMLDivElement>;
+  items: TreeItems | null;
+  containerRef: React.RefObject<HTMLDivElement | null>;
   dispatch: ActionDispatch<[action: AppStateAction]>;
   showAlert: (creation: AlertCreation) => void;
 }
 
 const calcUiMode = (props: FloatingUiProps): UiMode => {
-  if (Boolean(props.headerId)) {
+  if (props.headerId) {
     return UiMode.Default;
   }
 
@@ -36,9 +36,9 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
 
   const handleCreate = () => {
     console.log('FloatingUi: handleCreate');
-    const insertIndex = getInsertIndex(props.containerRef.current);
+    const insertIndex = getInsertIndex(props.containerRef.current!);
 
-    if (Boolean(props.headerId)) {
+    if (props.headerId) {
       // TODO: this one is a toughy. it's all computed state
       //  hate to do all this twice, but at least it's only on click
       const flattenedItems = flattenTree(props.items);
@@ -58,7 +58,7 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
         type: ActionType.InitiateItemCreate,
         headerId: props.headerId,
         itemId: itemId ?? props.selectedId,
-        asChild: !Boolean(itemId),
+        asChild: !itemId,
       });
     } else if (insertIndex !== null) {
       props.dispatch({
@@ -70,7 +70,9 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
 
   return (
     <div className={styles.FloatingUi}>
-      <div className={classNames(styles.Layer, !props.readonly && styles.Active)}>
+      <div
+        className={classNames(styles.Layer, !props.readonly && styles.Active)}
+      >
         <IconButton
           iconType="create"
           size="lg"
@@ -81,7 +83,7 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
       <div
         className={classNames(
           styles.Layer,
-          mode == UiMode.Confirm && styles.Active
+          mode == UiMode.Confirm && styles.Active,
         )}
       >
         <IconButton iconType="cancel" variant="danger" />
@@ -91,11 +93,11 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
   );
 };
 
-function getInsertIndex(view: HTMLElement) {
-  if (!view) return null;
+function getInsertIndex(view: HTMLElement): number {
+  if (!view) return 0;
 
   const items = view.querySelectorAll<HTMLLIElement>(
-    `.${appStyles.ViewContainer} li`
+    `.${appStyles.ViewContainer} li`,
   );
 
   const centerY = window.innerHeight / 2;

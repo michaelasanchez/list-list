@@ -21,7 +21,7 @@ export const useTheme = (themeKey: string): ThemeState => {
 
   const [theme, setTheme] = useState<AppTheme>(() => {
     const defaultTheme = themeStorage.exists()
-      ? (parseInt(themeStorage.fetch()) as AppTheme)
+      ? (parseInt(themeStorage.fetch()!) as AppTheme)
       : window.matchMedia &&
         window.matchMedia('(prefers-color-scheme: dark)').matches
       ? AppTheme.Dark

@@ -10,7 +10,7 @@ import * as styles from './ShareModal.module.scss';
 
 export interface ShareModalProps {
   show: boolean;
-  shareLinks: Link[];
+  shareLinks?: Link[] | null;
   onClose: () => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, put: MinimumLink) => Promise<Succeeded>;
@@ -57,7 +57,7 @@ export const ShareModal: React.FC<ShareModalProps> = (props) => {
     checkError();
 
     props
-      .onShare(pending)
+      .onShare(pending!)
       .then(() => setPending(null))
       .catch((e) => setError(e.message));
   };
@@ -65,7 +65,7 @@ export const ShareModal: React.FC<ShareModalProps> = (props) => {
   const handlePut = () => {
     checkError();
 
-    if (Boolean(pending.id)) {
+    if (pending?.id) {
       const { id, ...put } = pending;
 
       props
@@ -99,9 +99,9 @@ export const ShareModal: React.FC<ShareModalProps> = (props) => {
                 onDelete={() => props.onDelete(l.id)}
                 onUpdate={(update) => {
                   setPending((pending) => {
-                    const prev = Boolean(pending)
-                      ? pending
-                      : props.shareLinks?.find((l) => l.id == update.id);
+                    const prev =
+                      pending ??
+                      props.shareLinks!.find((l) => l.id == update.id)!;
 
                     return { ...prev, ...update };
                   });
@@ -109,14 +109,16 @@ export const ShareModal: React.FC<ShareModalProps> = (props) => {
               />
             );
           })}
-          {Boolean(pending) && !Boolean(pending.id) && (
+          {pending && !pending.id && (
             <ShareLink
               link={pending}
               editing={true}
               errored={Boolean(error)}
               onCancel={handleCancel}
               onConfirm={handleShare}
-              onUpdate={(update) => setPending((s) => ({ ...s, ...update }))}
+              onUpdate={(update) =>
+                setPending((s) => (s ? { ...s, ...update } : null))
+              }
             />
           )}
         </div>

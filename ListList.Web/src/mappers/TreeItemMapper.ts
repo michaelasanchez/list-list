@@ -4,7 +4,7 @@ import { TreeItem, TreeItems } from '../components/tree/types';
 import { Header, Item } from '../models';
 
 interface TreeItemWithParentId extends TreeItem {
-  parentId: string;
+  parentId: string | null;
 }
 
 function toPathItem(treeItem: TreeItem): PathItem {
@@ -16,7 +16,7 @@ function toPathItem(treeItem: TreeItem): PathItem {
 
 function findById(
   tree: TreeItems,
-  id: UniqueIdentifier
+  id: UniqueIdentifier,
 ): { item: TreeItem; path: PathItem[] } | null {
   for (const node of tree) {
     if (node.id === id) {
@@ -65,7 +65,10 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
   );
 }
 
-function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
+function buildTreeFromItems(
+  items: Item[] | undefined,
+  expanded: string[],
+): TreeItems {
   if (!items?.length) return [];
 
   const itemMap = new Map<string, TreeItemWithParentId>();
@@ -108,15 +111,15 @@ function buildTreeFromItems(items: Item[], expanded: string[]): TreeItems {
 function buildTreeFromSubItems(
   items: Item[],
   expanded: string[],
-  selectedId: string
-): { items: TreeItems; path: PathItem[] } {
+  selectedId: string | null,
+): { items: TreeItems; path: PathItem[] } | null {
   const treeItems = buildTreeFromItems(items, expanded);
 
-  const selected = findById(treeItems, selectedId);
+  const selected = findById(treeItems, selectedId ?? '');
 
-  return !Boolean(selected)
-    ? null
-    : { items: selected.item.children, path: selected.path };
+  return selected
+    ? { items: selected.item.children, path: selected.path }
+    : null;
 }
 
 export const TreeMapper = {

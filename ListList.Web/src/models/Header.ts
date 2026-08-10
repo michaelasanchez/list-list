@@ -9,5 +9,5 @@ export interface Header
   pending: boolean;
   readonly: boolean;
   shareLinks: ShareLink[];
-  tokens?: string[];
+  tokens: string[] | null;
 }

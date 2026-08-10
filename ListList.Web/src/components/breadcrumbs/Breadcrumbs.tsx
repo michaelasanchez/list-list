@@ -1,14 +1,14 @@
 import cn from 'classnames';
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import { Icon } from '../icon';
+import { Icon, IconType } from '../icon';
 import * as styles from './Breadcrumbs.module.scss';
 
 export interface PathItem {
   headerId?: string;
   selectedId?: string;
   label?: string;
-  icon?: never;
+  icon?: IconType;
 }
 
 export interface BreadcrumbsProps {
@@ -24,7 +24,7 @@ interface CrumbProps {
 const Crumb: React.FC<CrumbProps> = ({ path, onClick }) => (
   <Button className={styles.Crumb} size="sm" variant="link" onClick={onClick}>
     {path.label}
-    {Boolean(path.icon) && <Icon type={path.icon} />}
+    {path.icon && <Icon type={path.icon} />}
   </Button>
 );
 
@@ -36,10 +36,10 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
   React.useEffect(() => {
     if (ref.current) {
       requestAnimationFrame(() =>
-        ref.current.scrollTo({
+        ref.current!.scrollTo({
           behavior: 'smooth',
-          left: ref.current.scrollWidth - ref.current.clientWidth,
-        })
+          left: ref.current!.scrollWidth - ref.current!.clientWidth,
+        }),
       );
     }
   }, [props.path?.length]);
@@ -57,7 +57,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
       {crumbs.flatMap((crumb, i) =>
         i < crumbs.length - 1
           ? [crumb, <Separator key={`sep-${i}`} />]
-          : [crumb]
+          : [crumb],
       )}
     </div>
   );

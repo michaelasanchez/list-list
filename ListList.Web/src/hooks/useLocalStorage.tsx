@@ -3,11 +3,11 @@ import React from 'react';
 export interface LocalStorageState {
   commit: (value: string) => void;
   exists: () => boolean;
-  fetch: () => string;
+  fetch: () => string | null;
 }
 
 const getState = (key: string): LocalStorageState => {
-  const fetchValue = (): string => {
+  const fetchValue = (): string | null => {
     return window.localStorage.getItem(key);
   };
 

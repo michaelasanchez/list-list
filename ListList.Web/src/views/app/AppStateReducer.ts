@@ -34,7 +34,7 @@ export interface AppStateAction {
   syncing?: boolean;
   index?: number;
   item?: ApiItem;
-  itemId?: string;
+  itemId?: string | null;
 }
 
 export const AppStateReducer = (
