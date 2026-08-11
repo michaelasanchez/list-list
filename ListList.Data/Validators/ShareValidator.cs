@@ -28,11 +28,11 @@ public class ShareValidator(IListListContext context) : IShareValidator
     public async Task UserOwnsShareLink(Guid? userId, Guid shareLinkId, ValidationResult result)
     {
         var userOwnsShareLink = await context.ShareLinks
-            .Include(z => z.Header)
+            .Include(z => z.Partition)
             .AnyAsync(z =>
                 z.Id == shareLinkId &&
-                z.Header != null &&
-                z.Header.OwnerId == userId);
+                z.Partition != null &&
+                z.Partition.OwnerId == userId);
 
         if (!userOwnsShareLink)
         {

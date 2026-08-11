@@ -37,7 +37,7 @@ public class ShareRepository(ListListContext context) : BaseRepository(context, 
     {
         var share = new ShareLinkEntity
         {
-            HeaderId = await GetHeaderId(token),
+            PartitionId = await GetPartitionId(token),
             Permission = permission,
             Token = newToken ?? GenerateToken(),
             ExpiresOn = expireOn?.ToUniversalTime()

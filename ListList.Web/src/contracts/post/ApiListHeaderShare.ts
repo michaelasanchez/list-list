@@ -1,7 +1,0 @@
-import { SharedPermission } from '../enum';
-
-export interface ApiHeaderShare {
-  token?: string;
-  permission: SharedPermission;
-  expiresOn?: string;
-}

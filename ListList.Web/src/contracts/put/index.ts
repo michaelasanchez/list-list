@@ -1,3 +1,3 @@
-export * from './ApiListHeaderPut';
-export * from './ApiListItemPut';
+export * from './ApiPartitionPut';
+export * from './ApiNodePut';
 export * from './ApiShareLinkPut';

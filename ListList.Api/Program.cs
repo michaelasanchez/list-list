@@ -14,13 +14,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.RegisterDataServices(builder.Configuration.GetConnectionString("ListListContext"));
 
 // DI
-builder.Services.AddAutoMapper(cfg => { }, typeof(HeaderProfile).Assembly);
+builder.Services.AddAutoMapper(cfg => { }, typeof(PartitionProfile).Assembly);
 
 builder.Services.AddScoped<IGuard, Guard>();
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IHeaderService, HeaderService>();
-builder.Services.AddScoped<IItemService, ItemService>();
+builder.Services.AddScoped<IPartitionService, PartitionService>();
+builder.Services.AddScoped<INodeService, NodeService>();
 builder.Services.AddScoped<IShareService, ShareService>();
 builder.Services.AddScoped<IUserService, UserService>();
 

@@ -5,12 +5,12 @@ namespace ListList.Data.Models.Interfaces;
 
 public interface IUnitOfWork
 {
-    IHeaderRepository HeaderRepository { get; }
-    IItemRepository ItemRepository { get; }
+    IPartitionRepository PartitionRepository { get; }
+    INodeRepository NodeRepository { get; }
     IShareRepository ShareRepository { get; }
     IUserRepository UserRepository { get; }
 
-    IItemValidator ItemValidator { get; }
+    INodeValidator NodeValidator { get; }
 
     Task SaveChangesAsync();
 }

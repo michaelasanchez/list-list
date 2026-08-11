@@ -1,5 +1,5 @@
 export * from './Api';
-export * from './HeaderApi';
-export * from './ItemApi';
+export * from './PartitionApi';
+export * from './NodeApi';
 export * from './ShareApi';
 export * from './UserApi';

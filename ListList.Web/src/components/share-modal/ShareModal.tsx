@@ -4,7 +4,7 @@ import { ShareLink as Link } from '../../models';
 
 import classNames from 'classnames';
 import { IconButton, MinimumLink, ShareLink } from '..';
-import { ApiHeaderShare, SharedPermission } from '../../contracts';
+import { ApiPartitionShare, SharedPermission } from '../../contracts';
 import { Succeeded } from '../../network';
 import * as styles from './ShareModal.module.scss';
 
@@ -14,7 +14,7 @@ export interface ShareModalProps {
   onClose: () => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, put: MinimumLink) => Promise<Succeeded>;
-  onShare: (share: ApiHeaderShare) => Promise<Succeeded>;
+  onShare: (share: ApiPartitionShare) => Promise<Succeeded>;
 }
 
 const strings = {

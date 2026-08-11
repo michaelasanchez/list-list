@@ -1,10 +1,10 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
-import { ApiListItemCreation } from '../../contracts';
+import { ApiNodeCreation } from '../../contracts';
 
 export interface CreateListItemFormProps {
-  creation: ApiListItemCreation;
-  onUpdate: (update: Partial<ApiListItemCreation>) => void;
+  creation: ApiNodeCreation;
+  onUpdate: (update: Partial<ApiNodeCreation>) => void;
 }
 
 export const CreateListItemForm: React.FC<CreateListItemFormProps> = (

@@ -3,7 +3,7 @@ using FluentAssertions;
 
 namespace ListList.Data.Test.Repositories.ItemRepositoryTests;
 
-public class DeleteItemTests : BaseItemRepositoryTest
+public class DeleteItemTests : BaseNodeRepositoryTest
 {
     [Theory]
     [InlineData(4, 10, 2, 9, 3, 8, 4, 7, 5, 6, 0, 0)]
@@ -28,19 +28,19 @@ public class DeleteItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var root = await SeedItem(headerId, 1, 12);
-        var descendant1 = await SeedItem(headerId, 2, 11);
-        var descendant2 = await SeedItem(headerId, 3, 10);
-        var descendant3 = await SeedItem(headerId, 4, 9);
-        var descendant4 = await SeedItem(headerId, 5, 8);
-        var descendant5 = await SeedItem(headerId, 6, 7);
+        var root = await SeedNode(headerId, 1, 12);
+        var descendant1 = await SeedNode(headerId, 2, 11);
+        var descendant2 = await SeedNode(headerId, 3, 10);
+        var descendant3 = await SeedNode(headerId, 4, 9);
+        var descendant4 = await SeedNode(headerId, 5, 8);
+        var descendant5 = await SeedNode(headerId, 6, 7);
 
         var id = GetIndex(
             [descendant1, descendant2, descendant3, descendant4, descendant5],
             index);
 
         // Act
-        await _repository.DeleteListItem(id);
+        await _repository.DeleteNode(id);
 
         // Assert
         root.Left.Should().Be(1);

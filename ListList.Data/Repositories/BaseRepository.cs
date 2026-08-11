@@ -15,19 +15,19 @@ public class BaseRepository
         _mapper = mapper;
     }
 
-    public async Task<Guid> GetHeaderId(string token)
+    public async Task<Guid> GetPartitionId(string token)
     {
-        var header = Guid.TryParse(token, out var headerId)
-            ? _context.Headers
+        var partition = Guid.TryParse(token, out var partitionId)
+            ? _context.Partitions
                 .Include(z => z.ShareLinks)
                 .Where(z =>
-                    z.Id == headerId ||
+                    z.Id == partitionId ||
                     z.ShareLinks.Any(y => y.Token == token))
-            : _context.Headers
+            : _context.Partitions
                 .Include(z => z.ShareLinks)
                 .Where(z =>
                     z.ShareLinks.Any(y => y.Token == token));
 
-        return (await header.SingleAsync()).Id;
+        return (await partition.SingleAsync()).Id;
     }
 }

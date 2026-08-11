@@ -1,14 +1,14 @@
 import React from 'react';
-import { ApiListItemCreation } from '../contracts';
+import { ApiNodeCreation } from '../contracts';
 import { Icon } from './icon/Icon';
 import { LabelEditor } from './LabelEditor';
 
 export interface ListNodeCreationProps {
-  node: ApiListItemCreation;
+  node: ApiNodeCreation;
   placeholder?: string;
   onCancel: () => void;
   onSave: () => void;
-  onUpdate: (update: ApiListItemCreation) => void;
+  onUpdate: (update: ApiNodeCreation) => void;
 }
 
 export const ListNodeCreation: React.FC<ListNodeCreationProps> = (props) => {

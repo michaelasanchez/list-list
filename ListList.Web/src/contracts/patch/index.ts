@@ -1,2 +1,2 @@
-export * from './ApiHeaderPatch';
-export * from './ApiItemPatch';
+export * from './ApiPartitionPatch';
+export * from './ApiNodePatch';

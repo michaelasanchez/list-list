@@ -1,6 +1,6 @@
-import { ApiItem } from '../contracts';
+import { ApiNode } from '../contracts';
 
-export interface Item extends Omit<ApiItem, 'completedOn'> {
+export interface Item extends Omit<ApiNode, 'completedOn'> {
   completedOn: string;
   expanded: boolean;
   pending: boolean;

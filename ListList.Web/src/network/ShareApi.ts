@@ -1,5 +1,5 @@
 import { Api } from '.';
-import { ApiHeaderShare, ShareResult } from '../contracts';
+import { ApiPartitionShare, ShareResult } from '../contracts';
 import { ApiShareLinkPut } from '../contracts/put';
 
 export class ShareApi extends Api {
@@ -15,7 +15,7 @@ export class ShareApi extends Api {
 
   public Share = (
     headerId: string,
-    share: ApiHeaderShare
+    share: ApiPartitionShare
   ): Promise<ShareResult> => {
     this.setActionPath(headerId);
 

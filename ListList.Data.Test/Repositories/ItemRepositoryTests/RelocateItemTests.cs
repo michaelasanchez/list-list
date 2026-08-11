@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ListList.Data.Test.Repositories.ItemRepositoryTests;
 
-public class RelocateItemTests : BaseItemRepositoryTest
+public class RelocateItemTests : BaseNodeRepositoryTest
 {
     [Fact]
     public async Task ShouldRelocate_SingleItem()
@@ -12,10 +12,10 @@ public class RelocateItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
+        var item1 = await SeedNode(headerId, 1, 2, "Item 1");
 
         // Act
-        await _repository.RelocateListItem(item1.Id, item1.Id, null);
+        await _repository.RelocateNode(item1.Id, item1.Id, null);
 
         // Assert
         item1.Left.Should().Be(1);
@@ -28,13 +28,13 @@ public class RelocateItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
-        var item2 = await SeedItem(headerId, 3, 4, "Item 2");
-        var item3 = await SeedItem(headerId, 5, 6, "Item 3");
-        var item4 = await SeedItem(headerId, 7, 8, "Item 4");
+        var item1 = await SeedNode(headerId, 1, 2, "Item 1");
+        var item2 = await SeedNode(headerId, 3, 4, "Item 2");
+        var item3 = await SeedNode(headerId, 5, 6, "Item 3");
+        var item4 = await SeedNode(headerId, 7, 8, "Item 4");
 
         // Act
-        await _repository.RelocateListItem(item2.Id, item3.Id, null);
+        await _repository.RelocateNode(item2.Id, item3.Id, null);
 
         // Assert
         item1.Left.Should().Be(1);
@@ -56,13 +56,13 @@ public class RelocateItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
-        var item2 = await SeedItem(headerId, 3, 4, "Item 2");
-        var item3 = await SeedItem(headerId, 5, 6, "Item 3");
-        var item4 = await SeedItem(headerId, 7, 8, "Item 4");
+        var item1 = await SeedNode(headerId, 1, 2, "Item 1");
+        var item2 = await SeedNode(headerId, 3, 4, "Item 2");
+        var item3 = await SeedNode(headerId, 5, 6, "Item 3");
+        var item4 = await SeedNode(headerId, 7, 8, "Item 4");
 
         // Act
-        await _repository.RelocateListItem(item2.Id, item4.Id, null);
+        await _repository.RelocateNode(item2.Id, item4.Id, null);
 
         // Assert
         item1.Left.Should().Be(1);
@@ -84,13 +84,13 @@ public class RelocateItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
-        var item2 = await SeedItem(headerId, 3, 4, "Item 2");
-        var item3 = await SeedItem(headerId, 5, 6, "Item 3");
-        var item4 = await SeedItem(headerId, 7, 8, "Item 4");
+        var item1 = await SeedNode(headerId, 1, 2, "Item 1");
+        var item2 = await SeedNode(headerId, 3, 4, "Item 2");
+        var item3 = await SeedNode(headerId, 5, 6, "Item 3");
+        var item4 = await SeedNode(headerId, 7, 8, "Item 4");
 
         // Act
-        await _repository.RelocateListItem(item3.Id, item2.Id, null);
+        await _repository.RelocateNode(item3.Id, item2.Id, null);
 
         // Assert
         item1.Left.Should().Be(1);
@@ -112,13 +112,13 @@ public class RelocateItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var item1 = await SeedItem(headerId, 1, 2, "Item 1");
-        var item2 = await SeedItem(headerId, 3, 4, "Item 2");
-        var item3 = await SeedItem(headerId, 5, 6, "Item 3");
-        var item4 = await SeedItem(headerId, 7, 8, "Item 4");
+        var item1 = await SeedNode(headerId, 1, 2, "Item 1");
+        var item2 = await SeedNode(headerId, 3, 4, "Item 2");
+        var item3 = await SeedNode(headerId, 5, 6, "Item 3");
+        var item4 = await SeedNode(headerId, 7, 8, "Item 4");
 
         // Act
-        await _repository.RelocateListItem(item3.Id, item1.Id, null);
+        await _repository.RelocateNode(item3.Id, item1.Id, null);
 
         // Assert
         item3.Left.Should().Be(1);
@@ -193,20 +193,20 @@ public class RelocateItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var root = await SeedItem(headerId, 1, 14, "root");
-        var parent1 = await SeedItem(headerId, 2, 13, "parent1");
-        var parent2 = await SeedItem(headerId, 3, 12, "parent2");
-        var parent3 = await SeedItem(headerId, 4, 11, "parent3");
-        var parent4 = await SeedItem(headerId, 5, 10, "parent4");
-        var parent5 = await SeedItem(headerId, 6, 9, "parent5");
-        var child = await SeedItem(headerId, 7, 8, "child");
+        var root = await SeedNode(headerId, 1, 14, "root");
+        var parent1 = await SeedNode(headerId, 2, 13, "parent1");
+        var parent2 = await SeedNode(headerId, 3, 12, "parent2");
+        var parent3 = await SeedNode(headerId, 4, 11, "parent3");
+        var parent4 = await SeedNode(headerId, 5, 10, "parent4");
+        var parent5 = await SeedNode(headerId, 6, 9, "parent5");
+        var child = await SeedNode(headerId, 7, 8, "child");
 
         var parentId = GetIndex(
             [parent1, parent2, parent3, parent4, parent5],
             index);
 
         // Act
-        await _repository.RelocateListItem(child.Id, child.Id, parentId);
+        await _repository.RelocateNode(child.Id, child.Id, parentId);
 
         // Assert
         root.Left.Should().Be(1);
@@ -271,20 +271,20 @@ public class RelocateItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var Why = await SeedItem(headerId, 1, 22, "Why");
-        var One = await SeedItem(headerId, 2, 3, "One");
-        var Two = await SeedItem(headerId, 4, 15, "Two");
-        var Inner = await SeedItem(headerId, 5, 6, "Inner");
-        var Boy = await SeedItem(headerId, 7, 14, "Boy");
-        var Dramatic = await SeedItem(headerId, 8, 9, "Dramatic");
-        var much = await SeedItem(headerId, 10, 11, "much");
-        var yes = await SeedItem(headerId, 12, 13, "yes");
-        var who = await SeedItem(headerId, 16, 17, "who");
-        var arthitis = await SeedItem(headerId, 18, 19, "arthitis");
-        var pond = await SeedItem(headerId, 20, 21, "pond");
+        var Why = await SeedNode(headerId, 1, 22, "Why");
+        var One = await SeedNode(headerId, 2, 3, "One");
+        var Two = await SeedNode(headerId, 4, 15, "Two");
+        var Inner = await SeedNode(headerId, 5, 6, "Inner");
+        var Boy = await SeedNode(headerId, 7, 14, "Boy");
+        var Dramatic = await SeedNode(headerId, 8, 9, "Dramatic");
+        var much = await SeedNode(headerId, 10, 11, "much");
+        var yes = await SeedNode(headerId, 12, 13, "yes");
+        var who = await SeedNode(headerId, 16, 17, "who");
+        var arthitis = await SeedNode(headerId, 18, 19, "arthitis");
+        var pond = await SeedNode(headerId, 20, 21, "pond");
 
         // Act
-        await _repository.RelocateListItem(yes.Id, yes.Id, Why.Id);
+        await _repository.RelocateNode(yes.Id, yes.Id, Why.Id);
 
         // Assert
         Why.Left.Should().Be(1);
@@ -320,7 +320,7 @@ public class RelocateItemTests : BaseItemRepositoryTest
         pond.Left.Should().Be(20);
         pond.Right.Should().Be(21);
 
-        var yesCheck = _context.Items.SingleOrDefaultAsync(z => z.Id == yes.Id);
+        var yesCheck = _context.Nodes.SingleOrDefaultAsync(z => z.Id == yes.Id);
 
         yesCheck.Should().NotBeNull();
     }

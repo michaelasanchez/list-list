@@ -9,11 +9,11 @@ import {
 } from 'react-bootstrap';
 import { ButtonVariant } from 'react-bootstrap/esm/types';
 import { formatDate, today } from '.';
-import { ApiHeaderShare, SharedPermission } from '../../contracts';
+import { ApiPartitionShare, SharedPermission } from '../../contracts';
 import { IconButton } from '../button';
 import * as styles from './ShareLink.module.scss';
 
-export interface MinimumLink extends ApiHeaderShare {
+export interface MinimumLink extends ApiPartitionShare {
   id?: string;
 }
 

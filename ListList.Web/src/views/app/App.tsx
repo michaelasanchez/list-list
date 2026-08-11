@@ -23,7 +23,7 @@ import {
   ItemUpdate,
   SortableTree,
 } from '../../components/tree/SortableTree';
-import { ApiListHeaderPut, ApiListItemCreation } from '../../contracts';
+import { ApiPartitionPut, ApiNodeCreation } from '../../contracts';
 import {
   LocalStorageState,
   useAlerts,
@@ -34,7 +34,7 @@ import {
 } from '../../hooks';
 import { ViewMapper } from '../../mappers';
 import { Header, Item } from '../../models';
-import { ListHeaderApi, ListItemApi, ShareApi, Succeeded } from '../../network';
+import { PartitionApi, NodeApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
 import { FloatingUi } from '../ui';
@@ -118,8 +118,8 @@ export const App: React.FC = () => {
 
   const apis = useMemo(
     () => ({
-      headerApi: new ListHeaderApi(),
-      itemApi: new ListItemApi(),
+      headerApi: new PartitionApi(),
+      itemApi: new NodeApi(),
       shareApi: new ShareApi(),
     }),
     [authState],
@@ -181,12 +181,12 @@ export const App: React.FC = () => {
   );
 
   const createItem = useCallback(
-    async (headerId: string, raw: ApiListItemCreation): Promise<Succeeded> => {
+    async (headerId: string, raw: ApiNodeCreation): Promise<Succeeded> => {
       if (
         (raw.label && raw.label?.trim().length > 0) ||
         (raw.description && raw.description?.trim().length > 0)
       ) {
-        const creation: ApiListItemCreation = {
+        const creation: ApiNodeCreation = {
           // ...raw,
           label: raw.label?.trim(),
           description: raw.description?.trim(),
@@ -198,7 +198,7 @@ export const App: React.FC = () => {
         dispatch({ type: ActionType.SetLoading, loading: true });
 
         try {
-          await apis.headerApi.CreateItem(headerId, creation);
+          await apis.headerApi.CreateNode(headerId, creation);
 
           // dispatch({ type: ActionType.FinalizeItemCreate, headerId });
           dispatch({ type: ActionType.SetLoading, loading: true });
@@ -298,7 +298,7 @@ export const App: React.FC = () => {
         const order =
           (state.headers?.findIndex((h) => h.id == overId) ?? 0) - 1;
 
-        await apis.headerApi.CreateHeader({
+        await apis.headerApi.CreatePartition({
           label,
           description,
           order,
@@ -342,7 +342,7 @@ export const App: React.FC = () => {
         const header = state.headers?.find((h) => h.id == headerId);
 
         if (header) {
-          const put: ApiListHeaderPut = {
+          const put: ApiPartitionPut = {
             ...header,
             ...update,
           };
@@ -575,7 +575,7 @@ export const App: React.FC = () => {
               apis.itemApi
                 .Restore(token, item.id, overId, parentId)
                 .then(() => {
-                  loadHeader(item.headerId);
+                  loadHeader(item.partitionId);
                   hideAlert(alertId);
                 })
             }

@@ -6,6 +6,6 @@ namespace ListList.Api.Services.Interfaces;
 public interface IShareService
 {
     Task DeleteLink(Guid shareLinkId);
-    Task PutLink(Guid shareLinkId, ShareLinkPut patch);
-    Task<string> ShareHeader(string token, HeaderShare listHeaderShare);
+    Task PutLink(Guid shareLinkId, ShareLinkPut put);
+    Task<string> SharePartition(string token, PartitionShare share);
 }

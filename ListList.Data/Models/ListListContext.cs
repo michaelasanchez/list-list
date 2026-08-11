@@ -6,17 +6,17 @@ namespace ListList.Data.Models;
 
 public class ListListContext(DbContextOptions<ListListContext> options) : DbContext(options), IListListContext
 {
-    public DbSet<HeaderEntity> Headers { get; set; }
-    public DbSet<ItemEntity> Items { get; set; }
+    public DbSet<PartitionEntity> Partitions { get; set; }
+    public DbSet<NodeEntity> Nodes { get; set; }
     public DbSet<SharedAccessEntity> SharedAccess { get; set; }
     public DbSet<ShareLinkEntity> ShareLinks { get; set; }
     public DbSet<UserEntity> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        builder.Entity<HeaderEntity>(entity =>
+        builder.Entity<PartitionEntity>(entity =>
         {
-            entity.ToTable("ListHeader");
+            entity.ToTable("Partition");
 
             entity.HasKey(p => p.Id);
 
@@ -26,19 +26,19 @@ public class ListListContext(DbContextOptions<ListListContext> options) : DbCont
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasMany(p => p.Nodes)
-                .WithOne(d => d.Header)
-                .HasForeignKey(p => p.HeaderId)
+                .WithOne(d => d.Partition)
+                .HasForeignKey(p => p.PartitionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasMany(p => p.ShareLinks)
-                .WithOne(d => d.Header)
-                .HasForeignKey(d => d.HeaderId)
+                .WithOne(d => d.Partition)
+                .HasForeignKey(d => d.PartitionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        builder.Entity<ItemEntity>(entity =>
+        builder.Entity<NodeEntity>(entity =>
         {
-            entity.ToTable("ListItem");
+            entity.ToTable("Node");
 
             entity.HasKey(p => p.Id);
         });
@@ -49,12 +49,12 @@ public class ListListContext(DbContextOptions<ListListContext> options) : DbCont
 
             entity.HasKey(p => p.Id);
 
-            entity.HasIndex(p => new { p.HeaderId, p.UserId })
+            entity.HasIndex(p => new { p.PartitionId, p.UserId })
                 .IsUnique();
 
-            entity.HasOne<HeaderEntity>()
+            entity.HasOne<PartitionEntity>()
                 .WithMany()
-                .HasForeignKey(d => d.HeaderId)
+                .HasForeignKey(d => d.PartitionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne<UserEntity>()

@@ -8,24 +8,24 @@ namespace ListList.Api.Guards;
 
 public partial class Guard : IGuard
 {
-    public async Task<ValidationResult> AgainstInvalidShare(Guid? userId, string token, HeaderShare headerShare)
+    public async Task<ValidationResult> AgainstInvalidShare(Guid? userId, string token, PartitionShare share)
     {
         var result = new ValidationResult();
 
-        await headerValidator.IsOwnedByUser(userId, token, result);
+        await partitionValidator.IsOwnedByUser(userId, token, result);
 
-        await shareValidator.TokenIsAvailable(null, headerShare.Token, result);
+        await shareValidator.TokenIsAvailable(null, share.Token, result);
 
-        DateValidator.IsFutureDate(headerShare.ExpiresOn, result);
+        DateValidator.IsFutureDate(share.ExpiresOn, result);
 
         return result;
     }
 
-    public async Task<ValidationResult> AgainstInvalidShareLinkDelete(Guid? userId, Guid listHeaderId)
+    public async Task<ValidationResult> AgainstInvalidShareLinkDelete(Guid? userId, Guid partitionId)
     {
         var result = new ValidationResult();
 
-        await shareValidator.UserOwnsShareLink(userId, listHeaderId, result);
+        await shareValidator.UserOwnsShareLink(userId, partitionId, result);
 
         return result;
     }

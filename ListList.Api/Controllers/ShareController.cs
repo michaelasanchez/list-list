@@ -19,19 +19,19 @@ public class ShareController(IShareService service) : Controller
     }
 
     [HttpPut("{shareLinkId}")]
-    public async Task<IActionResult> PutLink([FromRoute] Guid shareLinkId, [FromBody] ShareLinkPut patch)
+    public async Task<IActionResult> PutLink([FromRoute] Guid shareLinkId, [FromBody] ShareLinkPut put)
     {
-        await service.PutLink(shareLinkId, patch);
+        await service.PutLink(shareLinkId, put);
 
         return Ok();
     }
 
     [HttpPost("{token}")]
-    public async Task<IActionResult> ShareHeader([FromRoute] string token, HeaderShare listHeaderShare)
+    public async Task<IActionResult> SharePartition([FromRoute] string token, PartitionShare share)
     {
         var result = new ShareResult
         {
-            Path = await service.ShareHeader(token, listHeaderShare)
+            Path = await service.SharePartition(token, share)
         };
 
         return Ok(result);

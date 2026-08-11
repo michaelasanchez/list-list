@@ -1,15 +1,15 @@
 import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
-import { ApiListItemCreation } from '../../contracts';
+import { ApiNodeCreation } from '../../contracts';
 import { CreateListItemForm } from '../form';
 
 export interface CreateListItemModalProps {
   show: boolean;
-  creation?: ApiListItemCreation;
+  creation?: ApiNodeCreation;
   parentId?: string;
   onClose: () => void;
-  onUpdate: (update: Partial<ApiListItemCreation>) => void;
-  handleCreateNode: (creation: ApiListItemCreation, parentId: string) => void;
+  onUpdate: (update: Partial<ApiNodeCreation>) => void;
+  handleCreateNode: (creation: ApiNodeCreation, parentId: string) => void;
 }
 
 export const CreateListItemModal: React.FC<CreateListItemModalProps> = (

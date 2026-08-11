@@ -2,7 +2,7 @@
 
 public class OperationResult
 {
-    public Guid? HeaderId { get; set; }
-    public Guid? ItemId { get; set; }
+    public Guid? PartitionId { get; set; }
+    public Guid? NodeId { get; set; }
     public OperationResultAffected? Affected { get; set; }
 }

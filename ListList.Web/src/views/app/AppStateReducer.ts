@@ -1,6 +1,6 @@
 import { filter, map } from 'lodash';
 import { AppState } from '.';
-import { ApiHeader, ApiItem, ApiListItemCreation } from '../../contracts';
+import { ApiPartition, ApiNode, ApiNodeCreation } from '../../contracts';
 import { ListItemMapper } from '../../mappers';
 
 export enum AppStateActionType {
@@ -26,14 +26,14 @@ export const newNodeId = 'new-node-id';
 export interface AppStateAction {
   type: AppStateActionType;
   asChild?: boolean;
-  creation?: ApiListItemCreation;
-  header?: ApiHeader;
+  creation?: ApiNodeCreation;
+  header?: ApiPartition;
   headerId?: string;
-  headers?: ApiHeader[];
+  headers?: ApiPartition[];
   loading?: boolean;
   syncing?: boolean;
   index?: number;
-  item?: ApiItem;
+  item?: ApiNode;
   itemId?: string | null;
 }
 
@@ -208,7 +208,7 @@ export const AppStateReducer = (
       if (!action.item) return state;
 
       const headers = state.headers.map((h) =>
-        h.id == action.item.headerId
+        h.id == action.item.partitionId
           ? {
               ...h,
               items: h.items.map((i) =>

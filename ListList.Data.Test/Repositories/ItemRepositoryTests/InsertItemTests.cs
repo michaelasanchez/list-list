@@ -4,7 +4,7 @@ using ListList.Data.Models.Entities;
 
 namespace ListList.Data.Test.Repositories.ItemRepositoryTests;
 
-public class InsertItemTests : BaseItemRepositoryTest
+public class InsertItemTests : BaseNodeRepositoryTest
 {
     [Theory]
     [InlineData(0, 11, 12, 10, 9, 8, 7)]
@@ -24,19 +24,19 @@ public class InsertItemTests : BaseItemRepositoryTest
         // Arrange
         var headerId = _fixture.Create<Guid>();
 
-        var root = await SeedItem(headerId, 1, 14);
-        var ancestor1 = await SeedItem(headerId, 2, 11);
-        var ancestor2 = await SeedItem(headerId, 3, 10);
-        var ancestor3 = await SeedItem(headerId, 4, 9);
-        var ancestor4 = await SeedItem(headerId, 5, 8);
-        var ancestor5 = await SeedItem(headerId, 6, 7);
-        var over = await SeedItem(headerId, 12, 13);
+        var root = await SeedNode(headerId, 1, 14);
+        var ancestor1 = await SeedNode(headerId, 2, 11);
+        var ancestor2 = await SeedNode(headerId, 3, 10);
+        var ancestor3 = await SeedNode(headerId, 4, 9);
+        var ancestor4 = await SeedNode(headerId, 5, 8);
+        var ancestor5 = await SeedNode(headerId, 6, 7);
+        var over = await SeedNode(headerId, 12, 13);
 
-        var active = _fixture.Build<ItemEntity>()
-            .With(z => z.HeaderId, headerId)
+        var active = _fixture.Build<NodeEntity>()
+            .With(z => z.PartitionId, headerId)
             .With(z => z.Left, 1)
             .With(z => z.Right, 2)
-            .Without(x => x.Header)
+            .Without(x => x.Partition)
             .Create();
 
         var ancestorId = GetIndex(
@@ -44,7 +44,7 @@ public class InsertItemTests : BaseItemRepositoryTest
             index);
 
         // Act
-        await _repository.InsertItemDebug([active], ancestorId, over.Id);
+        await _repository.InsertNodeDebug([active], ancestorId, over.Id);
 
         // Assert
         root.Left.Should().Be(1);

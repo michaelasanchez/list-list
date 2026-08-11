@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
-import { ApiHeaderPatch } from '../../contracts';
+import { ApiPartitionPatch } from '../../contracts';
 import { Header } from '../../models';
 import { SortableTreeHooks } from '../tree/SortableTree';
 
@@ -14,7 +14,7 @@ export interface ItemFeatureProps {
   hooks?: SortableTreeHooks;
   onBack?: () => void;
   onShare?: () => void;
-  onPatch?: (patch: ApiHeaderPatch) => void;
+  onPatch?: (patch: ApiPartitionPatch) => void;
 }
 
 export const ItemFeature: React.FC<ItemFeatureProps> = (props) => {
