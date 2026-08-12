@@ -6,6 +6,7 @@ import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
 import { Badge, Spinner } from 'react-bootstrap';
+import { useLongPress } from '../../../../hooks';
 import { Succeeded } from '../../../../network';
 import { DateUtils } from '../../../../shared';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
@@ -13,7 +14,6 @@ import { ActionDropdown, DropdownAction } from '../../../action-dropdown';
 import { Icon } from '../../../icon';
 import { ItemUpdate } from '../../SortableTree';
 import { TreeItemData } from '../../types';
-import { useLongPress } from '../../../../hooks';
 
 export interface Hooks {
   actions?: DropdownAction[][];
@@ -36,11 +36,11 @@ export interface TreeItemProps extends Omit<
   indicator?: boolean;
   indentationWidth: number;
   //
-  data: TreeItemData;
+  data: TreeItemData | null;
   name: string;
   hooks?: Hooks;
   pending?: boolean;
-  onCheck?(): Promise<Succeeded>;
+  onCheck?(): Promise<Succeeded> | undefined;
   onCollapse?(): void;
   onRemove?(): void;
   onSelect?(): void;
@@ -80,10 +80,12 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
 
     const longPressEvents = useLongPress(onSelect);
 
-    const handleCollapse = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-
-    }, []);
+    const handleCollapse = React.useCallback(
+      (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+      },
+      [],
+    );
 
     return (
       <li
@@ -96,7 +98,7 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
           pending && styles.pending,
           disableSelection && styles.disableSelection,
           disableInteraction && styles.disableInteraction,
-          data.complete && styles.complete,
+          data?.complete && styles.complete,
         )}
         ref={wrapperRef}
         style={
@@ -115,7 +117,7 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
-          {data.numbered && (
+          {data?.numbered && (
             <Badge bg="secondary">{pending ? '+' : data.index + 1}</Badge>
           )}
           <div className={styles.Content}>
@@ -123,22 +125,19 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
               className={styles.Editor}
               autoFocus={pending}
               name={name}
-              label={data.label}
+              label={data?.label ?? ''}
               placeholderLabel={pending ? 'New Item' : undefined}
-              description={data.description}
+              description={data?.description ?? ''}
               placeholderDescription="Add note"
               onUpdate={hooks?.onUpdate}
             />
-            {data.completedOn && (
+            {data?.completedOn && (
               <small>{DateUtils.timeAgo(data.completedOn)}</small>
             )}
           </div>
           <div className={styles.Actions}>
             {!!hooks?.actions && (
-              <ActionDropdown
-                actionGroups={hooks.actions}
-                variant="none"
-              />
+              <ActionDropdown actionGroups={hooks.actions} variant="none" />
             )}
             {/* Checkbox */}
             {checkbox && (
@@ -150,7 +149,12 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
                   if (onCheck) {
                     setCheckLoading(true);
 
-                    onCheck().then(() => setCheckLoading(false));
+                    const checkPromise = onCheck();
+                    if (checkPromise) {
+                      checkPromise.then(() => setCheckLoading(false));
+                    } else {
+                      setCheckLoading(false);
+                    }
                   }
                 }}
               >
@@ -159,7 +163,7 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
                     <Spinner className={styles.Spinner} size="sm" />
                   </div>
                 ) : (
-                  <Icon type={data.complete ? 'checked' : 'unchecked'} />
+                  <Icon type={data?.complete ? 'checked' : 'unchecked'} />
                 )}
               </Action>
             )}

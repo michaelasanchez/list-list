@@ -2,15 +2,12 @@ import React from 'react';
 import { Button, ButtonProps } from 'react-bootstrap';
 import { Icon, IconType } from '../..';
 
-import classNames from 'classnames';
-import * as styles from './IconButton.module.scss';
-
 export interface IconButtonProps extends ButtonProps {
   iconType: IconType;
   align?: 'start' | 'end';
 }
 
-const getIconSize = (size?: 'sm' | 'lg'): number | null => {
+const getIconSize = (size?: 'sm' | 'lg'): number => {
   switch (size) {
     case 'sm':
       return 12;
@@ -28,7 +25,7 @@ export const IconButton: React.FC<IconButtonProps> = (props) => {
 
   return (
     <Button {...rest}>
-       {/* className={classNames(styles.IconButton)}> */}
+      {/* className={classNames(styles.IconButton)}> */}
       {align == 'end' ? (
         <>
           {children}

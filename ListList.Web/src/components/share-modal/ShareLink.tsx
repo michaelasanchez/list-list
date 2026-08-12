@@ -32,7 +32,7 @@ const showLabels = false;
 export const ShareLink: React.FC<ShareLinkProps> = (props) => {
   const { link, editing, onCancel, onConfirm, onDelete, onUpdate } = props;
 
-  const isFutureOrToday = !Boolean(link?.expiresOn) || link?.expiresOn >= today;
+  const isFutureOrToday = !link?.expiresOn || link?.expiresOn >= today;
 
   return (
     <Card className={classNames(styles.ShareLink, editing && styles.editing)}>
@@ -41,7 +41,8 @@ export const ShareLink: React.FC<ShareLinkProps> = (props) => {
           className={styles.Content}
           onSubmit={(e) => {
             e.preventDefault();
-            onConfirm();
+
+            onConfirm?.();
           }}
         >
           <div className={styles.ContentRow}>
@@ -68,15 +69,13 @@ export const ShareLink: React.FC<ShareLinkProps> = (props) => {
               {showLabels && <Form.Label as="small">Expiration</Form.Label>}
               <Form.Control
                 className={classNames(
-                  link.expiresOn === null && styles.dateEmpty
+                  link.expiresOn === null && styles.dateEmpty,
                 )}
                 size="sm"
                 type="date"
                 // isInvalid={!isFutureOrToday}
                 value={
-                  Boolean(link.expiresOn)
-                    ? formatDate(new Date(link.expiresOn))
-                    : ''
+                  link.expiresOn ? formatDate(new Date(link.expiresOn)) : ''
                 }
                 onChange={(e) =>
                   onUpdate?.({ id: link.id, expiresOn: e.target.value })
@@ -156,7 +155,7 @@ const getPermissionLabel = (p: SharedPermission): string => {
 
 const getPermissionVariant = (
   p: SharedPermission,
-  outline: boolean = true
+  outline: boolean = true,
 ): ButtonVariant => {
   switch (p) {
     case SharedPermission.View:

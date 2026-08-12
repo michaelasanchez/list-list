@@ -18,8 +18,8 @@ export type Succeeded = boolean;
 
 export class Api {
   private _basePath: string;
-  private _actionPath: string;
-  private _queryParameters: string;
+  private _actionPath?: string;
+  private _queryParameters?: string;
 
   constructor(basePath: string) {
     this._basePath = basePath;
@@ -35,8 +35,8 @@ export class Api {
       this._queryParameters,
     );
 
-    this._actionPath = null;
-    this._queryParameters = null;
+    this._actionPath = undefined;
+    this._queryParameters = undefined;
 
     return fetch(path, { ...(init ?? {}), credentials: 'include' }).then(
       (result) =>
@@ -50,10 +50,7 @@ export class Api {
     );
   }
 
-  protected executeDelete(
-    id: string,
-    params: RequestInit = null,
-  ): Promise<void> {
+  protected executeDelete(id: string, params?: RequestInit): Promise<void> {
     this.setActionPath(`${id}`);
 
     return this.execute(
@@ -67,9 +64,9 @@ export class Api {
 
   protected executeGet(
     queryParams?: QueryParameters,
-    init: RequestInit = null,
+    init?: RequestInit,
   ): Promise<any> {
-    if (!!queryParams) this.setQueryParameters(queryParams);
+    if (queryParams) this.setQueryParameters(queryParams);
 
     return this.execute(init);
   }
@@ -77,7 +74,7 @@ export class Api {
   protected executePatch(
     id: string,
     obj: any,
-    init: RequestInit = null,
+    init?: RequestInit,
   ): Promise<any> {
     this.setActionPath(`${id}`);
     return this.execute(
@@ -111,8 +108,8 @@ export class Api {
     );
   }
 
-  protected executePut(obj: any, id: string = null): Promise<any> {
-    if (id !== null) this.setActionPath(`${id}`);
+  protected executePut(obj: any, id?: string): Promise<any> {
+    if (id) this.setActionPath(`${id}`);
     return this.execute(
       {
         method: 'PUT',

@@ -23,7 +23,7 @@ import {
   ItemUpdate,
   SortableTree,
 } from '../../components/tree/SortableTree';
-import { ApiPartitionPut, ApiNodeCreation } from '../../contracts';
+import { ApiNodeCreation, ApiPartitionPut } from '../../contracts';
 import {
   LocalStorageState,
   useAlerts,
@@ -34,7 +34,7 @@ import {
 } from '../../hooks';
 import { ViewMapper } from '../../mappers';
 import { Header, Item } from '../../models';
-import { PartitionApi, NodeApi, ShareApi, Succeeded } from '../../network';
+import { NodeApi, PartitionApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
 import { FloatingUi } from '../ui';
@@ -183,12 +183,12 @@ export const App: React.FC = () => {
   const createItem = useCallback(
     async (headerId: string, raw: ApiNodeCreation): Promise<Succeeded> => {
       if (
-        (raw.label && raw.label?.trim().length > 0) ||
-        (raw.description && raw.description?.trim().length > 0)
+        (raw.label && raw.label.trim().length > 0) ||
+        (raw.description && raw.description.trim().length > 0)
       ) {
         const creation: ApiNodeCreation = {
           // ...raw,
-          label: raw.label?.trim(),
+          label: raw.label?.trim() ?? '',
           description: raw.description?.trim(),
           complete: raw.complete,
           overId: raw.overId,
@@ -294,13 +294,13 @@ export const App: React.FC = () => {
         ];
       },
       onClick: (headerId) => navigate(headerId as string),
-      onCreate: async (label: string, description: string, overId) => {
+      onCreate: async (label, description, overId) => {
         const order =
           (state.headers?.findIndex((h) => h.id == overId) ?? 0) - 1;
 
         await apis.headerApi.CreatePartition({
-          label,
-          description,
+          label: label ?? '',
+          description: description ?? '',
           order,
         });
 

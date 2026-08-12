@@ -13,7 +13,7 @@ export interface CreateListItemModalProps {
 }
 
 export const CreateListItemModal: React.FC<CreateListItemModalProps> = (
-  props
+  props,
 ) => {
   return (
     <Modal show={props.show}>
@@ -22,7 +22,7 @@ export const CreateListItemModal: React.FC<CreateListItemModalProps> = (
       </Modal.Header>
       <Modal.Body>
         <CreateListItemForm
-          creation={props.creation}
+          creation={props.creation!}
           onUpdate={props.onUpdate}
         />
       </Modal.Body>
@@ -32,7 +32,7 @@ export const CreateListItemModal: React.FC<CreateListItemModalProps> = (
         </Button>
         <Button
           variant="primary"
-          onClick={() => props.handleCreateNode(props.creation, props.parentId)}
+          onClick={() => props.handleCreateNode(props.creation!, props.parentId!)}
         >
           Save Changes
         </Button>

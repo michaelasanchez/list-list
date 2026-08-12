@@ -97,7 +97,7 @@ export const useAlerts = ({
   });
 
   React.useEffect(() => {
-    let timeout: number;
+    let timeout: NodeJS.Timeout | undefined;
 
     // Set first fade timeout
     if (alerts?.length > 0) {

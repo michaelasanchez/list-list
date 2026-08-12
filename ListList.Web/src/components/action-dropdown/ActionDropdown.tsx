@@ -14,7 +14,7 @@ export interface DropdownAction {
 }
 
 export interface ActionDropdownProps {
-  actionGroups: DropdownAction[][];
+  actionGroups?: DropdownAction[][];
   align?: AlignType;
   icon?: IconType;
   size?: 'sm' | 'lg';
@@ -36,7 +36,7 @@ const FecalPellets: React.FC<DropdownAction> = (a) => (
 
 const intersperseGroups = (
   groups: DropdownAction[][],
-  divider: ReactNode
+  divider: ReactNode,
 ): ReactNode => {
   if (groups.length === 0) return null;
 
@@ -54,28 +54,24 @@ const intersperseGroups = (
   );
 };
 
-export const ActionDropdown: React.FC<ActionDropdownProps> = (props) => {
-  const {
-    actionGroups = [],
-    align = 'end',
-    icon: iconType = 'kebab',
-    size,
-    variant = 'outline-secondary',
-  } = props;
-
-  return (
-    <Dropdown
-      className={styles.ActionDropdown}
-      onToggle={(isOpen, event) => {
-        event?.originalEvent.stopPropagation();
-      }}
-    >
-      <Dropdown.Toggle className={styles.Toggle} size={size} variant={variant}>
-        <Icon type={iconType} />
-      </Dropdown.Toggle>
-      <Dropdown.Menu align={align}>
-        {intersperseGroups(actionGroups, <Dropdown.Divider />)}
-      </Dropdown.Menu>
-    </Dropdown>
-  );
-};
+export const ActionDropdown: React.FC<ActionDropdownProps> = ({
+  actionGroups = [],
+  align = 'end',
+  icon: iconType = 'kebab',
+  size,
+  variant = 'outline-secondary',
+}) => (
+  <Dropdown
+    className={styles.ActionDropdown}
+    onToggle={(isOpen, event) => {
+      event.originalEvent?.stopPropagation();
+    }}
+  >
+    <Dropdown.Toggle className={styles.Toggle} size={size} variant={variant}>
+      <Icon type={iconType} />
+    </Dropdown.Toggle>
+    <Dropdown.Menu align={align}>
+      {intersperseGroups(actionGroups, <Dropdown.Divider />)}
+    </Dropdown.Menu>
+  </Dropdown>
+);

@@ -20,7 +20,7 @@ export interface ItemFeatureProps {
 export const ItemFeature: React.FC<ItemFeatureProps> = (props) => {
   const headerActions = React.useMemo(
     () =>
-      !Boolean(props.node) || props.node.readonly ? (
+      !props.node || props.node.readonly ? (
         <></>
       ) : (
         <>
@@ -44,7 +44,7 @@ export const ItemFeature: React.FC<ItemFeatureProps> = (props) => {
           />
         </>
       ),
-    [props.node]
+    [props.node],
   );
 
   return (
@@ -53,10 +53,14 @@ export const ItemFeature: React.FC<ItemFeatureProps> = (props) => {
         <LabelAndDescriptionEditor
           name={props.node?.id ?? 'no-header-selected'}
           label={props.node?.label ?? ''}
-          description={props.node?.description}
+          description={props.node?.description ?? ''}
           placeholderDescription="Add note"
           disabled={!Boolean(props.node)}
-          onUpdate={(update) => props.hooks?.onUpdate(props.node.id, update)}
+          onUpdate={(update) =>
+            props.hooks?.onUpdate
+              ? props.hooks.onUpdate(props.node!.id, update)
+              : Promise.resolve(false)
+          }
         />
       </div>
       <div className="actions">{headerActions}</div>

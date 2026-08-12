@@ -4,14 +4,14 @@ import { useClickOutside } from '../hooks';
 
 export interface LabelEditorProps {
   name: string;
-  label: string;
+  label: string | null;
   autoFocus?: boolean;
   className?: string;
   disabled?: boolean;
   placeholder?: string;
   onBlur?: () => void;
   onCancel?: () => void;
-  onChange?: (update: string) => void;
+  onChange?: (update: string | null) => void;
   onFocus?: () => void;
 }
 
@@ -32,12 +32,12 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key == 'Enter') {
-      inputRef.current.blur();
+      inputRef.current?.blur();
     }
 
     if (e.key == 'Escape') {
       cancelled.current = true;
-      inputRef.current.blur();
+      inputRef.current?.blur();
     }
   };
 
@@ -67,7 +67,7 @@ export const LabelEditor: React.FC<LabelEditorProps> = (props) => {
         ref={inputRef}
         value={props.label || ''}
         onBlur={handleBlur}
-        onChange={(e) => props.onChange(e.target.value)}
+        onChange={(e) => props.onChange?.(e.target.value)}
         onClick={handleOnClick}
         onFocus={props.onFocus}
         onKeyDown={handleKeyDown}

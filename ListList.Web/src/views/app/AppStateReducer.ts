@@ -1,7 +1,8 @@
 import { filter, map } from 'lodash';
 import { AppState } from '.';
-import { ApiPartition, ApiNode, ApiNodeCreation } from '../../contracts';
+import { ApiNode, ApiNodeCreation, ApiPartition } from '../../contracts';
 import { ListItemMapper } from '../../mappers';
+import { Header, Item } from '../../models';
 
 export enum AppStateActionType {
   CancelHeaderCreate,
@@ -39,7 +40,7 @@ export interface AppStateAction {
 
 export const AppStateReducer = (
   state: AppState,
-  action: AppStateAction
+  action: AppStateAction,
 ): AppState => {
   switch (action.type) {
     case AppStateActionType.CancelHeaderCreate: {
@@ -54,7 +55,7 @@ export const AppStateReducer = (
         headers: state.headers.map((h) =>
           h.id == action.headerId
             ? { ...h, items: h.items.filter((i) => i.id != newNodeId) }
-            : h
+            : h,
         ),
       };
     }
@@ -68,14 +69,14 @@ export const AppStateReducer = (
         headers: state.headers.map((h) =>
           h.id == action.headerId
             ? { ...h, items: h.items.filter((i) => !i.pending) }
-            : h
+            : h,
         ),
       };
     }
     case AppStateActionType.FinalizeItemDelete: {
       const updatedHeaders = filter(
         state.headers,
-        (h) => h.id !== action.headerId
+        (h) => h.id !== action.headerId,
       );
 
       return {
@@ -88,7 +89,7 @@ export const AppStateReducer = (
         return state;
       }
 
-      const pendingHeader = {
+      const pendingHeader: Header = {
         id: newNodeId,
         order: state.headers.length,
         checklist: false,
@@ -99,12 +100,13 @@ export const AppStateReducer = (
         items: [],
         shareLinks: [],
         pending: true,
+        tokens: null,
       };
 
       state.headers.splice(
         action.index ?? state.headers.length,
         0,
-        pendingHeader
+        pendingHeader,
       );
 
       return {
@@ -119,32 +121,46 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.InitiateItemCreate: {
+      if (!action.headerId) {
+        console.error(
+          `AppStateActionType.InitiateItemCreate - action.headerId is required.`,
+        );
+
+        return state;
+      }
+
       const activeHeader = state.headers.find((h) => h.id == action.headerId);
+
+      if (!activeHeader) {
+        console.error(
+          `AppStateActionType.InitiateItemCreate - Partition with id ${action.headerId} not found in state.headers`,
+        );
+
+        return state;
+      }
 
       // Remove pending item if exists
       // (helps when pending item is left in another view)
       if (activeHeader.items.some((i) => i.id == newNodeId)) {
         activeHeader.items = activeHeader.items.filter(
-          (i) => i.id != newNodeId
+          (i) => i.id != newNodeId,
         );
       }
 
       const itemIndex = activeHeader.items.findIndex(
-        (i) => i.id == action.itemId
+        (i) => i.id == action.itemId,
       );
       const item = activeHeader.items[itemIndex];
 
-      const pending = {
+      const pending: Item = {
         id: newNodeId,
         label: '',
         description: '',
         complete: false,
-        completedOn: null,
-        left: 0,
-        right: 0,
+        completedOn: '',
         depth: item?.depth ?? 0,
         index: 0,
-        headerId: action.headerId,
+        partitionId: action.headerId,
         isParent: false,
         childCount: 0,
         childrenIds: [],
@@ -163,13 +179,23 @@ export const AppStateReducer = (
       return {
         ...state,
         headers: state.headers.map((h) =>
-          h.id == action.headerId ? { ...h, items: [...activeHeader.items] } : h
+          h.id == action.headerId
+            ? { ...h, items: [...activeHeader.items] }
+            : h,
         ),
       };
     }
     case AppStateActionType.SetHeader: {
+      if (!action.header?.id) {
+        console.error(
+          `AppStateActionType.SetHeader - action.header${action.header ? '.id' : ''} is required.`,
+        );
+
+        return state;
+      }
+
       const existingIndex = state.headers.findIndex(
-        (h) => h.id == action.header.id
+        (h) => h.id == action.header!.id,
       );
 
       const mapped = ListItemMapper.mapHeader(action.header, state.expanded);
@@ -192,11 +218,21 @@ export const AppStateReducer = (
         ...state,
         headers:
           existingIndex >= 0
-            ? map(state.headers, (h) => (h.id == action.header.id ? mapped : h))
+            ? map(state.headers, (h) =>
+                h.id == action.header!.id ? mapped : h,
+              )
             : [...state.headers, mapped],
       };
     }
     case AppStateActionType.SetHeaders: {
+      if (!action.headers) {
+        console.error(
+          `AppStateActionType.SetHeaders - action.headers is required.`,
+        );
+
+        return state;
+      }
+
       const headers = ListItemMapper.mapHeaders(action.headers, state.expanded);
 
       return {
@@ -205,19 +241,25 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.SetItem: {
-      if (!action.item) return state;
+      if (!action.item) {
+        console.error(
+          `AppStateActionType.SetItem - action.item is required.`,
+        );
+
+        return state;
+      }
 
       const headers = state.headers.map((h) =>
-        h.id == action.item.partitionId
+        h.id == action.item?.partitionId
           ? {
               ...h,
               items: h.items.map((i) =>
-                i.id == action.item.id
+                i.id == action.item?.id
                   ? ListItemMapper.mapItem(action.item, state.expanded)
-                  : i
+                  : i,
               ),
             }
-          : h
+          : h,
       );
 
       return {
@@ -249,10 +291,10 @@ export const AppStateReducer = (
             ? {
                 ...h,
                 items: h.items.map((i) =>
-                  i.id == action.itemId ? { ...i, expanded: !i.expanded } : i
+                  i.id == action.itemId ? { ...i, expanded: !i.expanded } : i,
                 ),
               }
-            : h
+            : h,
         ),
         expanded: state.expanded.includes(action.itemId)
           ? filter(state.expanded, (i) => i != action.itemId)

@@ -23,7 +23,7 @@ export function SlideTransition<T extends ViewParams>({
 }: SlideTransitionProps<T>) {
   const [displayed, setDisplayed] = useState<{
     prev: RenderedView | null;
-    current: RenderedView;
+    current: RenderedView | null;
   }>({
     prev: null,
     current:
@@ -59,7 +59,7 @@ export function SlideTransition<T extends ViewParams>({
       setAnimating(false);
 
       requestAnimationFrame(() =>
-        requestAnimationFrame(() => setAnimating(true))
+        requestAnimationFrame(() => setAnimating(true)),
       );
     } else {
       setDisplayed((d) => ({
@@ -88,7 +88,7 @@ export function SlideTransition<T extends ViewParams>({
           ? direction == 'left'
             ? styles.SlideLeft
             : styles.SlideRight
-          : ''
+          : '',
       )}
     >
       {displayed.prev && (
@@ -100,12 +100,14 @@ export function SlideTransition<T extends ViewParams>({
           {displayed.prev.view}
         </div>
       )}
-      <div
-        key={displayed.current.renderKey}
-        className={cn(styles.SlideView, styles.current)}
-      >
-        {displayed.current.view}
-      </div>
+      {displayed.current && (
+        <div
+          key={displayed.current.renderKey}
+          className={cn(styles.SlideView, styles.current)}
+        >
+          {displayed.current.view}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import classNames from 'classnames';
-import { isNil } from 'lodash';
 import React from 'react';
 import { Collapse, Spinner } from 'react-bootstrap';
 import { LabelEditor } from '.';
@@ -26,8 +25,8 @@ interface LabelAndDescriptionEditorState {
   editingLabel: boolean;
   editingDescription: boolean;
   loading: boolean;
-  pendingLabel?: string;
-  pendingDescription?: string;
+  pendingLabel?: string | null;
+  pendingDescription?: string | null;
 }
 
 export const LabelAndDescriptionEditor: React.FC<
@@ -80,7 +79,7 @@ export const LabelAndDescriptionEditor: React.FC<
           loading: false,
           pendingLabel: null,
           pendingDescription: null,
-        })
+        }),
       );
     } else {
       setState({
@@ -104,11 +103,9 @@ export const LabelAndDescriptionEditor: React.FC<
         disabled={props.disabled || state.loading}
         className={classNames('label', props.className)}
         name={`${props.name}-label`}
-        label={isNil(state?.pendingLabel) ? props.label : state.pendingLabel}
+        label={state?.pendingLabel ?? props.label}
         placeholder={props.placeholderLabel}
-        onChange={(update: string) =>
-          setState({ ...state, pendingLabel: update })
-        }
+        onChange={(pendingLabel) => setState({ ...state, pendingLabel })}
         onFocus={() =>
           setState({
             ...state,
@@ -144,14 +141,10 @@ export const LabelAndDescriptionEditor: React.FC<
             className={classNames('description', props.className)}
             disabled={props.disabled || state.loading}
             name={`${props.name}-description`}
-            label={
-              isNil(state.pendingDescription)
-                ? props.description
-                : state.pendingDescription
-            }
+            label={state.pendingDescription ?? props.description}
             placeholder={props.placeholderDescription}
-            onChange={(update: string) =>
-              setState({ ...state, pendingDescription: update })
+            onChange={(pendingDescription) =>
+              setState({ ...state, pendingDescription })
             }
             onFocus={() =>
               setState({
