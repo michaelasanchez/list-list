@@ -1,20 +1,20 @@
 import { map } from 'lodash';
 import { ApiPartition, ApiNode, ApiShareLink } from '../contracts';
-import { Header, Item, ShareLink } from '../models';
+import { Partition, Node, ShareLink } from '../models';
 
-const mapItem = (item: ApiNode, expanded?: string[]): Item => ({
+const mapItem = (item: ApiNode, expanded?: string[]): Node => ({
   ...item,
   completedOn: item.completedOn,
   expanded: expanded ? expanded.includes(item.id) : false,
   pending: false,
 });
 
-const mapItems = (items: ApiNode[], expanded?: string[]): Item[] =>
+const mapNodes = (items: ApiNode[], expanded?: string[]): Node[] =>
   items?.map((i) => mapItem(i, expanded)) ?? [];
 
 const mapShareLinks = (links: ApiShareLink[]): ShareLink[] => links ?? [];
 
-const mapHeader = (header: ApiPartition, expanded?: string[]): Header => ({
+const mapHeader = (header: ApiPartition, expanded?: string[]): Partition => ({
   id: header.id,
   tokens: header.token ? [header.token] : null,
   checklist: header.checklist,
@@ -23,19 +23,19 @@ const mapHeader = (header: ApiPartition, expanded?: string[]): Header => ({
   label: header.label,
   description: header.description,
   order: header.order,
-  items: mapItems(header.items, expanded),
+  nodes: mapNodes(header.nodes, expanded),
   pending: false,
   shareLinks: mapShareLinks(header.shareLinks),
 });
 
-const mapHeaders = (headers: ApiPartition[], expanded?: string[]): Header[] =>
+const mapHeaders = (headers: ApiPartition[], expanded?: string[]): Partition[] =>
   map(headers, (h) => ({
     ...mapHeader(h, expanded),
   }));
 
 export const ListItemMapper = {
   mapItem,
-  mapItems,
+  mapItems: mapNodes,
   mapHeader,
   mapHeaders,
 };

@@ -33,7 +33,7 @@ import {
   useTheme,
 } from '../../hooks';
 import { ViewMapper } from '../../mappers';
-import { Header, Item } from '../../models';
+import { Partition, Node } from '../../models';
 import { NodeApi, PartitionApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
@@ -228,6 +228,8 @@ export const App: React.FC = () => {
       ),
     [navState.token, navState.selectedId, state.headers, state.expanded],
   );
+
+  console.log(current);
 
   // Load header if not found from initial load
   useEffect(() => {
@@ -537,7 +539,7 @@ export const App: React.FC = () => {
     </Router>
   );
 
-  function showHeaderUndoAlert(header: Header) {
+  function showHeaderUndoAlert(header: Partition) {
     const alertId = showAlert({
       content: (
         <>
@@ -562,7 +564,7 @@ export const App: React.FC = () => {
 
   function showItemUndoAlert(
     token: string,
-    item: Item,
+    item: Node,
     overId: string,
     parentId: string,
   ) {
@@ -589,11 +591,11 @@ export const App: React.FC = () => {
 };
 
 function getItem(
-  headers: Header[],
+  headers: Partition[],
   headerId: string,
   itemId: string,
-): Item | null {
+): Node | null {
   const header = headers?.find((h) => h.id == headerId);
 
-  return header?.items?.find((i) => i.id == itemId) ?? null;
+  return header?.nodes?.find((i) => i.id == itemId) ?? null;
 }

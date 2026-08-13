@@ -1,7 +1,7 @@
 import { Featured, PathItem } from '../components';
 import { Props as SortableTreeProps } from '../components/tree/SortableTree';
 import { TreeItems } from '../components/tree/types';
-import { Header } from '../models';
+import { Partition } from '../models';
 import { TreeMapper } from '../views';
 
 export interface ViewModel {
@@ -17,17 +17,18 @@ export interface ViewModel {
   treeProps: Omit<SortableTreeProps, 'defaultItems'> | null;
 }
 
-function getViewModel(
+function map(
   token: string | null,
   selectedId: string | null,
-  headers: Header[],
+  headers: Partition[],
   expanded: string[],
 ): ViewModel {
   const header = token
     ? (headers.find((h) => h.id === token || h.tokens?.includes(token)) ?? null)
     : null;
 
-  if (Boolean(token) && !Boolean(header)) {
+  // Error states
+  if (token && !header) {
     return {
       renderKey: '__not__found__key__',
       token: token === undefined ? null : token,
@@ -43,7 +44,7 @@ function getViewModel(
   }
 
   // Headers (Top-Level)
-  if (!Boolean(token)) {
+  if (!token) {
     const items = TreeMapper.buildTreeFromHeaders(
       headers.filter((h) => !h.isNotOwned),
     );
@@ -71,7 +72,7 @@ function getViewModel(
   };
 
   // Surface
-  if (!Boolean(selectedId) && header) {
+  if (!selectedId && header) {
     const featured = {
       id: header.id,
       label: header.label,
@@ -81,7 +82,7 @@ function getViewModel(
       shareLinks: header.shareLinks,
     };
 
-    const items = TreeMapper.buildTreeFromItems(header?.items, expanded);
+    const nodes = TreeMapper.buildTreeFromItems(header?.nodes, expanded);
 
     return {
       renderKey: header.id,
@@ -89,7 +90,7 @@ function getViewModel(
       headerId: header.id,
       selectedId: null,
       featured,
-      items,
+      items: nodes,
       depth: 1,
       path: null,
       readonly: header.readonly,
@@ -100,12 +101,12 @@ function getViewModel(
   // Nested
   if (header) {
     const treeResult = TreeMapper.buildTreeFromSubItems(
-      header.items,
+      header.nodes,
       expanded,
       selectedId,
     );
 
-    const selected = header.items.find((i) => i.id == selectedId);
+    const selected = header.nodes.find((i) => i.id == selectedId);
 
     if (treeResult && selected) {
       const featured: Featured = {
@@ -155,5 +156,5 @@ function getViewModel(
 }
 
 export const ViewMapper = {
-  map: getViewModel,
+  map,
 };

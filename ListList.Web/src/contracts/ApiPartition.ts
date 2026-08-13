@@ -10,6 +10,6 @@ export interface ApiPartition {
   readonly: boolean;
   label: string;
   description: string;
-  items: ApiNode[];
+  nodes: ApiNode[];
   shareLinks: ApiShareLink[];
 }

@@ -2,7 +2,7 @@ import { filter, map } from 'lodash';
 import { AppState } from '.';
 import { ApiNode, ApiNodeCreation, ApiPartition } from '../../contracts';
 import { ListItemMapper } from '../../mappers';
-import { Header, Item } from '../../models';
+import { Partition, Node } from '../../models';
 
 export enum AppStateActionType {
   CancelHeaderCreate,
@@ -54,7 +54,7 @@ export const AppStateReducer = (
         ...state,
         headers: state.headers.map((h) =>
           h.id == action.headerId
-            ? { ...h, items: h.items.filter((i) => i.id != newNodeId) }
+            ? { ...h, nodes: h.nodes.filter((i) => i.id != newNodeId) }
             : h,
         ),
       };
@@ -68,7 +68,7 @@ export const AppStateReducer = (
         ...state,
         headers: state.headers.map((h) =>
           h.id == action.headerId
-            ? { ...h, items: h.items.filter((i) => !i.pending) }
+            ? { ...h, nodes: h.nodes.filter((i) => !i.pending) }
             : h,
         ),
       };
@@ -89,7 +89,7 @@ export const AppStateReducer = (
         return state;
       }
 
-      const pendingHeader: Header = {
+      const pendingHeader: Partition = {
         id: newNodeId,
         order: state.headers.length,
         checklist: false,
@@ -97,7 +97,7 @@ export const AppStateReducer = (
         readonly: false,
         label: '',
         description: '',
-        items: [],
+        nodes: [],
         shareLinks: [],
         pending: true,
         tokens: null,
@@ -141,18 +141,18 @@ export const AppStateReducer = (
 
       // Remove pending item if exists
       // (helps when pending item is left in another view)
-      if (activeHeader.items.some((i) => i.id == newNodeId)) {
-        activeHeader.items = activeHeader.items.filter(
+      if (activeHeader.nodes.some((i) => i.id == newNodeId)) {
+        activeHeader.nodes = activeHeader.nodes.filter(
           (i) => i.id != newNodeId,
         );
       }
 
-      const itemIndex = activeHeader.items.findIndex(
+      const itemIndex = activeHeader.nodes.findIndex(
         (i) => i.id == action.itemId,
       );
-      const item = activeHeader.items[itemIndex];
+      const item = activeHeader.nodes[itemIndex];
 
-      const pending: Item = {
+      const pending: Node = {
         id: newNodeId,
         label: '',
         description: '',
@@ -171,16 +171,16 @@ export const AppStateReducer = (
       };
 
       if (itemIndex < 0) {
-        activeHeader.items.push(pending);
+        activeHeader.nodes.push(pending);
       } else {
-        activeHeader.items.splice(itemIndex, 0, pending);
+        activeHeader.nodes.splice(itemIndex, 0, pending);
       }
 
       return {
         ...state,
         headers: state.headers.map((h) =>
           h.id == action.headerId
-            ? { ...h, items: [...activeHeader.items] }
+            ? { ...h, nodes: [...activeHeader.nodes] }
             : h,
         ),
       };
@@ -253,7 +253,7 @@ export const AppStateReducer = (
         h.id == action.item?.partitionId
           ? {
               ...h,
-              items: h.items.map((i) =>
+              nodes: h.nodes.map((i) =>
                 i.id == action.item?.id
                   ? ListItemMapper.mapItem(action.item, state.expanded)
                   : i,
@@ -290,7 +290,7 @@ export const AppStateReducer = (
           h.id == action.headerId
             ? {
                 ...h,
-                items: h.items.map((i) =>
+                nodes: h.nodes.map((i) =>
                   i.id == action.itemId ? { ...i, expanded: !i.expanded } : i,
                 ),
               }

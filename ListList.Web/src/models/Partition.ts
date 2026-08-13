@@ -1,11 +1,13 @@
-import { Item, ShareLink } from '.';
+import { Node, ShareLink } from '.';
 import { ApiPartition } from '../contracts';
 
-export interface Header
-  extends Omit<ApiPartition, 'token' | 'items' | 'shareLinks'> {
+export interface Partition extends Omit<
+  ApiPartition,
+  'token' | 'nodes' | 'shareLinks'
+> {
   checklist: boolean;
   isNotOwned?: boolean;
-  items: Item[];
+  nodes: Node[];
   pending: boolean;
   readonly: boolean;
   shareLinks: ShareLink[];

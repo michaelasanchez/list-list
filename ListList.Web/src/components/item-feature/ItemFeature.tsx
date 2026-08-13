@@ -1,11 +1,11 @@
 import React from 'react';
 import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
 import { ApiPartitionPatch } from '../../contracts';
-import { Header } from '../../models';
+import { Partition } from '../../models';
 import { SortableTreeHooks } from '../tree/SortableTree';
 
 export type Featured = Pick<
-  Header,
+  Partition,
   'id' | 'label' | 'description' | 'checklist' | 'readonly' | 'shareLinks'
 > | null;
 

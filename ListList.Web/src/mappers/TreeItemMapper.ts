@@ -1,7 +1,7 @@
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { PathItem } from '../components';
 import { TreeItem, TreeItems } from '../components/tree/types';
-import { Header, Item } from '../models';
+import { Partition, Node } from '../models';
 
 interface TreeItemWithParentId extends TreeItem {
   parentId: string | null;
@@ -41,7 +41,7 @@ function findById(
   return null;
 }
 
-function buildTreeFromHeaders(headers: Header[]): TreeItems {
+function buildTreeFromHeaders(headers: Partition[]): TreeItems {
   return (
     headers.map<TreeItem>((header, index) => ({
       id: header.id,
@@ -49,7 +49,7 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
       collapsed: true,
       // TODO: need this to force parent class
       //  & child count badge when dragging
-      children: header.items.map((item, index) => ({
+      children: header.nodes.map((item, index) => ({
         id: item.id,
         children: [],
         data: { label: item.label, description: item.description, index },
@@ -66,7 +66,7 @@ function buildTreeFromHeaders(headers: Header[]): TreeItems {
 }
 
 function buildTreeFromItems(
-  items: Item[] | undefined,
+  items: Node[] | undefined,
   expanded: string[],
 ): TreeItems {
   if (!items?.length) return [];
@@ -109,7 +109,7 @@ function buildTreeFromItems(
 }
 
 function buildTreeFromSubItems(
-  items: Item[],
+  items: Node[],
   expanded: string[],
   selectedId: string | null,
 ): { items: TreeItems; path: PathItem[] } | null {

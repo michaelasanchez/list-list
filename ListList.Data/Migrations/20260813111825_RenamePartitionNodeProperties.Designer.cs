@@ -4,6 +4,7 @@ using ListList.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ListList.Data.Migrations
 {
     [DbContext(typeof(ListListContext))]
-    partial class ListListContextModelSnapshot : ModelSnapshot
+    [Migration("20260813111825_RenamePartitionNodeProperties")]
+    partial class RenamePartitionNodeProperties
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,7 +68,7 @@ namespace ListList.Data.Migrations
 
                     b.HasIndex("PartitionId");
 
-                    b.ToTable("Node", (string)null);
+                    b.ToTable("ListItem", (string)null);
                 });
 
             modelBuilder.Entity("ListList.Data.Models.Entities.PartitionEntity", b =>
@@ -107,7 +110,7 @@ namespace ListList.Data.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Partition", (string)null);
+                    b.ToTable("ListHeader", (string)null);
                 });
 
             modelBuilder.Entity("ListList.Data.Models.Entities.ShareLinkEntity", b =>
