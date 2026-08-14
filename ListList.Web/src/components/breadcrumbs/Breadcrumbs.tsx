@@ -5,7 +5,7 @@ import { Icon, IconType } from '../icon';
 import * as styles from './Breadcrumbs.module.scss';
 
 export interface PathItem {
-  headerId?: string;
+  partitionId?: string;
   selectedId?: string;
   label?: string;
   icon?: IconType;
@@ -48,7 +48,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = (props) => {
     <Crumb
       key={i}
       path={p}
-      onClick={() => props.navigate(p.headerId, p.selectedId)}
+      onClick={() => props.navigate(p.partitionId, p.selectedId)}
     />
   ));
 

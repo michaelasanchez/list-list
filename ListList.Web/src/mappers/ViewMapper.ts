@@ -7,7 +7,7 @@ import { TreeMapper } from '../views';
 export interface ViewModel {
   renderKey: string;
   token: string | null;
-  headerId: string | null;
+  partitionId: string | null;
   selectedId: string | null;
   featured: Featured | null;
   items: TreeItems | null;
@@ -20,19 +20,21 @@ export interface ViewModel {
 function map(
   token: string | null,
   selectedId: string | null,
-  headers: Partition[],
+  partitions: Partition[],
   expanded: string[],
 ): ViewModel {
-  const header = token
-    ? (headers.find((h) => h.id === token || h.tokens?.includes(token)) ?? null)
+  const partition = token
+    ? (partitions.find((p) => p.id === token || p.tokens?.includes(token)) ??
+      null)
     : null;
 
-  // Error states
-  if (token && !header) {
+  // Error state
+  // TODO: should we handle this and just direct to top level?
+  if (token && !partition) {
     return {
       renderKey: '__not__found__key__',
       token: token === undefined ? null : token,
-      headerId: null,
+      partitionId: null,
       selectedId: null,
       featured: null,
       items: null,
@@ -43,96 +45,104 @@ function map(
     };
   }
 
+  let treeProps: Omit<SortableTreeProps, 'defaultItems'> = {
+    collapsible: true,
+    indicator: true,
+    removable: true,
+  };
+
   // Headers (Top-Level)
   if (!token) {
     const items = TreeMapper.buildTreeFromHeaders(
-      headers.filter((h) => !h.isNotOwned),
+      partitions.filter((h) => !h.isNotOwned),
+      expanded,
     );
 
     return {
       renderKey: '__root__key__',
       token: null,
-      headerId: null,
+      partitionId: null,
       selectedId: null,
       featured: null,
       items,
       depth: 0,
       path: null,
       readonly: null,
-      treeProps: null,
+      treeProps,
     };
   }
 
-  const treeProps: Omit<SortableTreeProps, 'defaultItems'> = {
-    collapsible: true,
-    indicator: true,
-    removable: true,
-    checklist: header?.checklist ?? false,
-    readonly: header?.readonly,
+  treeProps = {
+    ...treeProps,
+    checklist: partition?.checklist ?? false,
+    readonly: partition?.readonly,
   };
 
   // Surface
-  if (!selectedId && header) {
+  if (!selectedId && partition) {
     const featured = {
-      id: header.id,
-      label: header.label,
-      description: header.description,
-      checklist: header.checklist,
-      readonly: header.readonly,
-      shareLinks: header.shareLinks,
+      id: partition.id,
+      label: partition.label,
+      description: partition.description,
+      checklist: partition.checklist,
+      readonly: partition.readonly,
+      shareLinks: partition.shareLinks,
     };
 
-    const nodes = TreeMapper.buildTreeFromItems(header?.nodes, expanded);
+    const nodes = TreeMapper.buildTreeFromItems(partition?.nodes, expanded);
 
     return {
-      renderKey: header.id,
+      renderKey: partition.id,
       token,
-      headerId: header.id,
+      partitionId: partition.id,
       selectedId: null,
       featured,
       items: nodes,
       depth: 1,
       path: null,
-      readonly: header.readonly,
+      readonly: partition.readonly,
       treeProps,
     };
   }
 
   // Nested
-  if (header) {
+  if (partition) {
     const treeResult = TreeMapper.buildTreeFromSubItems(
-      header.nodes,
+      partition.nodes,
       expanded,
       selectedId,
     );
 
-    const selected = header.nodes.find((i) => i.id == selectedId);
+    const node = partition.nodes.find((i) => i.id == selectedId);
 
-    if (treeResult && selected) {
+    if (treeResult && node) {
       const featured: Featured = {
-        id: selected.id,
-        label: selected.label,
-        description: selected.description,
-        checklist: header.checklist,
-        readonly: header.readonly,
-        shareLinks: header.shareLinks,
+        id: node.id,
+        label: node.label,
+        description: node.description,
+        checklist: partition.checklist,
+        readonly: partition.readonly,
+        shareLinks: partition.shareLinks,
       };
 
       const path = [
         { icon: 'home' } as PathItem,
-        { headerId: header.id, label: header.label },
-        ...treeResult.path.map((p) => ({ ...p, headerId: header.id })),
+        { headerId: partition.id, label: partition.label },
+        ...treeResult.path.map((p) => ({
+          ...p,
+          headerId: partition.id,
+        })),
       ];
 
       path.pop();
 
       return {
-        renderKey: selected.id,
-        depth: selected.depth + 2,
-        readonly: header.readonly,
+        renderKey: node.id,
+        depth: node.depth + 2,
+        readonly: partition.readonly,
         token,
-        headerId: header.id,
-        selectedId: selected.id,
+        partitionId: partition.id,
+        selectedId: node.id,
         featured,
         items: treeResult.items,
         path,
@@ -144,7 +154,7 @@ function map(
   return {
     renderKey: '',
     token: null,
-    headerId: null,
+    partitionId: null,
     selectedId: null,
     featured: null,
     items: null,

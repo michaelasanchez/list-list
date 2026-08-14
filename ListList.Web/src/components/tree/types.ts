@@ -1,6 +1,7 @@
 import type { UniqueIdentifier } from '@dnd-kit/core';
 
 export interface TreeItemData {
+  partitionId: string;
   label: string;
   description: string;
   complete?: boolean;

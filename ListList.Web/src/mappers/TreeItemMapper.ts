@@ -1,7 +1,7 @@
 import { UniqueIdentifier } from '@dnd-kit/core';
 import { PathItem } from '../components';
 import { TreeItem, TreeItems } from '../components/tree/types';
-import { Partition, Node } from '../models';
+import { Node, Partition } from '../models';
 
 interface TreeItemWithParentId extends TreeItem {
   parentId: string | null;
@@ -17,7 +17,7 @@ function toPathItem(treeItem: TreeItem): PathItem {
 function findById(
   tree: TreeItems,
   id: UniqueIdentifier,
-): { item: TreeItem; path: PathItem[] } | null {
+): { item: TreeItem | null; path: PathItem[] } {
   for (const node of tree) {
     if (node.id === id) {
       return {
@@ -38,29 +38,27 @@ function findById(
     }
   }
 
-  return null;
+  return { item: null, path: [] };
 }
 
-function buildTreeFromHeaders(headers: Partition[]): TreeItems {
+function buildTreeFromHeaders(
+  headers: Partition[],
+  expanded: string[],
+): TreeItems {
   return (
-    headers.map<TreeItem>((header, index) => ({
-      id: header.id,
+    headers.map<TreeItem>((partition, index) => ({
+      id: partition.id,
       index,
-      collapsed: true,
-      // TODO: need this to force parent class
-      //  & child count badge when dragging
-      children: header.nodes.map((item, index) => ({
-        id: item.id,
-        children: [],
-        data: { label: item.label, description: item.description, index },
-      })),
+      collapsed: !expanded.includes(partition.id),
+      children: buildTreeFromItems(partition.nodes, expanded),
       data: {
-        label: header.label,
-        description: header.description,
-        isChecklist: header.checklist,
-        index: header.order,
+        partitionId: partition.id,
+        label: partition.label,
+        description: partition.description,
+        isChecklist: partition.checklist,
+        index: partition.order,
       },
-      pending: header.pending,
+      pending: partition.pending,
     })) ?? []
   );
 }
@@ -82,6 +80,7 @@ function buildTreeFromItems(
       parentId: i.parentId,
       pending: i.pending,
       data: {
+        partitionId: i.partitionId,
         label: i.label,
         description: i.description,
         complete: i.complete,
@@ -117,9 +116,7 @@ function buildTreeFromSubItems(
 
   const selected = findById(treeItems, selectedId ?? '');
 
-  return selected
-    ? { items: selected.item.children, path: selected.path }
-    : null;
+  return { items: selected.item?.children ?? [], path: selected.path };
 }
 
 export const TreeMapper = {

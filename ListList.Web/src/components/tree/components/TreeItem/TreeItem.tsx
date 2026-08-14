@@ -6,17 +6,16 @@ import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
 import { Badge, Spinner } from 'react-bootstrap';
-import { useLongPress } from '../../../../hooks';
 import { Succeeded } from '../../../../network';
 import { DateUtils } from '../../../../shared';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
-import { ActionDropdown, DropdownAction } from '../../../action-dropdown';
+import { ActionDropdown, CustomAction } from '../../../action-dropdown';
 import { Icon } from '../../../icon';
 import { ItemUpdate } from '../../SortableTree';
 import { TreeItemData } from '../../types';
 
-export interface Hooks {
-  actions?: DropdownAction[][];
+export interface Actions {
+  dropdown?: CustomAction[][];
   onUpdate?: (update: ItemUpdate) => Promise<Succeeded>;
 }
 
@@ -38,7 +37,7 @@ export interface TreeItemProps extends Omit<
   //
   data: TreeItemData | null;
   name: string;
-  hooks?: Hooks;
+  hooks?: Actions;
   pending?: boolean;
   onCheck?(): Promise<Succeeded> | undefined;
   onCollapse?(): void;
@@ -78,15 +77,6 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
   ) => {
     const [checkLoading, setCheckLoading] = React.useState<boolean>(false);
 
-    const longPressEvents = useLongPress(onSelect);
-
-    const handleCollapse = React.useCallback(
-      (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.stopPropagation();
-      },
-      [],
-    );
-
     return (
       <li
         className={cn(
@@ -113,7 +103,6 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
 
           onSelect?.();
         }}
-        {...longPressEvents}
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
@@ -136,8 +125,8 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
             )}
           </div>
           <div className={styles.Actions}>
-            {!!hooks?.actions && (
-              <ActionDropdown actionGroups={hooks.actions} variant="none" />
+            {!!hooks?.dropdown && (
+              <ActionDropdown actionGroups={hooks.dropdown} variant="none" />
             )}
             {/* Checkbox */}
             {checkbox && (

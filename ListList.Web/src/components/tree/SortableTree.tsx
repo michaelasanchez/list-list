@@ -26,7 +26,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { CSS } from '@dnd-kit/utilities';
-import { DropdownAction, Hooks } from '..';
+import { Actions, CustomAction } from '..';
 import { Succeeded } from '../../network';
 import { newNodeId } from '../../views';
 import { SortableTreeItem } from './components';
@@ -81,8 +81,8 @@ export interface ItemUpdate {
   description?: string;
 }
 
-export interface SortableTreeHooks {
-  actions?: (props: ActionsProps) => DropdownAction[][];
+export interface SortableTreeActions {
+  custom?: (props: ActionsProps) => CustomAction[][];
   onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
   onClick?: (id: UniqueIdentifier) => void;
   onCollapse?: (id: UniqueIdentifier) => void;
@@ -102,7 +102,7 @@ export interface SortableTreeHooks {
     overId: UniqueIdentifier,
     parentId: UniqueIdentifier,
   ) => Promise<Succeeded>;
-  onSelect?: (id: UniqueIdentifier) => void;
+  onSelect?: (partitionId: string, nodeId: UniqueIdentifier) => void;
   onUpdate?: (id: UniqueIdentifier, update: ItemUpdate) => Promise<Succeeded>;
 }
 
@@ -115,7 +115,7 @@ export interface Props {
   maxDepth?: number | null;
   readonly?: boolean;
   removable?: boolean;
-  hooks?: SortableTreeHooks;
+  hooks?: SortableTreeActions;
 }
 
 export function SortableTree({
@@ -232,7 +232,7 @@ export function SortableTree({
         {flattenedItems.map((item) => {
           const { id, children, collapsed, depth, pending, data } = item;
 
-          const itemHooks: Hooks = pending
+          const itemActions: Actions = pending
             ? {
                 onUpdate: (update: ItemUpdate) => {
                   const overId =
@@ -250,18 +250,22 @@ export function SortableTree({
                     item.parentId,
                   );
 
-                  return res === undefined ? Promise.resolve(true) : Promise.resolve(res);
+                  return res === undefined
+                    ? Promise.resolve(true)
+                    : Promise.resolve(res);
                 },
               }
             : {
-                actions: hooks?.actions?.({
+                dropdown: hooks?.custom?.({
                   id: item.id as string,
                   checklist: data?.isChecklist ?? false,
                 }),
                 onUpdate: (update: ItemUpdate) => {
                   const res = hooks?.onUpdate?.(id, update);
-                  
-                  return res === undefined ? Promise.resolve(true) : Promise.resolve(res);
+
+                  return res === undefined
+                    ? Promise.resolve(true)
+                    : Promise.resolve(res);
                 },
               };
 
@@ -277,7 +281,7 @@ export function SortableTree({
               depth={id === activeId && projected ? projected.depth : depth}
               indentationWidth={indentationWidth}
               indicator={indicator}
-              hooks={itemHooks}
+              hooks={itemActions}
               pending={pending}
               onCheck={() => hooks?.onCheck?.(id)}
               onClick={() =>
@@ -293,7 +297,13 @@ export function SortableTree({
               onRemove={
                 removable || pending ? () => handleRemove(id) : undefined
               }
-              onSelect={hooks?.onSelect ? () => hooks.onSelect!(id) : undefined}
+              onSelect={
+                hooks?.onSelect
+                  ? () => {
+                      hooks.onSelect!(data!.partitionId, id);
+                    }
+                  : undefined
+              }
             />
           );
         })}

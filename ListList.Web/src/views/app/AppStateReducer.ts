@@ -2,7 +2,7 @@ import { filter, map } from 'lodash';
 import { AppState } from '.';
 import { ApiNode, ApiNodeCreation, ApiPartition } from '../../contracts';
 import { ListItemMapper } from '../../mappers';
-import { Partition, Node } from '../../models';
+import { Node, Partition } from '../../models';
 
 export enum AppStateActionType {
   CancelHeaderCreate,
@@ -28,14 +28,14 @@ export interface AppStateAction {
   type: AppStateActionType;
   asChild?: boolean;
   creation?: ApiNodeCreation;
-  header?: ApiPartition;
-  headerId?: string;
+  partition?: ApiPartition;
+  partitionId?: string | null;
   headers?: ApiPartition[];
   loading?: boolean;
   syncing?: boolean;
   index?: number;
-  item?: ApiNode;
-  itemId?: string | null;
+  node?: ApiNode;
+  nodeId?: string | null;
 }
 
 export const AppStateReducer = (
@@ -46,14 +46,14 @@ export const AppStateReducer = (
     case AppStateActionType.CancelHeaderCreate: {
       return {
         ...state,
-        headers: state.headers.filter((h) => h.id != newNodeId),
+        partitions: state.partitions.filter((h) => h.id != newNodeId),
       };
     }
     case AppStateActionType.CancelItemCreate: {
       return {
         ...state,
-        headers: state.headers.map((h) =>
-          h.id == action.headerId
+        partitions: state.partitions.map((h) =>
+          h.id == action.partitionId
             ? { ...h, nodes: h.nodes.filter((i) => i.id != newNodeId) }
             : h,
         ),
@@ -66,8 +66,8 @@ export const AppStateReducer = (
     case AppStateActionType.FinalizeItemCreate: {
       return {
         ...state,
-        headers: state.headers.map((h) =>
-          h.id == action.headerId
+        partitions: state.partitions.map((h) =>
+          h.id == action.partitionId
             ? { ...h, nodes: h.nodes.filter((i) => !i.pending) }
             : h,
         ),
@@ -75,23 +75,23 @@ export const AppStateReducer = (
     }
     case AppStateActionType.FinalizeItemDelete: {
       const updatedHeaders = filter(
-        state.headers,
-        (h) => h.id !== action.headerId,
+        state.partitions,
+        (h) => h.id !== action.partitionId,
       );
 
       return {
         ...state,
-        headers: updatedHeaders,
+        partitions: updatedHeaders,
       };
     }
     case AppStateActionType.InitiateHeaderCreate: {
-      if (state.headers.some((h) => h.id == newNodeId)) {
+      if (state.partitions.some((h) => h.id == newNodeId)) {
         return state;
       }
 
       const pendingHeader: Partition = {
         id: newNodeId,
-        order: state.headers.length,
+        order: state.partitions.length,
         checklist: false,
         owned: true,
         readonly: false,
@@ -103,25 +103,25 @@ export const AppStateReducer = (
         tokens: null,
       };
 
-      state.headers.splice(
-        action.index ?? state.headers.length,
+      state.partitions.splice(
+        action.index ?? state.partitions.length,
         0,
         pendingHeader,
       );
 
       return {
         ...state,
-        headers: [...state.headers],
+        partitions: [...state.partitions],
       };
     }
     case AppStateActionType.FinalizeHeaderDelete: {
       return {
         ...state,
-        headers: state.headers.filter((h) => h.id != action.headerId),
+        partitions: state.partitions.filter((h) => h.id != action.partitionId),
       };
     }
     case AppStateActionType.InitiateItemCreate: {
-      if (!action.headerId) {
+      if (!action.partitionId) {
         console.error(
           `AppStateActionType.InitiateItemCreate - action.headerId is required.`,
         );
@@ -129,11 +129,13 @@ export const AppStateReducer = (
         return state;
       }
 
-      const activeHeader = state.headers.find((h) => h.id == action.headerId);
+      const activeHeader = state.partitions.find(
+        (h) => h.id == action.partitionId,
+      );
 
       if (!activeHeader) {
         console.error(
-          `AppStateActionType.InitiateItemCreate - Partition with id ${action.headerId} not found in state.headers`,
+          `AppStateActionType.InitiateItemCreate - Partition with id ${action.partitionId} not found in state.headers`,
         );
 
         return state;
@@ -148,7 +150,7 @@ export const AppStateReducer = (
       }
 
       const itemIndex = activeHeader.nodes.findIndex(
-        (i) => i.id == action.itemId,
+        (i) => i.id == action.nodeId,
       );
       const item = activeHeader.nodes[itemIndex];
 
@@ -160,7 +162,7 @@ export const AppStateReducer = (
         completedOn: '',
         depth: item?.depth ?? 0,
         index: 0,
-        partitionId: action.headerId,
+        partitionId: action.partitionId,
         isParent: false,
         childCount: 0,
         childrenIds: [],
@@ -178,50 +180,50 @@ export const AppStateReducer = (
 
       return {
         ...state,
-        headers: state.headers.map((h) =>
-          h.id == action.headerId
+        partitions: state.partitions.map((h) =>
+          h.id == action.partitionId
             ? { ...h, nodes: [...activeHeader.nodes] }
             : h,
         ),
       };
     }
     case AppStateActionType.SetHeader: {
-      if (!action.header?.id) {
+      if (!action.partition?.id) {
         console.error(
-          `AppStateActionType.SetHeader - action.header${action.header ? '.id' : ''} is required.`,
+          `AppStateActionType.SetHeader - action.header${action.partition ? '.id' : ''} is required.`,
         );
 
         return state;
       }
 
-      const existingIndex = state.headers.findIndex(
-        (h) => h.id == action.header!.id,
+      const existingIndex = state.partitions.findIndex(
+        (h) => h.id == action.partition!.id,
       );
 
-      const mapped = ListItemMapper.mapHeader(action.header, state.expanded);
+      const mapped = ListItemMapper.mapHeader(action.partition, state.expanded);
 
-      if (action.header.token) {
-        if (!state.tokens[action.header.id]) {
-          state.tokens[action.header.id] = [action.header.token];
+      if (action.partition.token) {
+        if (!state.tokens[action.partition.id]) {
+          state.tokens[action.partition.id] = [action.partition.token];
         } else {
           const combined = [
-            ...state.tokens[action.header.id],
-            action.header.token,
+            ...state.tokens[action.partition.id],
+            action.partition.token,
           ];
 
-          state.tokens[action.header.id] = combined;
+          state.tokens[action.partition.id] = combined;
           mapped.tokens = combined;
         }
       }
 
       return {
         ...state,
-        headers:
+        partitions:
           existingIndex >= 0
-            ? map(state.headers, (h) =>
-                h.id == action.header!.id ? mapped : h,
+            ? map(state.partitions, (h) =>
+                h.id == action.partition!.id ? mapped : h,
               )
-            : [...state.headers, mapped],
+            : [...state.partitions, mapped],
       };
     }
     case AppStateActionType.SetHeaders: {
@@ -237,25 +239,23 @@ export const AppStateReducer = (
 
       return {
         ...state,
-        headers,
+        partitions: headers,
       };
     }
     case AppStateActionType.SetItem: {
-      if (!action.item) {
-        console.error(
-          `AppStateActionType.SetItem - action.item is required.`,
-        );
+      if (!action.node) {
+        console.error(`AppStateActionType.SetItem - action.item is required.`);
 
         return state;
       }
 
-      const headers = state.headers.map((h) =>
-        h.id == action.item?.partitionId
+      const headers = state.partitions.map((h) =>
+        h.id == action.node?.partitionId
           ? {
               ...h,
               nodes: h.nodes.map((i) =>
-                i.id == action.item?.id
-                  ? ListItemMapper.mapItem(action.item, state.expanded)
+                i.id == action.node?.id
+                  ? ListItemMapper.mapItem(action.node, state.expanded)
                   : i,
               ),
             }
@@ -264,7 +264,7 @@ export const AppStateReducer = (
 
       return {
         ...state,
-        headers,
+        partitions: headers,
       };
     }
     case AppStateActionType.SetLoading: {
@@ -282,23 +282,23 @@ export const AppStateReducer = (
       };
     }
     case AppStateActionType.ToggleExpanded: {
-      if (!action.headerId || !action.itemId) return state;
+      if (!action.nodeId) return state;
 
       return {
         ...state,
-        headers: state.headers.map((h) =>
-          h.id == action.headerId
+        partitions: state.partitions.map((h) =>
+          h.id == (action.partitionId ?? action.nodeId)
             ? {
                 ...h,
                 nodes: h.nodes.map((i) =>
-                  i.id == action.itemId ? { ...i, expanded: !i.expanded } : i,
+                  i.id == action.nodeId ? { ...i, expanded: !i.expanded } : i,
                 ),
               }
             : h,
         ),
-        expanded: state.expanded.includes(action.itemId)
-          ? filter(state.expanded, (i) => i != action.itemId)
-          : [...state.expanded, action.itemId],
+        expanded: state.expanded.includes(action.nodeId)
+          ? filter(state.expanded, (i) => i != action.nodeId)
+          : [...state.expanded, action.nodeId],
       };
     }
     default:

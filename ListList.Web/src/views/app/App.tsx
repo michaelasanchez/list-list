@@ -12,14 +12,14 @@ import {
 } from '.';
 import {
   Breadcrumbs,
-  DropdownAction,
+  CustomAction,
   MinimumLink,
   ShareModal,
 } from '../../components';
 import { ItemFeature } from '../../components/item-feature';
 import { SlideTransition } from '../../components/slide-transition';
 import {
-  SortableTreeHooks as Hooks,
+  SortableTreeActions as Actions,
   ItemUpdate,
   SortableTree,
 } from '../../components/tree/SortableTree';
@@ -33,7 +33,7 @@ import {
   useTheme,
 } from '../../hooks';
 import { ViewMapper } from '../../mappers';
-import { Partition, Node } from '../../models';
+import { Node, Partition } from '../../models';
 import { NodeApi, PartitionApi, ShareApi, Succeeded } from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
@@ -53,7 +53,7 @@ const getDefaultAppState = (localStorage: LocalStorageState): AppState => {
     loading: false,
     expanded: defaultState.expanded ?? [],
     tokens: {},
-    headers: defaultState.headers ?? [],
+    partitions: defaultState.headers ?? [],
   };
 };
 
@@ -81,10 +81,10 @@ export const App: React.FC = () => {
     const json = JSON.stringify({
       expanded: state.expanded,
       // tokens: state.tokens,
-      headers: state.headers,
+      headers: state.partitions,
     });
     localStorage.commit(json);
-  }, [state.expanded, /*state.tokens,*/ state.headers]);
+  }, [state.expanded, /*state.tokens,*/ state.partitions]);
 
   // Load/unload headers
   useEffect(() => {
@@ -150,7 +150,7 @@ export const App: React.FC = () => {
         const header = await apis.headerApi.Get(token);
 
         dispatch({ type: ActionType.SetLoading, loading: false });
-        dispatch({ type: ActionType.SetHeader, header });
+        dispatch({ type: ActionType.SetHeader, partition: header });
 
         return true;
       } catch {
@@ -170,7 +170,7 @@ export const App: React.FC = () => {
         const item = await apis.itemApi.GetById(token, itemId);
 
         dispatch({ type: ActionType.SetLoading, loading: false });
-        dispatch({ type: ActionType.SetItem, item });
+        dispatch({ type: ActionType.SetItem, node: item });
 
         return true;
       } catch {
@@ -180,8 +180,8 @@ export const App: React.FC = () => {
     [apis],
   );
 
-  const createItem = useCallback(
-    async (headerId: string, raw: ApiNodeCreation): Promise<Succeeded> => {
+  const createNode = useCallback(
+    async (partitionId: string, raw: ApiNodeCreation): Promise<Succeeded> => {
       if (
         (raw.label && raw.label.trim().length > 0) ||
         (raw.description && raw.description.trim().length > 0)
@@ -198,12 +198,12 @@ export const App: React.FC = () => {
         dispatch({ type: ActionType.SetLoading, loading: true });
 
         try {
-          await apis.headerApi.CreateNode(headerId, creation);
+          await apis.headerApi.CreateNode(partitionId, creation);
 
-          // dispatch({ type: ActionType.FinalizeItemCreate, headerId });
+          // dispatch({ type: ActionType.FinalizeItemCreate, partitionId });
           dispatch({ type: ActionType.SetLoading, loading: true });
 
-          loadHeader(headerId);
+          loadHeader(partitionId);
 
           return true;
         } catch {
@@ -223,30 +223,28 @@ export const App: React.FC = () => {
       ViewMapper.map(
         navState.token ?? null,
         navState.selectedId ?? null,
-        state.headers ?? [],
+        state.partitions ?? [],
         state.expanded,
       ),
-    [navState.token, navState.selectedId, state.headers, state.expanded],
+    [navState.token, navState.selectedId, state.partitions, state.expanded],
   );
-
-  console.log(current);
 
   // Load header if not found from initial load
   useEffect(() => {
-    if (!state.syncing && navState.token && !current.headerId) {
+    if (!state.syncing && navState.token && !current.partitionId) {
       loadHeader(navState.token);
     }
   }, [current, state.syncing]);
 
-  const headerHooks = React.useMemo<Hooks>(
-    (): Hooks => ({
-      actions: ({
-        id: headerId,
+  const headerActions = React.useMemo<Actions>(
+    (): Actions => ({
+      custom: ({
+        id: partitionId,
         checklist,
       }: {
         id: string;
         checklist: boolean;
-      }): DropdownAction[][] => {
+      }): CustomAction[][] => {
         return [
           [
             {
@@ -256,8 +254,8 @@ export const App: React.FC = () => {
               keepOpen: true,
               action: () =>
                 apis.headerApi
-                  .Patch(headerId, { checklist: !checklist })
-                  .then(() => loadHeader(headerId)),
+                  .Patch(partitionId, { checklist: !checklist })
+                  .then(() => loadHeader(partitionId)),
             },
             // {
             //   label: 'Show Completed',
@@ -279,11 +277,16 @@ export const App: React.FC = () => {
               label: 'Delete',
               icon: 'delete',
               action: async () => {
-                await apis.headerApi.Delete(headerId);
+                await apis.headerApi.Delete(partitionId);
 
-                const header = state.headers?.find((h) => h.id == headerId);
+                const header = state.partitions?.find(
+                  (h) => h.id == partitionId,
+                );
 
-                dispatch({ type: ActionType.FinalizeHeaderDelete, headerId });
+                dispatch({
+                  type: ActionType.FinalizeHeaderDelete,
+                  partitionId,
+                });
 
                 if (header) {
                   showHeaderUndoAlert(header);
@@ -295,10 +298,16 @@ export const App: React.FC = () => {
           ],
         ];
       },
-      onClick: (headerId) => navigate(headerId as string),
+      onCollapse: (itemId) => {
+        dispatch({
+          type: ActionType.ToggleExpanded,
+          partitionId: current.partitionId,
+          nodeId: itemId,
+        });
+      },
       onCreate: async (label, description, overId) => {
         const order =
-          (state.headers?.findIndex((h) => h.id == overId) ?? 0) - 1;
+          (state.partitions?.findIndex((h) => h.id == overId) ?? 0) - 1;
 
         await apis.headerApi.CreatePartition({
           label: label ?? '',
@@ -316,14 +325,14 @@ export const App: React.FC = () => {
 
           return Promise.resolve(true);
         } else {
-          await apis.headerApi.Delete(activeId as string);
+          await apis.headerApi.Delete(activeId);
 
           dispatch({
             type: ActionType.FinalizeHeaderDelete,
-            headerId: activeId as string,
+            partitionId: activeId,
           });
 
-          const header = state.headers?.find((h) => h.id == activeId);
+          const header = state.partitions?.find((h) => h.id == activeId);
 
           if (header) {
             showHeaderUndoAlert(header);
@@ -332,16 +341,22 @@ export const App: React.FC = () => {
           return Promise.resolve(true);
         }
       },
-      onDragEnd: async (headerId, destinationId) => {
+      onDragEnd: async (partitionId, destinationId) => {
         const order =
-          state.headers?.findIndex((h) => h.id == destinationId) ?? 0;
+          state.partitions?.findIndex((h) => h.id == destinationId) ?? 0;
 
-        await apis.headerApi.Relocate(headerId as string, { order });
+        await apis.headerApi.Relocate(partitionId, { order });
 
         return loadHeaders();
       },
-      onUpdate: async (headerId, update: ItemUpdate) => {
-        const header = state.headers?.find((h) => h.id == headerId);
+
+      onSelect: (partitionId, nodeId) => {
+        partitionId == nodeId
+          ? navigate(partitionId)
+          : navigate(partitionId, nodeId);
+      },
+      onUpdate: async (partitionId, update: ItemUpdate) => {
+        const header = state.partitions?.find((h) => h.id == partitionId);
 
         if (header) {
           const put: ApiPartitionPut = {
@@ -350,92 +365,81 @@ export const App: React.FC = () => {
           };
 
           return apis.headerApi
-            .Put(headerId as string, put)
-            .then(() => loadHeader(headerId as string));
+            .Put(partitionId, put)
+            .then(() => loadHeader(partitionId));
         }
 
         return Promise.resolve(false);
       },
     }),
-    [authState.user, state.headers],
+    [authState.user, current],
   );
 
-  const itemHooks = React.useMemo<Hooks | null>(
-    (): Hooks | null =>
+  const nodeActions = React.useMemo<Actions | null>(
+    (): Actions | null =>
       !current
         ? null
         : {
-            onCheck: (itemId) =>
+            onCheck: (nodeId) =>
               apis.itemApi
-                .Complete(current.token!, itemId as string)
-                .then(() => loadItem(current.token!, itemId as string)),
-            onCollapse: (itemId) =>
+                .Complete(current.token!, nodeId)
+                .then(() => loadItem(current.token!, nodeId)),
+            onCollapse: (nodeId) =>
               dispatch({
                 type: ActionType.ToggleExpanded,
-                headerId: current.headerId!,
-                itemId: itemId as string,
+                partitionId: current.partitionId,
+                nodeId: nodeId,
               }),
             onCreate: (label, description, overId, parentId) =>
-              createItem(current.headerId!, {
+              createNode(current.partitionId!, {
                 label,
                 description,
-                overId: overId as string,
-                parentId: parentId as string,
+                overId,
+                parentId,
               }),
             onDelete: async (activeId, overId, parentId) => {
               if (activeId == newNodeId) {
                 dispatch({
                   type: ActionType.CancelItemCreate,
-                  headerId: current.headerId!,
+                  partitionId: current.partitionId!,
                 });
               } else {
-                await apis.itemApi.Delete(current.token!, activeId as string);
+                await apis.itemApi.Delete(current.token!, activeId);
 
-                loadHeader(current.headerId!);
+                loadHeader(current.partitionId!);
 
                 const item = getItem(
-                  state.headers ?? [],
-                  current.headerId!,
-                  activeId as string,
+                  state.partitions ?? [],
+                  current.partitionId!,
+                  activeId,
                 );
 
                 if (item) {
-                  showItemUndoAlert(
-                    current.token!,
-                    item,
-                    overId as string,
-                    parentId as string,
-                  );
+                  showItemUndoAlert(current.token!, item, overId, parentId);
                 }
               }
               return Promise.resolve(true);
             },
             onDragEnd: (activeId, overId, parentId) =>
               apis.itemApi
-                .Relocate(
-                  current.token!,
-                  activeId as string,
-                  overId as string,
-                  parentId as string,
-                )
-                .then(() => loadHeader(current.headerId!)),
-            onSelect: (activeId) =>
-              navigate(navState.token, activeId as string),
+                .Relocate(current.token!, activeId, overId, parentId)
+                .then(() => loadHeader(current.partitionId!)),
+            onSelect: (activeId) => navigate(navState.token, activeId),
             onUpdate: async (activeId, update: ItemUpdate) => {
-              if (current.headerId) {
+              if (current.partitionId) {
                 const item = getItem(
-                  state.headers,
-                  current.headerId,
-                  activeId as string,
+                  state.partitions,
+                  current.partitionId,
+                  activeId,
                 );
 
                 if (item && current.token) {
-                  await apis.itemApi.Put(current.token, activeId as string, {
+                  await apis.itemApi.Put(current.token, activeId, {
                     ...item,
                     ...update,
                   });
 
-                  return await loadItem(current.token, activeId as string);
+                  return await loadItem(current.token, activeId);
                 }
               }
 
@@ -464,21 +468,21 @@ export const App: React.FC = () => {
               {vm.featured && (
                 <ItemFeature
                   node={vm.featured}
-                  hooks={headerHooks}
+                  hooks={headerActions}
                   onBack={() => {
                     const parent = vm.path?.length
                       ? vm.path[vm.path.length - 1]
                       : null;
 
-                    navigate(parent?.headerId, parent?.selectedId);
+                    navigate(parent?.partitionId, parent?.selectedId);
                   }}
                   onPatch={(patch) =>
                     // TODO: is this the same as what is on hooks.onUpdate?
                     //          ANSWER: no.... :'(
                     //            but we'll get to this later
-                    vm.headerId &&
-                    apis.headerApi.Patch(vm.headerId, patch).then(() => {
-                      if (vm.headerId) loadHeader(vm.headerId);
+                    vm.partitionId &&
+                    apis.headerApi.Patch(vm.partitionId, patch).then(() => {
+                      if (vm.partitionId) loadHeader(vm.partitionId);
                     })
                   }
                   onShare={() => setQueryParams({ share: 'true' })}
@@ -491,7 +495,7 @@ export const App: React.FC = () => {
                   defaultItems={vm.items}
                   hooks={
                     // TODO: typescript
-                    vm.depth === 0 ? headerHooks : (itemHooks ?? undefined)
+                    vm.depth === 0 ? headerActions : (nodeActions ?? undefined)
                   }
                 />
               ) : Boolean(state.loading || state.syncing) ? (
@@ -507,7 +511,7 @@ export const App: React.FC = () => {
       </main>
 
       <FloatingUi
-        headerId={current.headerId}
+        partitionId={current.partitionId}
         selectedId={current.selectedId}
         readonly={current.readonly ?? false}
         items={current.items}
@@ -523,17 +527,17 @@ export const App: React.FC = () => {
         shareLinks={current.featured?.shareLinks}
         onClose={() => setQueryParams({ share: null })}
         onDelete={(id: string) =>
-          apis.shareApi.Delete(id).then(() => loadHeader(current.headerId!))
+          apis.shareApi.Delete(id).then(() => loadHeader(current.partitionId!))
         }
         onShare={(share) =>
           apis.shareApi
-            .Share(current.headerId!, share)
-            .then(() => loadHeader(current.headerId!))
+            .Share(current.partitionId!, share)
+            .then(() => loadHeader(current.partitionId!))
         }
         onUpdate={(id: string, put: MinimumLink) =>
           apis.shareApi
             .Put(id, { token: put.token ?? '', ...put })
-            .then(() => loadHeader(current.headerId!))
+            .then(() => loadHeader(current.partitionId!))
         }
       />
     </Router>
@@ -565,8 +569,8 @@ export const App: React.FC = () => {
   function showItemUndoAlert(
     token: string,
     item: Node,
-    overId: string,
-    parentId: string,
+    overId: string | null,
+    parentId: string | null,
   ) {
     const alertId = showAlert({
       content: (
@@ -592,10 +596,10 @@ export const App: React.FC = () => {
 
 function getItem(
   headers: Partition[],
-  headerId: string,
+  partitionId: string,
   itemId: string,
 ): Node | null {
-  const header = headers?.find((h) => h.id == headerId);
+  const header = headers?.find((h) => h.id == partitionId);
 
   return header?.nodes?.find((i) => i.id == itemId) ?? null;
 }

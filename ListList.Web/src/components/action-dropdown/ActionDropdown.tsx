@@ -5,7 +5,7 @@ import { AlignType, ButtonVariant } from 'react-bootstrap/esm/types';
 import { Icon, IconType } from '..';
 import * as styles from './ActionDropdown.module.scss';
 
-export interface DropdownAction {
+export interface CustomAction {
   label: string;
   icon?: IconType;
   fade?: boolean;
@@ -14,14 +14,14 @@ export interface DropdownAction {
 }
 
 export interface ActionDropdownProps {
-  actionGroups?: DropdownAction[][];
+  actionGroups?: CustomAction[][];
   align?: AlignType;
   icon?: IconType;
   size?: 'sm' | 'lg';
   variant?: ButtonVariant;
 }
 
-const FecalPellets: React.FC<DropdownAction> = (a) => (
+const FecalPellets: React.FC<CustomAction> = (a) => (
   <Dropdown.Item
     className={classNames(styles.ActionItem, a.fade && styles.fade)}
     onClick={(e) => {
@@ -35,7 +35,7 @@ const FecalPellets: React.FC<DropdownAction> = (a) => (
 );
 
 const intersperseGroups = (
-  groups: DropdownAction[][],
+  groups: CustomAction[][],
   divider: ReactNode,
 ): ReactNode => {
   if (groups.length === 0) return null;

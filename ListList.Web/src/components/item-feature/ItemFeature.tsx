@@ -2,7 +2,7 @@ import React from 'react';
 import { ActionDropdown, IconButton, LabelAndDescriptionEditor } from '..';
 import { ApiPartitionPatch } from '../../contracts';
 import { Partition } from '../../models';
-import { SortableTreeHooks } from '../tree/SortableTree';
+import { SortableTreeActions } from '../tree/SortableTree';
 
 export type Featured = Pick<
   Partition,
@@ -11,7 +11,7 @@ export type Featured = Pick<
 
 export interface ItemFeatureProps {
   node: Featured;
-  hooks?: SortableTreeHooks;
+  hooks?: SortableTreeActions;
   onBack?: () => void;
   onShare?: () => void;
   onPatch?: (patch: ApiPartitionPatch) => void;
@@ -32,7 +32,7 @@ export const ItemFeature: React.FC<ItemFeatureProps> = (props) => {
           />
           <ActionDropdown
             size="sm"
-            actionGroups={props.hooks?.actions?.({
+            actionGroups={props.hooks?.custom?.({
               id: props.node.id,
               checklist: props.node.checklist,
             })}

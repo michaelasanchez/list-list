@@ -1,5 +1,5 @@
 import { Api } from '.';
-import { ApiNode, ApiNodePut as ApiItemPut } from '../contracts';
+import { ApiNodePut as ApiItemPut, ApiNode } from '../contracts';
 import { ApiNodePatch } from '../contracts/patch/ApiNodePatch';
 
 export class NodeApi extends Api {
@@ -29,7 +29,7 @@ export class NodeApi extends Api {
     token: string,
     nodeId: string,
     patch: ApiNodePatch,
-    recursive?: boolean
+    recursive?: boolean,
   ): Promise<void> => {
     this.setActionPath(`${token}/node/${nodeId}`);
 
@@ -43,7 +43,7 @@ export class NodeApi extends Api {
   public Put = (
     token: string,
     nodeId: string,
-    put: ApiItemPut
+    put: ApiItemPut,
   ): Promise<void> => {
     this.setActionPath(`${token}/node/${nodeId}`);
 
@@ -54,7 +54,7 @@ export class NodeApi extends Api {
     token: string,
     activeId: string,
     overId: string,
-    parentId: string
+    parentId: string,
   ): Promise<void> => {
     this.setActionPath(`${token}/node/${activeId}/relocate`);
 
@@ -64,8 +64,8 @@ export class NodeApi extends Api {
   public Restore = (
     token: string,
     nodeId: string,
-    overId: string,
-    parentId: string
+    overId?: string | null,
+    parentId?: string | null,
   ): Promise<void> => {
     this.setActionPath(`${token}/node/${nodeId}/restore`);
 

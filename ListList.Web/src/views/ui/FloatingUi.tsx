@@ -14,7 +14,7 @@ export enum UiMode {
 }
 
 interface FloatingUiProps {
-  headerId: string | null;
+  partitionId: string | null;
   selectedId: string | null;
   readonly: boolean;
   items: TreeItems | null;
@@ -24,7 +24,7 @@ interface FloatingUiProps {
 }
 
 const calcUiMode = (props: FloatingUiProps): UiMode => {
-  if (props.headerId) {
+  if (props.partitionId) {
     return UiMode.Default;
   }
 
@@ -32,13 +32,13 @@ const calcUiMode = (props: FloatingUiProps): UiMode => {
 };
 
 export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
-  const mode = React.useMemo(() => calcUiMode(props), [props.headerId]);
+  const mode = React.useMemo(() => calcUiMode(props), [props.partitionId]);
 
   const handleCreate = () => {
     console.log('FloatingUi: handleCreate');
     const insertIndex = getInsertIndex(props.containerRef.current!);
 
-    if (props.headerId) {
+    if (props.partitionId) {
       // TODO: this one is a toughy. it's all computed state
       //  hate to do all this twice, but at least it's only on click
       const flattenedItems = flattenTree(props.items);
@@ -56,8 +56,8 @@ export const FloatingUi: React.FC<FloatingUiProps> = (props) => {
 
       props.dispatch({
         type: ActionType.InitiateItemCreate,
-        headerId: props.headerId,
-        itemId: itemId ?? props.selectedId,
+        partitionId: props.partitionId,
+        nodeId: itemId ?? props.selectedId,
         asChild: !itemId,
       });
     } else if (insertIndex !== null) {
