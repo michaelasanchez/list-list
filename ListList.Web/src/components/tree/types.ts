@@ -1,4 +1,4 @@
-import type { UniqueIdentifier } from '@dnd-kit/core';
+export type Guid = string;
 
 export interface TreeItemData {
   partitionId: string;
@@ -12,7 +12,7 @@ export interface TreeItemData {
 }
 
 export interface TreeItem {
-  id: UniqueIdentifier;
+  id: Guid;
   children: TreeItem[];
   collapsed?: boolean;
   pending?: boolean;
@@ -23,7 +23,7 @@ export interface TreeItem {
 export type TreeItems = TreeItem[];
 
 export interface FlattenedItem extends TreeItem {
-  parentId: UniqueIdentifier | null;
+  parentId: Guid | null;
   depth: number;
 }
 

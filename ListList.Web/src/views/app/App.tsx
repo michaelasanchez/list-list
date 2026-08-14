@@ -236,8 +236,20 @@ export const App: React.FC = () => {
     }
   }, [current, state.syncing]);
 
+  const sharedActions = React.useMemo<Actions>(
+    (): Actions => ({
+      onNavigate: (partitionId, nodeId) => {
+        partitionId == nodeId
+          ? navigate(partitionId)
+          : navigate(partitionId, nodeId);
+      },
+    }),
+    [],
+  );
+
   const headerActions = React.useMemo<Actions>(
     (): Actions => ({
+      ...sharedActions,
       custom: ({
         id: partitionId,
         checklist,
@@ -349,12 +361,6 @@ export const App: React.FC = () => {
 
         return loadHeaders();
       },
-
-      onSelect: (partitionId, nodeId) => {
-        partitionId == nodeId
-          ? navigate(partitionId)
-          : navigate(partitionId, nodeId);
-      },
       onUpdate: async (partitionId, update: ItemUpdate) => {
         const header = state.partitions?.find((h) => h.id == partitionId);
 
@@ -380,6 +386,7 @@ export const App: React.FC = () => {
       !current
         ? null
         : {
+            ...sharedActions,
             onCheck: (nodeId) =>
               apis.itemApi
                 .Complete(current.token!, nodeId)
@@ -424,7 +431,6 @@ export const App: React.FC = () => {
               apis.itemApi
                 .Relocate(current.token!, activeId, overId, parentId)
                 .then(() => loadHeader(current.partitionId!)),
-            onSelect: (activeId) => navigate(navState.token, activeId),
             onUpdate: async (activeId, update: ItemUpdate) => {
               if (current.partitionId) {
                 const item = getItem(
@@ -493,7 +499,7 @@ export const App: React.FC = () => {
                 <SortableTree
                   {...vm.treeProps}
                   defaultItems={vm.items}
-                  hooks={
+                  actions={
                     // TODO: typescript
                     vm.depth === 0 ? headerActions : (nodeActions ?? undefined)
                   }

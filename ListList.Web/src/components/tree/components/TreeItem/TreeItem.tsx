@@ -125,7 +125,7 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
             )}
           </div>
           <div className={styles.Actions}>
-            {!!hooks?.dropdown && (
+            {hooks?.dropdown && (
               <ActionDropdown actionGroups={hooks.dropdown} variant="none" />
             )}
             {/* Checkbox */}

@@ -11,7 +11,6 @@ import {
   MeasuringStrategy,
   Modifier,
   PointerSensor,
-  UniqueIdentifier,
   closestCenter,
   defaultDropAnimation,
   useSensor,
@@ -31,7 +30,13 @@ import { Succeeded } from '../../network';
 import { newNodeId } from '../../views';
 import { SortableTreeItem } from './components';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
-import type { FlattenedItem, SensorContext, TreeItems } from './types';
+import type {
+  FlattenedItem,
+  Guid,
+  SensorContext,
+  TreeItem,
+  TreeItems,
+} from './types';
 import {
   buildTree,
   flattenTree,
@@ -83,27 +88,23 @@ export interface ItemUpdate {
 
 export interface SortableTreeActions {
   custom?: (props: ActionsProps) => CustomAction[][];
-  onCheck?: (id: UniqueIdentifier) => Promise<Succeeded>;
-  onClick?: (id: UniqueIdentifier) => void;
-  onCollapse?: (id: UniqueIdentifier) => void;
+  onCheck?: (id: Guid) => Promise<Succeeded>;
+  onClick?: (id: Guid) => void;
+  onCollapse?: (partitionId: Guid, nodeId: Guid) => void;
   onCreate?: (
     label: string | null,
     description: string | null,
-    overId: UniqueIdentifier | null,
-    parentId?: UniqueIdentifier | null,
+    overId: Guid | null,
+    parentId?: Guid | null,
   ) => Promise<Succeeded>;
   onDelete?: (
-    id: UniqueIdentifier,
-    overId: UniqueIdentifier,
-    parentId: UniqueIdentifier | null,
+    id: Guid,
+    overId: Guid,
+    parentId: Guid | null,
   ) => Promise<Succeeded>;
-  onDragEnd?: (
-    id: UniqueIdentifier,
-    overId: UniqueIdentifier,
-    parentId: UniqueIdentifier,
-  ) => Promise<Succeeded>;
-  onSelect?: (partitionId: string, nodeId: UniqueIdentifier) => void;
-  onUpdate?: (id: UniqueIdentifier, update: ItemUpdate) => Promise<Succeeded>;
+  onDragEnd?: (id: Guid, overId: Guid, parentId: Guid) => Promise<Succeeded>;
+  onNavigate?: (partitionId: Guid, nodeId: Guid) => void;
+  onUpdate?: (id: Guid, update: ItemUpdate) => Promise<Succeeded>;
 }
 
 export interface Props {
@@ -115,7 +116,7 @@ export interface Props {
   maxDepth?: number | null;
   readonly?: boolean;
   removable?: boolean;
-  hooks?: SortableTreeActions;
+  actions?: SortableTreeActions;
 }
 
 export function SortableTree({
@@ -126,20 +127,20 @@ export function SortableTree({
   indentationWidth = 50,
   maxDepth = null,
   removable,
-  hooks,
+  actions,
 }: Props) {
   const [items, setItems] = useState(() => defaultItems);
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-  const [overId, setOverId] = useState<UniqueIdentifier | null>(null);
+  const [activeId, setActiveId] = useState<Guid | null>(null);
+  const [overId, setOverId] = useState<Guid | null>(null);
   const [offsetLeft, setOffsetLeft] = useState(0);
   const [currentPosition, setCurrentPosition] = useState<{
-    parentId: UniqueIdentifier | null;
-    overId: UniqueIdentifier;
+    parentId: Guid | null;
+    overId: Guid;
   } | null>(null);
 
   const flattenedItems = useMemo(() => {
     const flattenedTree = flattenTree(items);
-    const collapsedItems = flattenedTree.reduce<UniqueIdentifier[]>(
+    const collapsedItems = flattenedTree.reduce<Guid[]>(
       (acc, { children, collapsed, id }) =>
         collapsed && children.length ? [...acc, id] : acc,
       [],
@@ -199,13 +200,25 @@ export function SortableTree({
       return `Picked up ${active.id}.`;
     },
     onDragMove({ active, over }) {
-      return getMovementAnnouncement('onDragMove', active.id, over?.id);
+      return getMovementAnnouncement(
+        'onDragMove',
+        active.id as string,
+        over?.id as string,
+      );
     },
     onDragOver({ active, over }) {
-      return getMovementAnnouncement('onDragOver', active.id, over?.id);
+      return getMovementAnnouncement(
+        'onDragOver',
+        active.id as string,
+        over?.id as string,
+      );
     },
     onDragEnd({ active, over }) {
-      return getMovementAnnouncement('onDragEnd', active.id, over?.id);
+      return getMovementAnnouncement(
+        'onDragEnd',
+        active.id as string,
+        over?.id as string,
+      );
     },
     onDragCancel({ active }) {
       return `Moving was cancelled. ${active.id} was dropped in its original position.`;
@@ -243,29 +256,25 @@ export function SortableTree({
                       )
                     ].id;
 
-                  const res = hooks?.onCreate?.(
+                  const res = actions?.onCreate?.(
                     update.label ?? '',
                     update.description ?? '',
                     overId == newNodeId ? null : overId,
                     item.parentId,
                   );
 
-                  return res === undefined
-                    ? Promise.resolve(true)
-                    : Promise.resolve(res);
+                  return Promise.resolve(res ?? true);
                 },
               }
             : {
-                dropdown: hooks?.custom?.({
+                dropdown: actions?.custom?.({
                   id: item.id as string,
                   checklist: data?.isChecklist ?? false,
                 }),
                 onUpdate: (update: ItemUpdate) => {
-                  const res = hooks?.onUpdate?.(id, update);
+                  const res = actions?.onUpdate?.(id, update);
 
-                  return res === undefined
-                    ? Promise.resolve(true)
-                    : Promise.resolve(res);
+                  return Promise.resolve(res ?? true);
                 },
               };
 
@@ -283,25 +292,23 @@ export function SortableTree({
               indicator={indicator}
               hooks={itemActions}
               pending={pending}
-              onCheck={() => hooks?.onCheck?.(id)}
+              onCheck={() => actions?.onCheck?.(id)}
               onClick={() =>
-                hooks?.onClick
-                  ? hooks.onClick(id)
-                  : collapsible && handleCollapse(id)
+                actions?.onClick
+                  ? actions.onClick(id)
+                  : collapsible && handleCollapse(item)
               }
               onCollapse={
                 collapsible && children.length
-                  ? () => handleCollapse(id)
+                  ? () => handleCollapse(item)
                   : undefined
               }
               onRemove={
                 removable || pending ? () => handleRemove(id) : undefined
               }
               onSelect={
-                hooks?.onSelect
-                  ? () => {
-                      hooks.onSelect!(data!.partitionId, id);
-                    }
+                actions?.onNavigate
+                  ? () => actions.onNavigate!(data!.partitionId, id)
                   : undefined
               }
             />
@@ -331,15 +338,15 @@ export function SortableTree({
   );
 
   function handleDragStart({ active: { id: activeId } }: DragStartEvent) {
-    setActiveId(activeId);
-    setOverId(activeId);
+    setActiveId(activeId as string);
+    setOverId(activeId as string);
 
     const activeItem = flattenedItems.find(({ id }) => id === activeId);
 
     if (activeItem) {
       setCurrentPosition({
         parentId: activeItem.parentId,
-        overId: activeId,
+        overId: activeId as string,
       });
     }
 
@@ -351,7 +358,7 @@ export function SortableTree({
   }
 
   function handleDragOver({ over }: DragOverEvent) {
-    setOverId(over?.id ?? null);
+    setOverId((over?.id as string) ?? null);
   }
 
   function handleDragEnd({ active, over }: DragEndEvent) {
@@ -360,17 +367,17 @@ export function SortableTree({
     if (projected && over) {
       const { depth, parentId } = projected;
 
-      dragEndLocal(active.id, over.id, depth, parentId!);
+      dragEndLocal(active.id as string, over.id as string, depth, parentId!);
 
-      hooks?.onDragEnd?.(active.id, over.id, parentId!);
+      actions?.onDragEnd?.(active.id as string, over.id as string, parentId!);
     }
   }
 
   function dragEndLocal(
-    activeId: UniqueIdentifier,
-    overId: UniqueIdentifier,
+    activeId: Guid,
+    overId: Guid,
     depth: number,
-    parentId: UniqueIdentifier,
+    parentId: Guid,
   ) {
     const clonedItems: FlattenedItem[] = JSON.parse(
       JSON.stringify(flattenTree(items)),
@@ -401,15 +408,15 @@ export function SortableTree({
     document.body.style.setProperty('cursor', '');
   }
 
-  async function handleRemove(id: UniqueIdentifier) {
+  async function handleRemove(id: Guid) {
     const index = flattenedItems.findIndex((i) => i.id == id);
 
-    if (hooks?.onDelete) {
+    if (actions?.onDelete) {
       const test = flattenedItems;
       const test1 = flattenedItems[index];
       const test2 = flattenedItems[index].parentId;
 
-      await hooks.onDelete?.(
+      await actions.onDelete?.(
         id,
         flattenedItems[index + 1]?.id,
         flattenedItems[index].parentId,
@@ -419,11 +426,11 @@ export function SortableTree({
     }
   }
 
-  function handleCollapse(id: UniqueIdentifier) {
-    hooks?.onCollapse?.(id);
+  function handleCollapse(item: TreeItem) {
+    actions?.onCollapse?.(item.data!.partitionId, item.id);
 
     setItems((items) =>
-      setProperty(items!, id, 'collapsed', (value) => {
+      setProperty(items!, item.id, 'collapsed', (value) => {
         return !value;
       }),
     );
@@ -431,8 +438,8 @@ export function SortableTree({
 
   function getMovementAnnouncement(
     eventName: string,
-    activeId: UniqueIdentifier,
-    overId?: UniqueIdentifier,
+    activeId: Guid,
+    overId?: Guid,
   ) {
     if (overId && projected) {
       if (eventName !== 'onDragEnd') {
@@ -472,7 +479,7 @@ export function SortableTree({
         } else {
           let previousSibling: FlattenedItem | undefined = previousItem;
           while (previousSibling && projected.depth < previousSibling.depth) {
-            const parentId: UniqueIdentifier | null = previousSibling.parentId;
+            const parentId: Guid | null = previousSibling.parentId;
             previousSibling = sortedItems.find(({ id }) => id === parentId);
           }
 

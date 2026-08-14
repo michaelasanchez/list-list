@@ -1,14 +1,13 @@
-import React from 'react';
-import type { UniqueIdentifier } from '@dnd-kit/core';
 import { AnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CSSProperties } from 'react';
 
+import { Guid } from '../../types';
 import { iOS } from '../../utilities';
-import { TreeItem, TreeItemProps as TreeItemProps } from './TreeItem';
+import { TreeItem, TreeItemProps } from './TreeItem';
 
 interface Props extends TreeItemProps {
-  id: UniqueIdentifier;
+  id: Guid;
 }
 
 const animateLayoutChanges: AnimateLayoutChanges = ({

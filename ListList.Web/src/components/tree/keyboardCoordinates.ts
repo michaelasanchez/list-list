@@ -21,7 +21,7 @@ const horizontal: string[] = [KeyboardCode.Left, KeyboardCode.Right];
 export const sortableTreeKeyboardCoordinates: (
   context: React.RefObject<SensorContext>,
   indicator: boolean,
-  indentationWidth: number
+  indentationWidth: number,
 ) => KeyboardCoordinateGetter =
   (context, indicator, indentationWidth) =>
   (
@@ -35,7 +35,7 @@ export const sortableTreeKeyboardCoordinates: (
         droppableRects,
         droppableContainers,
       },
-    }
+    },
   ) => {
     if (directions.includes(event.code)) {
       if (!active || !collisionRect) {
@@ -51,10 +51,10 @@ export const sortableTreeKeyboardCoordinates: (
       if (horizontal.includes(event.code) && over?.id) {
         const { depth, maxDepth, minDepth } = getProjection(
           items,
-          active.id,
-          over.id,
+          active.id as string,
+          over.id as string,
           offset,
-          indentationWidth
+          indentationWidth,
         );
 
         switch (event.code) {
@@ -133,10 +133,10 @@ export const sortableTreeKeyboardCoordinates: (
           if (newItem && activeItem) {
             const { depth } = getProjection(
               items,
-              active.id,
-              closestId,
+              active.id as string,
+              closestId as string,
               (newItem.depth - activeItem.depth) * indentationWidth,
-              indentationWidth
+              indentationWidth,
             );
             const isBelow = newIndex > activeIndex;
             const modifier = isBelow ? 1 : -1;

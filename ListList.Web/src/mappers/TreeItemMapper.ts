@@ -1,6 +1,5 @@
-import { UniqueIdentifier } from '@dnd-kit/core';
 import { PathItem } from '../components';
-import { TreeItem, TreeItems } from '../components/tree/types';
+import { Guid, TreeItem, TreeItems } from '../components/tree/types';
 import { Node, Partition } from '../models';
 
 interface TreeItemWithParentId extends TreeItem {
@@ -16,7 +15,7 @@ function toPathItem(treeItem: TreeItem): PathItem {
 
 function findById(
   tree: TreeItems,
-  id: UniqueIdentifier,
+  id: Guid,
 ): { item: TreeItem | null; path: PathItem[] } {
   for (const node of tree) {
     if (node.id === id) {
@@ -46,9 +45,8 @@ function buildTreeFromHeaders(
   expanded: string[],
 ): TreeItems {
   return (
-    headers.map<TreeItem>((partition, index) => ({
+    headers.map<TreeItem>((partition) => ({
       id: partition.id,
-      index,
       collapsed: !expanded.includes(partition.id),
       children: buildTreeFromItems(partition.nodes, expanded),
       data: {
