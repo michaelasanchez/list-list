@@ -1,60 +1,156 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-type UseLongPressOptions = {
-  onStart?: () => void; // called when press starts
-  onFinish?: () => void; // called when press is released
-  threshold?: number; // ms required to trigger long press (default 500)
+type Point = {
+  x: number;
+  y: number;
 };
+
+type UseLongPressOptions = {
+  onStart?: () => void;
+  onFinish?: () => void;
+  threshold?: number; // ms required to trigger long press (default 500)
+  moveThreshold?: number; // px of movement allowed before canceling (default 12)
+};
+
+function getPoint(event: MouseEvent | TouchEvent): Point {
+  if ('touches' in event && event.touches.length > 0) {
+    const touch = event.touches[0];
+    return { x: touch.clientX, y: touch.clientY };
+  }
+
+  return {
+    x: (event as MouseEvent).clientX,
+    y: (event as MouseEvent).clientY,
+  };
+}
 
 export function useLongPress(
   callback: (() => void) | undefined,
-  { onStart, onFinish, threshold = 500 }: UseLongPressOptions = {}
+  elementRef: React.RefObject<HTMLElement | null>,
+  {
+    onStart,
+    onFinish,
+    threshold = 500,
+    moveThreshold = 12,
+  }: UseLongPressOptions = {},
 ) {
   const [isLongPressing, setIsLongPressing] = useState(false);
   const timeoutRef = useRef<number | null>(null);
-  const targetRef = useRef<EventTarget | null>(null);
+  const startPointRef = useRef<Point | null>(null);
 
-  const start = useCallback(
-    (event: React.MouseEvent | React.TouchEvent) => {
-      onStart?.();
-      targetRef.current = event.target;
+  const clearTimer = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
 
-      timeoutRef.current = window.setTimeout(() => {
-        callback?.();
-        setIsLongPressing(true);
-      }, threshold);
-    },
-    [callback, onStart, threshold]
-  );
+  const cancelPress = useCallback(
+    (event?: MouseEvent | TouchEvent) => {
+      clearTimer();
 
-  const clear = useCallback(
-    (event: React.MouseEvent | React.TouchEvent) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+      if (startPointRef.current) {
+        startPointRef.current = null;
       }
+
       if (isLongPressing) {
-        event.preventDefault();
-        event.stopPropagation();
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
 
         onFinish?.();
         setIsLongPressing(false);
       }
     },
-    [isLongPressing, onFinish]
+    [clearTimer, isLongPressing, onFinish],
+  );
+
+  const handleStart = useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      const point = getPoint(event);
+
+      startPointRef.current = point;
+      onStart?.();
+
+      clearTimer();
+      timeoutRef.current = window.setTimeout(() => {
+        callback?.();
+        setIsLongPressing(true);
+      }, threshold);
+    },
+    [callback, clearTimer, onStart, threshold],
+  );
+
+  const handleMove = useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      if (!startPointRef.current) {
+        return;
+      }
+
+      const point = getPoint(event);
+      const dx = point.x - startPointRef.current.x;
+      const dy = point.y - startPointRef.current.y;
+      const distance = Math.hypot(dx, dy);
+
+      if (distance > moveThreshold) {
+        cancelPress(event);
+      }
+    },
+    [cancelPress, moveThreshold],
+  );
+
+  const handleEnd = useCallback(
+    (event: MouseEvent | TouchEvent) => {
+      if (isLongPressing) {
+        event.preventDefault();
+        event.stopPropagation();
+        onFinish?.();
+      }
+
+      clearTimer();
+      startPointRef.current = null;
+      setIsLongPressing(false);
+    },
+    [clearTimer, isLongPressing, onFinish],
   );
 
   useEffect(() => {
+    const element = elementRef.current;
+    if (!element) {
+      return;
+    }
+
+    element.addEventListener('mousedown', handleStart);
+    element.addEventListener('mousemove', handleMove);
+    element.addEventListener('mouseup', handleEnd);
+    element.addEventListener('mouseleave', handleEnd);
+
+    element.addEventListener('touchstart', handleStart, { passive: true });
+    element.addEventListener('touchmove', handleMove, { passive: false });
+    element.addEventListener('touchend', handleEnd, { passive: true });
+    element.addEventListener('touchcancel', handleEnd, { passive: true });
+
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      element.removeEventListener('mousedown', handleStart);
+      element.removeEventListener('mousemove', handleMove);
+      element.removeEventListener('mouseup', handleEnd);
+      element.removeEventListener('mouseleave', handleEnd);
+
+      element.removeEventListener('touchstart', handleStart);
+      element.removeEventListener('touchmove', handleMove);
+      element.removeEventListener('touchend', handleEnd);
+      element.removeEventListener('touchcancel', handleEnd);
+
+      clearTimer();
     };
-  }, []);
+  }, [clearTimer, elementRef, handleEnd, handleMove, handleStart]);
+
+  useEffect(() => {
+    return () => {
+      clearTimer();
+    };
+  }, [clearTimer]);
 
   return {
-    onMouseDown: start,
-    onTouchStart: start,
-    onMouseUp: clear,
-    onMouseLeave: clear,
-    onTouchEnd: clear,
+    isLongPressing,
   };
 }

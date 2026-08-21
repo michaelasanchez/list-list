@@ -269,7 +269,7 @@ export function SortableTree({
             : {
                 dropdown: actions?.custom?.({
                   id: item.id as string,
-                  checklist: data?.isChecklist ?? false,
+                  checklist: data.isChecklist ?? false,
                 }),
                 onUpdate: (update: ItemUpdate) => {
                   const res = actions?.onUpdate?.(id, update);
@@ -306,9 +306,9 @@ export function SortableTree({
               onRemove={
                 removable || pending ? () => handleRemove(id) : undefined
               }
-              onSelect={
+              onNavigate={
                 actions?.onNavigate
-                  ? () => actions.onNavigate!(data!.partitionId, id)
+                  ? () => actions.onNavigate!(data.partitionId, id)
                   : undefined
               }
             />
@@ -427,7 +427,7 @@ export function SortableTree({
   }
 
   function handleCollapse(item: TreeItem) {
-    actions?.onCollapse?.(item.data!.partitionId, item.id);
+    actions?.onCollapse?.(item.data.partitionId, item.id);
 
     setItems((items) =>
       setProperty(items!, item.id, 'collapsed', (value) => {

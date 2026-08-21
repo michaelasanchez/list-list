@@ -9,7 +9,7 @@ interface TreeItemWithParentId extends TreeItem {
 function toPathItem(treeItem: TreeItem): PathItem {
   return {
     selectedId: treeItem.id as string,
-    label: treeItem.data?.label,
+    label: treeItem.data.label,
   };
 }
 

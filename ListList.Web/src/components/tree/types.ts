@@ -17,7 +17,7 @@ export interface TreeItem {
   collapsed?: boolean;
   pending?: boolean;
   readonly?: boolean;
-  data: TreeItemData | null;
+  data: TreeItemData;
 }
 
 export type TreeItems = TreeItem[];

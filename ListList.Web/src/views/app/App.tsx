@@ -20,7 +20,6 @@ import { ItemFeature } from '../../components/item-feature';
 import { SlideTransition } from '../../components/slide-transition';
 import {
   SortableTreeActions as Actions,
-  ItemUpdate,
   SortableTree,
 } from '../../components/tree/SortableTree';
 import { ApiNodeCreation, ApiPartitionPut } from '../../contracts';
@@ -238,6 +237,13 @@ export const App: React.FC = () => {
 
   const sharedActions = React.useMemo<Actions>(
     (): Actions => ({
+      onCollapse: (partitionId, nodeId) => {
+        dispatch({
+          type: ActionType.ToggleExpanded,
+          partitionId,
+          nodeId,
+        });
+      },
       onNavigate: (partitionId, nodeId) => {
         partitionId == nodeId
           ? navigate(partitionId)
@@ -310,13 +316,6 @@ export const App: React.FC = () => {
           ],
         ];
       },
-      onCollapse: (itemId) => {
-        dispatch({
-          type: ActionType.ToggleExpanded,
-          partitionId: current.partitionId,
-          nodeId: itemId,
-        });
-      },
       onCreate: async (label, description, overId) => {
         const order =
           (state.partitions?.findIndex((h) => h.id == overId) ?? 0) - 1;
@@ -329,22 +328,22 @@ export const App: React.FC = () => {
 
         return loadHeaders();
       },
-      onDelete: async (activeId) => {
-        if (activeId == newNodeId) {
+      onDelete: async (partitionId) => {
+        if (partitionId == newNodeId) {
           dispatch({
             type: ActionType.CancelHeaderCreate,
           });
 
           return Promise.resolve(true);
         } else {
-          await apis.headerApi.Delete(activeId);
+          await apis.headerApi.Delete(partitionId);
 
           dispatch({
             type: ActionType.FinalizeHeaderDelete,
-            partitionId: activeId,
+            partitionId: partitionId,
           });
 
-          const header = state.partitions?.find((h) => h.id == activeId);
+          const header = state.partitions?.find((h) => h.id == partitionId);
 
           if (header) {
             showHeaderUndoAlert(header);
@@ -354,6 +353,11 @@ export const App: React.FC = () => {
         }
       },
       onDragEnd: async (partitionId, destinationId) => {
+
+        console.log(current.items);
+
+        // RIGHT HERE
+
         const order =
           state.partitions?.findIndex((h) => h.id == destinationId) ?? 0;
 
@@ -361,7 +365,7 @@ export const App: React.FC = () => {
 
         return loadHeaders();
       },
-      onUpdate: async (partitionId, update: ItemUpdate) => {
+      onUpdate: async (partitionId, update) => {
         const header = state.partitions?.find((h) => h.id == partitionId);
 
         if (header) {
@@ -391,12 +395,6 @@ export const App: React.FC = () => {
               apis.itemApi
                 .Complete(current.token!, nodeId)
                 .then(() => loadItem(current.token!, nodeId)),
-            onCollapse: (nodeId) =>
-              dispatch({
-                type: ActionType.ToggleExpanded,
-                partitionId: current.partitionId,
-                nodeId: nodeId,
-              }),
             onCreate: (label, description, overId, parentId) =>
               createNode(current.partitionId!, {
                 label,
@@ -431,7 +429,7 @@ export const App: React.FC = () => {
               apis.itemApi
                 .Relocate(current.token!, activeId, overId, parentId)
                 .then(() => loadHeader(current.partitionId!)),
-            onUpdate: async (activeId, update: ItemUpdate) => {
+            onUpdate: async (activeId, update) => {
               if (current.partitionId) {
                 const item = getItem(
                   state.partitions,
@@ -456,6 +454,8 @@ export const App: React.FC = () => {
   );
 
   const mainRef = React.useRef<HTMLDivElement>(null);
+
+  console.log(current.items?.map((i) => `${i.id} - ${i.data.label}`));
 
   return (
     <Router>

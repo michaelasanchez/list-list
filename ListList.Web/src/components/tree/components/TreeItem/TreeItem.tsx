@@ -6,6 +6,7 @@ import * as styles from './TreeItem.module.scss';
 
 import React from 'react';
 import { Badge, Spinner } from 'react-bootstrap';
+import { useLongPress } from '../../../../hooks';
 import { Succeeded } from '../../../../network';
 import { DateUtils } from '../../../../shared';
 import { LabelAndDescriptionEditor } from '../../../LabelAndDescriptionEditor';
@@ -35,14 +36,14 @@ export interface TreeItemProps extends Omit<
   indicator?: boolean;
   indentationWidth: number;
   //
-  data: TreeItemData | null;
+  data: TreeItemData;
   name: string;
   hooks?: Actions;
   pending?: boolean;
   onCheck?(): Promise<Succeeded> | undefined;
   onCollapse?(): void;
   onRemove?(): void;
-  onSelect?(): void;
+  onNavigate?(): void;
   //
   wrapperRef?(node: HTMLLIElement): void;
 }
@@ -69,13 +70,30 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
       onCheck,
       onCollapse,
       onRemove,
-      onSelect,
+      onNavigate,
       wrapperRef,
       ...props
     },
     ref,
   ) => {
     const [checkLoading, setCheckLoading] = React.useState<boolean>(false);
+
+    const localRef = React.useRef<HTMLLIElement | null>(null);
+
+    const setWrapperRef = React.useCallback(
+      (node: HTMLLIElement | null) => {
+        localRef.current = node;
+        wrapperRef?.(node as HTMLLIElement);
+      },
+      [wrapperRef],
+    );
+
+    useLongPress(
+      () => {
+        onNavigate?.();
+      },
+      { current: localRef.current },
+    );
 
     return (
       <li
@@ -88,25 +106,25 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
           pending && styles.pending,
           disableSelection && styles.disableSelection,
           disableInteraction && styles.disableInteraction,
-          data?.complete && styles.complete,
+          data.complete && styles.complete,
         )}
-        ref={wrapperRef}
+        ref={setWrapperRef}
         style={
           {
             '--spacing': `${indentationWidth * depth}px`,
           } as React.CSSProperties
         }
         {...props}
-        onDoubleClickCapture={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        // onDoubleClickCapture={(e) => {
+        //   e.preventDefault();
+        //   e.stopPropagation();
 
-          onSelect?.();
-        }}
+        //   onNavigate?.();
+        // }}
       >
         <div className={styles.TreeItem} ref={ref} style={style}>
           <Handle {...handleProps} />
-          {data?.numbered && (
+          {data.numbered && (
             <Badge bg="secondary">{pending ? '+' : data.index + 1}</Badge>
           )}
           <div className={styles.Content}>
@@ -114,13 +132,13 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
               className={styles.Editor}
               autoFocus={pending}
               name={name}
-              label={data?.label ?? ''}
+              label={data.label ?? ''}
               placeholderLabel={pending ? 'New Item' : undefined}
-              description={data?.description ?? ''}
+              description={data.description ?? ''}
               placeholderDescription="Add note"
               onUpdate={hooks?.onUpdate}
             />
-            {data?.completedOn && (
+            {data.completedOn && (
               <small>{DateUtils.timeAgo(data.completedOn)}</small>
             )}
           </div>
@@ -152,7 +170,7 @@ export const TreeItem = forwardRef<HTMLDivElement, TreeItemProps>(
                     <Spinner className={styles.Spinner} size="sm" />
                   </div>
                 ) : (
-                  <Icon type={data?.complete ? 'checked' : 'unchecked'} />
+                  <Icon type={data.complete ? 'checked' : 'unchecked'} />
                 )}
               </Action>
             )}
