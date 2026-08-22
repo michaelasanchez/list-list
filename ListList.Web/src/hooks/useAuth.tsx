@@ -10,7 +10,7 @@ export interface AuthState {
   refresh: () => void;
 }
 
-export const useAuth = (clientId: string): AuthState => {
+export const useAuth = (clientId?: string): AuthState => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true); // Start loading to avoid UI flicker
   const [client, setClient] = useState<any>(null);

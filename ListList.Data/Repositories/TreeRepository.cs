@@ -35,6 +35,7 @@ public class TreeRepository(ListListContext context) : ITreeRepository
         };
 
         var offset = root.Left;
+
         foreach (var node in descendants)
         {
             node.PartitionId = partition.Id;
@@ -42,9 +43,21 @@ public class TreeRepository(ListListContext context) : ITreeRepository
             node.Right -= offset;
         }
 
+        var partitions = _context.Partitions
+            .Where(z => z.OwnerId == ownerId && !z.Deleted)
+            .OrderBy(z => z.Order);
+
+        order = Math.Clamp(order, 0, Math.Max(0, await partitions.CountAsync() - 1));
+
+        await _context.Partitions
+            .Where(x => x.OwnerId == ownerId && !x.Deleted && x.Order >= order)
+            .ExecuteUpdateAsync(x => x.SetProperty(z => z.Order, z => z.Order + 1));
+
         _context.Nodes.Remove(root);
         _context.Partitions.Add(partition);
+
         await _context.SaveChangesAsync();
+
         await transaction.CommitAsync();
         return partition.Id;
     }
@@ -88,6 +101,16 @@ public class TreeRepository(ListListContext context) : ITreeRepository
             Checklist = source.Checklist,
             Order = order,
         };
+
+        var partitions = _context.Partitions
+            .Where(z => z.OwnerId == ownerId && !z.Deleted)
+            .OrderBy(z => z.Order);
+
+        order = Math.Clamp(order, 0, Math.Max(0, await partitions.CountAsync() - 1));
+
+        await _context.Partitions
+            .Where(x => x.OwnerId == ownerId && !x.Deleted && x.Order >= order)
+            .ExecuteUpdateAsync(x => x.SetProperty(z => z.Order, z => z.Order + 1));
 
         _context.Partitions.Add(partition);
         _context.Nodes.AddRange(CloneNodes(nodes, partition.Id));
