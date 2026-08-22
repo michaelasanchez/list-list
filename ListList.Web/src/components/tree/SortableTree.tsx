@@ -26,13 +26,13 @@ import { createPortal } from 'react-dom';
 
 import { CSS } from '@dnd-kit/utilities';
 import { Actions, CustomAction } from '..';
+import { Guid } from '../../contracts';
 import { Succeeded } from '../../network';
 import { newNodeId } from '../../views';
 import { SortableTreeItem } from './components';
 import { sortableTreeKeyboardCoordinates } from './keyboardCoordinates';
 import type {
   FlattenedItem,
-  Guid,
   SensorContext,
   TreeItem,
   TreeItems,
@@ -88,7 +88,7 @@ export interface ItemUpdate {
 
 export interface SortableTreeActions {
   custom?: (props: ActionsProps) => CustomAction[][];
-  onCheck?: (id: Guid) => Promise<Succeeded>;
+  onCheck?: (nodeId: Guid) => Promise<Succeeded>;
   onClick?: (id: Guid) => void;
   onCollapse?: (partitionId: Guid, nodeId: Guid) => void;
   onCreate?: (
@@ -412,10 +412,6 @@ export function SortableTree({
     const index = flattenedItems.findIndex((i) => i.id == id);
 
     if (actions?.onDelete) {
-      const test = flattenedItems;
-      const test1 = flattenedItems[index];
-      const test2 = flattenedItems[index].parentId;
-
       await actions.onDelete?.(
         id,
         flattenedItems[index + 1]?.id,

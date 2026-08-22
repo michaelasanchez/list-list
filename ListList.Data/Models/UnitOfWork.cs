@@ -14,6 +14,7 @@ internal class UnitOfWork : IUnitOfWork
 
     private readonly Lazy<IPartitionRepository> _partitionRepository;
     private readonly Lazy<INodeRepository> _nodeRepository;
+    private readonly Lazy<ITreeRepository> _treeRepository;
     private readonly Lazy<IShareRepository> _shareRepository;
     private readonly Lazy<IUserRepository> _userRepository;
 
@@ -26,6 +27,7 @@ internal class UnitOfWork : IUnitOfWork
 
         _partitionRepository = new Lazy<IPartitionRepository>(() => new PartitionRepository(_context, _mapper));
         _nodeRepository = new Lazy<INodeRepository>(() => new NodeRepository(_context, _mapper));
+        _treeRepository = new Lazy<ITreeRepository>(() => new TreeRepository(_context));
         _shareRepository = new Lazy<IShareRepository>(() => new ShareRepository(_context));
         _userRepository = new Lazy<IUserRepository>(() => new UserRepository(_context));
 
@@ -34,6 +36,7 @@ internal class UnitOfWork : IUnitOfWork
 
     public IPartitionRepository PartitionRepository => _partitionRepository.Value;
     public INodeRepository NodeRepository => _nodeRepository.Value;
+    public ITreeRepository TreeRepository => _treeRepository.Value;
     public IShareRepository ShareRepository => _shareRepository.Value;
     public IUserRepository UserRepository => _userRepository.Value;
 

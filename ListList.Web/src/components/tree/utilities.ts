@@ -1,6 +1,7 @@
 import { arrayMove } from '@dnd-kit/sortable';
 
-import type { FlattenedItem, Guid, TreeItem, TreeItems } from './types';
+import type { Guid } from '../../contracts';
+import type { FlattenedItem, TreeItem, TreeItems } from './types';
 
 export const iOS = /iPad|iPhone|iPod/.test(navigator.platform);
 

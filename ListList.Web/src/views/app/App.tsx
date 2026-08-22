@@ -13,6 +13,7 @@ import {
 import {
   Breadcrumbs,
   CustomAction,
+  flattenTree,
   MinimumLink,
   ShareModal,
 } from '../../components';
@@ -33,7 +34,13 @@ import {
 } from '../../hooks';
 import { ViewMapper } from '../../mappers';
 import { Node, Partition } from '../../models';
-import { NodeApi, PartitionApi, ShareApi, Succeeded } from '../../network';
+import {
+  NodeApi,
+  PartitionApi,
+  ShareApi,
+  Succeeded,
+  TreeApi,
+} from '../../network';
 import { config } from '../../shared';
 import { Navbar } from '../Navbar';
 import { FloatingUi } from '../ui';
@@ -120,6 +127,7 @@ export const App: React.FC = () => {
       headerApi: new PartitionApi(),
       itemApi: new NodeApi(),
       shareApi: new ShareApi(),
+      treeApi: new TreeApi(),
     }),
     [authState],
   );
@@ -352,18 +360,69 @@ export const App: React.FC = () => {
           return Promise.resolve(true);
         }
       },
-      onDragEnd: async (partitionId, destinationId) => {
+      onDragEnd: async (activeId, overId, projectedParentId) => {
+        const activeInfo = findItemLocation(activeId, state.partitions);
+        const overInfo = findItemLocation(overId, state.partitions);
+        const parentId = normalizeParentId(projectedParentId, state.partitions);
 
-        console.log(current.items);
+        if (activeInfo.type === 'partition' && overInfo.type === 'partition') {
+          const order = getReorderedIndex(
+            state.partitions ?? [],
+            activeId,
+            overId,
+          );
 
-        // RIGHT HERE
+          await apis.treeApi.RelocatePartition(activeId, { order });
 
-        const order =
-          state.partitions?.findIndex((h) => h.id == destinationId) ?? 0;
+          await loadHeaders();
+          return true;
+        } else if (
+          activeInfo.type === 'node' &&
+          overInfo.type === 'partition'
+        ) {
+          await apis.treeApi.RelocateNode(
+            activeInfo.partitionId!,
+            activeId,
+            {
+              destinationPartitionId: overInfo.partitionId!,
+              parentId: null,
+              order: getNodeRootOrder(overInfo.partitionId!, activeId, state.partitions),
+            },
+          );
+          await loadHeaders();
+          return true;
+        } else if (
+          activeInfo.type === 'partition' &&
+          overInfo.type === 'node'
+        ) {
+          await apis.treeApi.DemotePartition(activeId, {
+            destinationPartitionId: overInfo.partitionId!,
+            parentId: parentId ?? overId,
+            order: parentId === overId ? 0 : getNodeOrder(overInfo.partitionId!, overId, activeId, parentId, state.partitions),
+          });
+          await loadHeaders();
+          return true;
+        } else if (activeInfo.type === 'node' && overInfo.type === 'node') {
+          await apis.treeApi.RelocateNode(
+            activeInfo.partitionId!,
+            activeId,
+            {
+              destinationPartitionId: overInfo.partitionId!,
+              parentId,
+              order: getNodeOrder(
+                overInfo.partitionId!,
+                overId,
+                activeId,
+                parentId,
+                state.partitions,
+              ),
+            },
+          );
+          await loadHeaders();
+          return true;
+        }
 
-        await apis.headerApi.Relocate(partitionId, { order });
-
-        return loadHeaders();
+        return true;
       },
       onUpdate: async (partitionId, update) => {
         const header = state.partitions?.find((h) => h.id == partitionId);
@@ -382,7 +441,7 @@ export const App: React.FC = () => {
         return Promise.resolve(false);
       },
     }),
-    [authState.user, current],
+    [authState.user, current, state.partitions],
   );
 
   const nodeActions = React.useMemo<Actions | null>(
@@ -454,8 +513,6 @@ export const App: React.FC = () => {
   );
 
   const mainRef = React.useRef<HTMLDivElement>(null);
-
-  console.log(current.items?.map((i) => `${i.id} - ${i.data.label}`));
 
   return (
     <Router>
@@ -600,6 +657,61 @@ export const App: React.FC = () => {
   }
 };
 
+function normalizeParentId(
+  parentId: string | null,
+  partitions: Partition[],
+): string | null {
+  return partitions.some((partition) => partition.id === parentId)
+    ? null
+    : parentId;
+}
+
+function getReorderedIndex(
+  partitions: Partition[],
+  activeId: string,
+  overId: string,
+): number {
+  const activeIndex = partitions.findIndex((partition) => partition.id === activeId);
+  const overIndex = partitions.findIndex((partition) => partition.id === overId);
+
+  if (activeIndex < 0 || overIndex < 0) {
+    return 0;
+  }
+
+  return Math.max(0, overIndex + (activeIndex < overIndex ? 1 : 0));
+}
+
+function getNodeRootOrder(
+  partitionId: string,
+  activeId: string,
+  partitions: Partition[],
+): number {
+  return (
+    partitions
+      .find((partition) => partition.id === partitionId)
+      ?.nodes.filter((node) => !node.parentId && node.id !== activeId).length ?? 0
+  );
+}
+
+function getNodeOrder(
+  partitionId: string,
+  overId: string,
+  activeId: string,
+  parentId: string | null,
+  partitions: Partition[],
+): number {
+  const nodes = partitions.find((partition) => partition.id === partitionId)?.nodes ?? [];
+  const siblings = nodes.filter((node) => (node.parentId ?? null) === parentId);
+  const overIndex = siblings.findIndex((node) => node.id === overId);
+  const activeIndex = siblings.findIndex((node) => node.id === activeId);
+
+  if (overIndex < 0) {
+    return siblings.length;
+  }
+
+  return overIndex + (activeIndex >= 0 && activeIndex < overIndex ? 1 : 0);
+}
+
 function getItem(
   headers: Partition[],
   partitionId: string,
@@ -609,3 +721,22 @@ function getItem(
 
   return header?.nodes?.find((i) => i.id == itemId) ?? null;
 }
+
+// Helper to find item details
+const findItemLocation = (itemId: string, partitions: Partition[]) => {
+  // Check if it's a top-level partition
+  const partition = partitions.find((p) => p.id === itemId);
+  if (partition) {
+    return { type: 'partition', location: 'root', partitionId: partition.id };
+  }
+
+  // Check if it's a node nested in a partition
+  for (const p of partitions) {
+    if (p.nodes?.find((n) => n.id === itemId)) {
+      return { type: 'node', location: 'partition', partitionId: p.id };
+    }
+  }
+
+  return { type: 'unknown', location: 'unknown' };
+};
+

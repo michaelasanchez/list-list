@@ -2,7 +2,7 @@ import { AnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CSSProperties } from 'react';
 
-import { Guid } from '../../types';
+import { Guid } from '../../../../contracts';
 import { iOS } from '../../utilities';
 import { TreeItem, TreeItemProps } from './TreeItem';
 

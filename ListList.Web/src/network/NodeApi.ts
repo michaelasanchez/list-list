@@ -1,13 +1,12 @@
 import { Api } from '.';
-import { ApiNodePut as ApiItemPut, ApiNode } from '../contracts';
-import { ApiNodePatch } from '../contracts/patch/ApiNodePatch';
+import { ApiNode, ApiNodePatch, ApiNodePut, Guid } from '../contracts';
 
 export class NodeApi extends Api {
   constructor() {
     super('');
   }
 
-  public Complete = (token: string, nodeId: string): Promise<void> => {
+  public Complete = (token: string, nodeId: Guid): Promise<void> => {
     this.setActionPath(`${token}/node/${nodeId}/complete`);
 
     return this.executePost(null, null, false);
@@ -43,7 +42,7 @@ export class NodeApi extends Api {
   public Put = (
     token: string,
     nodeId: string,
-    put: ApiItemPut,
+    put: ApiNodePut,
   ): Promise<void> => {
     this.setActionPath(`${token}/node/${nodeId}`);
 
@@ -52,13 +51,25 @@ export class NodeApi extends Api {
 
   public Relocate = (
     token: string,
-    activeId: string,
+    nodeId: string,
     overId: string,
     parentId: string,
   ): Promise<void> => {
-    this.setActionPath(`${token}/node/${activeId}/relocate`);
+    this.setActionPath(`${token}/node/${nodeId}/relocate`);
 
     return this.executePost({ overId, parentId }, null, false);
+  };
+
+  public Relocate2 = (
+    token: string,
+    nodeId: string,
+    order: number,
+    parentId?: Guid | undefined,
+    partitionId?: Guid | undefined,
+  ): Promise<void> => {
+    this.setActionPath(`${token}/node/${nodeId}/relocate2`);
+
+    return this.executePost({ order, parentId, partitionId }, null, false);
   };
 
   public Restore = (

@@ -1,5 +1,6 @@
 import { PathItem } from '../components';
-import { Guid, TreeItem, TreeItems } from '../components/tree/types';
+import { TreeItem, TreeItems } from '../components/tree/types';
+import { Guid } from '../contracts';
 import { Node, Partition } from '../models';
 
 interface TreeItemWithParentId extends TreeItem {

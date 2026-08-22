@@ -1,4 +1,4 @@
-export type Guid = string;
+import { Guid } from '../../contracts';
 
 export interface TreeItemData {
   partitionId: string;

@@ -7,6 +7,7 @@ public interface IUnitOfWork
 {
     IPartitionRepository PartitionRepository { get; }
     INodeRepository NodeRepository { get; }
+    ITreeRepository TreeRepository { get; }
     IShareRepository ShareRepository { get; }
     IUserRepository UserRepository { get; }
 
