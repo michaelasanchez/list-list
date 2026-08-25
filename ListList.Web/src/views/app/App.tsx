@@ -242,6 +242,7 @@ export const App: React.FC = () => {
     }
   }, [current, state.syncing]);
 
+  /* ACTIONS */
   const sharedActions = React.useMemo<Actions>(
     (): Actions => ({
       onCollapse: (partitionId, nodeId) => {
@@ -374,9 +375,13 @@ export const App: React.FC = () => {
             overId,
           );
 
-          await apis.treeApi.RelocatePartition(activeId, { order });
+          console.log('ACTIVE ID', activeId);
+          console.log('OVER ID', overId);
+          console.log('PARENT ID', parentId);
 
-          await loadHeaders();
+          // await apis.treeApi.RelocatePartition(activeId, { order });
+
+          // await loadHeaders();
           return true;
         } else if (
           activeInfo.type === 'node' &&
@@ -723,15 +728,29 @@ function getNodeOrder(
 ): number {
   const nodes =
     partitions.find((partition) => partition.id === partitionId)?.nodes ?? [];
-  const siblings = nodes.filter((node) => (node.parentId ?? null) === parentId);
-  const overIndex = siblings.findIndex((node) => node.id === overId);
-  const activeIndex = siblings.findIndex((node) => node.id === activeId);
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const siblings = nodes.filter(
+    (node) => (node.parentId ?? null) === parentId && node.id !== activeId,
+  );
+
+  let targetId: string | null = overId;
+  let target = nodeById.get(targetId);
+
+  while (target && (target.parentId ?? null) !== parentId) {
+    targetId = target.parentId;
+    target = targetId ? nodeById.get(targetId) : undefined;
+  }
+
+  const overIndex = target
+    ? siblings.findIndex((node) => node.id === target.id)
+    : -1;
 
   if (overIndex < 0) {
     return siblings.length;
   }
 
-  return overIndex + (activeIndex >= 0 && activeIndex < overIndex ? 1 : 0);
+  // return overIndex;
+  return overIndex + (target?.id === overId ? 0 : 1);
 }
 
 function getItem(
