@@ -1,3 +1,7 @@
+---------
+-- FIX --
+---------
+
 -- Re-index boundaries for all corrupted partitions into a valid flat sequence
 WITH CorruptedPartitionIds AS (
     SELECT PartitionId

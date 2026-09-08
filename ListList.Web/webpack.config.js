@@ -1,5 +1,6 @@
 const webpack = require('webpack');
 const dotenv = require('dotenv');
+const fs = require('fs');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -82,7 +83,17 @@ module.exports = (_, argv) => {
       hot: true,
       historyApiFallback: true,
       port: 9000,
-      server: 'https'
-    },
+      server: {
+        type: 'https',
+        options: {
+          key: fs.readFileSync(
+            path.resolve(__dirname, 'certs/localhost-key.pem')
+          ),
+          cert: fs.readFileSync(
+            path.resolve(__dirname, 'certs/localhost.pem')
+          ),
+        },
+      },
+    }
   };
 };

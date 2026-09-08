@@ -102,7 +102,7 @@ export interface SortableTreeActions {
     overId: Guid,
     parentId: Guid | null,
   ) => Promise<Succeeded>;
-  onDragEnd?: (id: Guid, overId: Guid, parentId: Guid) => Promise<Succeeded>;
+  onDragEnd?: (id: Guid, overId: Guid, parentId: Guid, delta: { x: number; y: number }) => Promise<Succeeded>;
   onNavigate?: (partitionId: Guid, nodeId: Guid) => void;
   onUpdate?: (id: Guid, update: ItemUpdate) => Promise<Succeeded>;
 }
@@ -146,21 +146,25 @@ export function SortableTree({
       [],
     );
 
-    return removeChildrenOf(
+    const finalItems = removeChildrenOf(
       flattenedTree,
       activeId != null ? [activeId, ...collapsedItems] : collapsedItems,
     );
+
+    // console.log('FINAL ITEMS', finalItems);
+
+    return finalItems;
   }, [activeId, items]);
 
   const projected =
     activeId && overId
       ? getProjection(
-          flattenedItems,
-          activeId,
-          overId,
-          offsetLeft,
-          indentationWidth,
-        )
+        flattenedItems,
+        activeId,
+        overId,
+        offsetLeft,
+        indentationWidth,
+      )
       : null;
 
   const sensorContext = useRef<SensorContext>({
@@ -247,36 +251,32 @@ export function SortableTree({
 
           const itemActions: Actions = pending
             ? {
-                onUpdate: (update: ItemUpdate) => {
-                  const overId =
-                    flattenedItems[
-                      Math.min(
-                        flattenedItems.findIndex((i) => i.id == id) + 1,
-                        flattenedItems.length - 1,
-                      )
-                    ].id;
+              onUpdate: (update: ItemUpdate) => {
+                const overId =
+                  flattenedItems[
+                    Math.min(
+                      flattenedItems.findIndex((i) => i.id == id) + 1,
+                      flattenedItems.length - 1,
+                    )
+                  ].id;
 
-                  const res = actions?.onCreate?.(
-                    update.label ?? '',
-                    update.description ?? '',
-                    overId == newNodeId ? null : overId,
-                    item.parentId,
-                  );
-
-                  return Promise.resolve(res ?? true);
-                },
-              }
+                return actions?.onCreate?.(
+                  update.label ?? '',
+                  update.description ?? '',
+                  overId == newNodeId ? null : overId,
+                  item.parentId,
+                ) ?? Promise.resolve(true);
+              },
+            }
             : {
-                dropdown: actions?.custom?.({
-                  id: item.id as string,
-                  checklist: data.isChecklist ?? false,
-                }),
-                onUpdate: (update: ItemUpdate) => {
-                  const res = actions?.onUpdate?.(id, update);
-
-                  return Promise.resolve(res ?? true);
-                },
-              };
+              dropdown: actions?.custom?.({
+                id: item.id as string,
+                checklist: data.isChecklist ?? false,
+              }),
+              onUpdate: (update: ItemUpdate) => {
+                return actions?.onUpdate?.(id, update) ?? Promise.resolve(true);
+              },
+            };
 
           return (
             <SortableTreeItem
@@ -361,7 +361,7 @@ export function SortableTree({
     setOverId((over?.id as string) ?? null);
   }
 
-  function handleDragEnd({ active, over }: DragEndEvent) {
+  function handleDragEnd({ active, over, delta }: DragEndEvent) {
     resetState();
 
     if (projected && over) {
@@ -369,7 +369,7 @@ export function SortableTree({
 
       dragEndLocal(active.id as string, over.id as string, depth, parentId!);
 
-      actions?.onDragEnd?.(active.id as string, over.id as string, parentId!);
+      actions?.onDragEnd?.(active.id as string, over.id as string, parentId!, delta);
     }
   }
 

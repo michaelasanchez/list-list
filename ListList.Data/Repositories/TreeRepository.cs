@@ -155,6 +155,10 @@ public class TreeRepository(ListListContext context) : ITreeRepository
         await InsertSubtree(destination.Id, [wrapper, .. nodes], parentId, order, nodes.Select(z => z.Id).ToHashSet());
 
         _context.Partitions.Remove(source);
+        
+        _context.Partitions
+            .Where(x => x.OwnerId == ownerId && !x.Deleted && x.Order > source.Order)
+            .ExecuteUpdate(x => x.SetProperty(z => z.Order, z => z.Order - 1));
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();

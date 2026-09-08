@@ -35,7 +35,12 @@ builder.Services.AddCors(options =>
         builder =>
         {
             builder
-                .WithOrigins(["http://localhost:9000", "https://localhost:9000"])
+                .AllowAnyOrigin()
+                .WithOrigins([
+                    "http://localhost:9000",
+                    "https://localhost:9000",
+                    "http://localhost:9001",
+                    "https://localhost:9001"])
                 .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod();

@@ -46,7 +46,8 @@ public class TreeController(IUnitOfWork unitOfWork, ICurrentUserService currentU
     [HttpPost("{token}/partition/demote")]
     public async Task<ActionResult> DemotePartition(string token, TreePartitionDemotion request)
     {
-        await unitOfWork.TreeRepository.DemotePartition(await GetUserId(), token, request.DestinationPartitionId, request.ParentId, request.Order);
+        var userId = await GetUserId();
+        await unitOfWork.TreeRepository.DemotePartition(userId, token, request.DestinationPartitionId, request.ParentId, request.Order);
         return Ok();
     }
 

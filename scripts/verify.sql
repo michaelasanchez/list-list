@@ -1,3 +1,7 @@
+------------
+-- VERIFY --
+------------
+
 -- Identify partitions with broken nested set boundaries
 WITH PartitionMetrics AS (
     SELECT 
