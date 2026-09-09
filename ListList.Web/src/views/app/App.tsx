@@ -367,36 +367,67 @@ export const App: React.FC = () => {
         const activeInfo = findItemLocation(activeId, state.partitions);
         const overInfo = findItemLocation(overId, state.partitions);
         const parentInfo = findItemLocation(parentId, state.partitions);
-        // const parentId = normalizeParentId(projectedParentId, state.partitions);
+
+        console.log('\n\n\n');
+
+        console.log(
+          'ACTIVE',
+          ` - '${activeInfo?.label}', order: ${activeInfo?.order}, partition: ${activeInfo?.partitionId}`,
+          `\n\t[${activeInfo?.type}] ${activeId}`,
+        );
+        console.log(
+          'OVER',
+          ` - '${overInfo?.label}', order: ${overInfo?.order}, partition: ${overInfo?.partitionId}`,
+          `\n\t[${overInfo?.type}] ${overId}`,
+        );
+        console.log(
+          'PARENT',
+          ` - '${parentInfo?.label}', order: ${parentInfo?.order}, partition: ${parentInfo?.partitionId}`,
+          `\n\t'[${parentInfo?.type}] ${parentId}`,
+        );
+        console.log('DELTA', delta);
+
+        console.log('----------------------');
 
         const isTopLevelResult = parentId === null;
-        const isActivePartition = state.partitions?.some((p) => p.id === activeId) ?? false;
+        const isActivePartition =
+          state.partitions?.some((p) => p.id === activeId) ?? false;
 
         // 1. Partition reorder
         // 2. Partition demotion
         if (isActivePartition) {
           if (isTopLevelResult) {
             // Partition reorder
-            const order = getIndex(state.partitions ?? [], null, overInfo.partitionId!);
+            const order = getIndex(
+              state.partitions ?? [],
+              null,
+              overInfo.partitionId!,
+            );
 
             console.log(
               'PARTITION REORDER',
               `${activeId}: ${activeInfo.label}`,
-              `to index: ${order}`);
+              `to index: ${order}`,
+            );
 
             const position: TreePartitionPosition = {
-              order
+              order,
             };
 
             await apis.treeApi.RelocatePartition(activeId, position);
             await loadHeaders();
           } else {
             // Partition demotion
-            let order = getIndex(state.partitions, parentId, overId);
+            const overIndex = getIndex(state.partitions, parentId, overId);
             const adjust = activeId === overId ? 0 : delta.y > 0 ? 1 : 0;
 
-            if (order < 0) {
-              const parentPartition = findItemLocation(parentId, state.partitions);
+            let order = overIndex + adjust;
+
+            if (overIndex < 0) {
+              const parentPartition = findItemLocation(
+                parentId,
+                state.partitions,
+              );
               const overPartition = findItemLocation(overId, state.partitions);
 
               // console.log('PARENT PARTITION', parentPartition);
@@ -430,17 +461,23 @@ export const App: React.FC = () => {
               'PARTITION DEMOTION',
               `${activeId}: ${activeInfo.label}`,
               `\nto parent: ${parentId}: ${parentInfo.label}`,
-              // `, order: ${order}`);
-              `, order: ${order + adjust} (${order} + ${adjust})`);
+              `, order: ${order}`,
+              // `, order: ${order + adjust} (${order} + ${adjust})`,
+            );
 
             const demotion: TreePartitionDemotion = {
-              destinationPartitionId: activeId === overId ? parentInfo.partitionId! : overInfo.partitionId!,
-              order: order + adjust,
-              parentId: parentInfo.type === 'partition' ? null : parentId
-            }
+              destinationPartitionId:
+                activeId === overId
+                  ? parentInfo.partitionId!
+                  : overInfo.partitionId!,
+              parentId: parentInfo.type === 'partition' ? null : parentId,
+              order,
+            };
 
             // console.log('DEMOTION', activeId, demotion)
-            await apis.treeApi.DemotePartition(activeId, demotion).catch(e => console.error);
+            await apis.treeApi
+              .DemotePartition(activeId, demotion)
+              .catch((e) => console.error);
             await loadHeaders();
           }
         }
@@ -454,7 +491,8 @@ export const App: React.FC = () => {
             const adjust = activeId === overId ? 0 : delta.y > 0 ? 1 : 0;
 
             if (order < 0) {
-              order = getIndex(state.partitions, null, overInfo.partitionId!) + 1;
+              order =
+                getIndex(state.partitions, null, overInfo.partitionId!) + 1;
             }
 
             console.log(
@@ -462,53 +500,76 @@ export const App: React.FC = () => {
               `${activeId}: ${activeInfo.label}`,
               `\nto top-level`,
               // `order: ${order}`);
-              `\norder: ${order + adjust} (${order} + ${adjust})`);
+              `\norder: ${order + adjust} (${order} + ${adjust})`,
+            );
 
             const position: TreePartitionPosition = {
-              order: order + adjust
+              order: order + adjust,
             };
 
-            await apis.treeApi.PromoteNode(activeInfo.partitionId!, activeId, position);
+            await apis.treeApi.PromoteNode(
+              activeInfo.partitionId!,
+              activeId,
+              position,
+            );
             await loadHeaders();
           } else {
-            const activePartition = findItemLocation(activeInfo.partitionId!, state.partitions);
-            const overPartition = findItemLocation(overInfo.partitionId!, state.partitions);
+            let order = getIndex(state.partitions, parentId, overId);
+            const adjust = activeId === overId ? 0 : delta.y > 0 ? 1 : 0;
+
+            console.log('ORDER', order, 'ADJUST', adjust);
+
+            if (order < 0) {
+
+            }
+
+            const activePartition = findItemLocation(
+              activeInfo.partitionId!,
+              state.partitions,
+            );
+            const overPartition = findItemLocation(
+              overInfo.partitionId!,
+              state.partitions,
+            );
 
             if (activeInfo.partitionId === overInfo.partitionId) {
-
               // Handle node reorder within the same partition
               console.log(
                 'NODE REORDER',
                 `${activeId}: ${activeInfo.label}`,
-                `\nwithin partition: ${activeInfo.partitionId} - ${activePartition.label}`,);
-
+                `\nwithin partition: ${activeInfo.partitionId} - ${activePartition.label}`,
+              );
             } else {
-
               // Handle node move between different partitions
               console.log(
-                'NODE MOVE',
+                'NODE RELOCATE',
                 `${activeId}: ${activeInfo.label}`,
                 `\nfrom partition: ${activeInfo.partitionId} - ${activePartition.label}`,
-                `\nto partition: ${overInfo.partitionId} - ${overPartition.label}`);
+                `\nto partition: ${overInfo.partitionId} - ${overPartition.label}`,
+              );
             }
 
             const relocation: TreeNodeRelocation = {
-              destinationPartitionId: '',
-              parentId: null,
-              order: 0
+              destinationPartitionId:
+                activeId === overId
+                  ? parentInfo.partitionId!
+                  : overInfo.partitionId!,
+              parentId: parentInfo.type === 'partition' ? null : parentId,
+              order: order + adjust,
             };
 
-            // await apis.treeApi.RelocateNode(activeInfo.partitionId!, activeId, relocation);
+            console.log('POST BODY', relocation);
+
+            await apis.treeApi.RelocateNode(
+              activeInfo.partitionId!,
+              activeId,
+              relocation,
+            );
+            await loadHeaders();
           }
         }
 
-        console.log('----------------------')
-
-        console.log('ACTIVE', activeId, activeInfo);
-        console.log('OVER', overId, overInfo);
-        console.log('PARENT', parentId, parentInfo);
-        console.log('DELTA', delta);
-        console.log('========================\n\n\n')
+        console.log('========================');
 
         // if (activeInfo.type === 'partition' && overInfo.type === 'partition') {
 
@@ -517,7 +578,6 @@ export const App: React.FC = () => {
         //     activeId,
         //     overId,
         //   );
-
 
         //   // await apis.treeApi.RelocatePartition(activeId, { order });
 
@@ -616,66 +676,66 @@ export const App: React.FC = () => {
       !current
         ? null
         : {
-          ...sharedActions,
-          onCheck: (nodeId) =>
-            apis.itemApi
-              .Complete(current.token!, nodeId)
-              .then(() => loadItem(current.token!, nodeId)),
-          onCreate: (label, description, overId, parentId) =>
-            createNode(current.partitionId!, {
-              label,
-              description,
-              overId,
-              parentId,
-            }),
-          onDelete: async (activeId, overId, parentId) => {
-            if (activeId == newNodeId) {
-              dispatch({
-                type: ActionType.CancelItemCreate,
-                partitionId: current.partitionId!,
-              });
-            } else {
-              await apis.itemApi.Delete(current.token!, activeId);
-
-              loadHeader(current.partitionId!);
-
-              const item = getItem(
-                state.partitions ?? [],
-                current.partitionId!,
-                activeId,
-              );
-
-              if (item) {
-                showItemUndoAlert(current.token!, item, overId, parentId);
-              }
-            }
-            return Promise.resolve(true);
-          },
-          onDragEnd: (activeId, overId, parentId) =>
-            apis.itemApi
-              .Relocate(current.token!, activeId, overId, parentId)
-              .then(() => loadHeader(current.partitionId!)),
-          onUpdate: async (activeId, update) => {
-            if (current.partitionId) {
-              const item = getItem(
-                state.partitions,
-                current.partitionId,
-                activeId,
-              );
-
-              if (item && current.token) {
-                await apis.itemApi.Put(current.token, activeId, {
-                  ...item,
-                  ...update,
+            ...sharedActions,
+            onCheck: (nodeId) =>
+              apis.itemApi
+                .Complete(current.token!, nodeId)
+                .then(() => loadItem(current.token!, nodeId)),
+            onCreate: (label, description, overId, parentId) =>
+              createNode(current.partitionId!, {
+                label,
+                description,
+                overId,
+                parentId,
+              }),
+            onDelete: async (activeId, overId, parentId) => {
+              if (activeId == newNodeId) {
+                dispatch({
+                  type: ActionType.CancelItemCreate,
+                  partitionId: current.partitionId!,
                 });
+              } else {
+                await apis.itemApi.Delete(current.token!, activeId);
 
-                return await loadItem(current.token, activeId);
+                loadHeader(current.partitionId!);
+
+                const item = getItem(
+                  state.partitions ?? [],
+                  current.partitionId!,
+                  activeId,
+                );
+
+                if (item) {
+                  showItemUndoAlert(current.token!, item, overId, parentId);
+                }
               }
-            }
+              return Promise.resolve(true);
+            },
+            onDragEnd: (activeId, overId, parentId) =>
+              apis.itemApi
+                .Relocate(current.token!, activeId, overId, parentId)
+                .then(() => loadHeader(current.partitionId!)),
+            onUpdate: async (activeId, update) => {
+              if (current.partitionId) {
+                const item = getItem(
+                  state.partitions,
+                  current.partitionId,
+                  activeId,
+                );
 
-            return Promise.resolve(false);
+                if (item && current.token) {
+                  await apis.itemApi.Put(current.token, activeId, {
+                    ...item,
+                    ...update,
+                  });
+
+                  return await loadItem(current.token, activeId);
+                }
+              }
+
+              return Promise.resolve(false);
+            },
           },
-        },
     [current],
   );
 
@@ -912,25 +972,27 @@ function getItem(
 function getIndex(
   partitions: Partition[] | undefined,
   parentId: string | null,
-  overId: string
+  overId: string,
 ): number {
   if (!partitions?.length) return -1;
 
   if (!parentId) {
-    return partitions.findIndex(p => p.id === overId);
+    return partitions.findIndex((p) => p.id === overId);
   }
 
-  let parent = partitions?.find(p => p.id === parentId);
+  let parent = partitions?.find((p) => p.id === parentId);
 
   if (parent) {
-    return parent?.nodes?.filter(n => n.depth === 0).findIndex(n => n.id === overId);
+    return parent?.nodes
+      ?.filter((n) => n.depth === 0)
+      .findIndex((n) => n.id === overId);
   }
 
   for (const p of partitions) {
-    const parent = p.nodes?.find(n => n.id === parentId);
+    const parent = p.nodes?.find((n) => n.id === parentId);
 
     if (parent) {
-      return parent?.childrenIds?.findIndex(c => c === overId);
+      return parent?.childrenIds?.findIndex((c) => c === overId);
     }
   }
 
@@ -939,7 +1001,7 @@ function getIndex(
 
 function getLastIndex(
   partitions: Partition[] | undefined,
-  parentId: string | null
+  parentId: string | null,
 ): number {
   if (!partitions?.length) return -1;
 
@@ -947,14 +1009,14 @@ function getLastIndex(
     return partitions.length - 1;
   }
 
-  let parent = partitions?.find(p => p.id === parentId);
+  let parent = partitions?.find((p) => p.id === parentId);
 
   if (parent) {
-    return parent?.nodes?.filter(n => n.depth === 0).length - 1;
+    return parent?.nodes?.filter((n) => n.depth === 0).length - 1;
   }
 
   for (const p of partitions) {
-    const parent = p.nodes?.find(n => n.id === parentId);
+    const parent = p.nodes?.find((n) => n.id === parentId);
 
     if (parent) {
       return parent?.childCount - 1;
@@ -968,7 +1030,7 @@ function getLastIndex(
 const findItemLocation = (
   itemId: string,
   partitions: Partition[],
-): { type: string; partitionId?: string; label?: string, order?: number } => {
+): { type: string; partitionId?: string; label?: string; order?: number } => {
   // Check if it's a top-level partition
   const partition = partitions.find((p) => p.id === itemId);
   if (partition) {
@@ -988,7 +1050,7 @@ const findItemLocation = (
         type: 'node',
         partitionId: p.id,
         label: node.label,
-        order: node.index
+        order: node.index,
       };
     }
   }
