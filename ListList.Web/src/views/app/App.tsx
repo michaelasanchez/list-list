@@ -652,10 +652,84 @@ export const App: React.FC = () => {
               }
               return Promise.resolve(true);
             },
-            onDragEnd: (activeId, overId, parentId) =>
-              apis.itemApi
-                .Relocate(current.token!, activeId, overId, parentId)
-                .then(() => loadHeader(current.partitionId!)),
+            onDragEnd: async (activeId, overId, parentId, delta) => {
+              const activeInfo = findItemLocation(activeId, state.partitions);
+              const overInfo = findItemLocation(overId, state.partitions);
+              const parentInfo = findItemLocation(parentId, state.partitions);
+
+              const overIndex = getIndex(
+                state.partitions,
+                parentId ?? current?.featured?.id,
+                overId,
+              );
+              const adjust = activeId === overId ? 0 : delta.y > 0 ? 1 : 0;
+
+              let order =
+                overIndex +
+                (activeInfo.parentId === overInfo.parentId ? 0 : adjust);
+
+              if (overIndex < 0) {
+                const partition = state.partitions.find(
+                  (p) => p.id == activeInfo.partitionId,
+                );
+
+                let ancestorId: string | null | undefined = activeInfo.parentId;
+
+                if (ancestorId) {
+                  let count = 0;
+
+                  do {
+                    const ancestor = partition?.nodes.find(
+                      (n) => n.id == ancestorId,
+                    );
+
+                    if (ancestor?.id === parentId) {
+                      order =
+                        ancestor.childrenIds.findIndex((i) => i === parentId) +
+                        1;
+                    }
+
+                    if (ancestor?.parentId === null) {
+                      order =
+                        getIndex(
+                          state.partitions,
+                          ancestor?.partitionId,
+                          ancestor?.id,
+                        ) + 1;
+                    }
+
+                    ancestorId = ancestor?.parentId;
+
+                    if (++count > 10) {
+                      console.log('stuck');
+                    }
+                  } while (order == -1);
+                } else {
+                  order = getLastIndex(state.partitions, parentId) + 1;
+                }
+              }
+
+              const relocation: TreeNodeRelocation = {
+                destinationPartitionId: activeInfo.partitionId!,
+                parentId: parentInfo.type === 'partition' ? null : parentId,
+                order,
+              };
+
+              console.log('POST BODY', relocation);
+
+              await apis.treeApi.RelocateNode(
+                activeInfo.partitionId!,
+                activeId,
+                relocation,
+              );
+              await loadHeaders();
+
+              // apis.itemApi
+              //   .Relocate(current.token!, activeId, overId, parentId)
+              //   .then(() => loadHeader(current.partitionId!))
+
+              return true;
+            },
             onUpdate: async (activeId, update) => {
               if (current.partitionId) {
                 const item = getItem(
@@ -912,7 +986,7 @@ function getItem(
 
 function getIndex(
   partitions: Partition[] | undefined,
-  parentId: string | null,
+  parentId: string | null | undefined,
   overId: string,
 ): number {
   if (!partitions?.length) return -1;
