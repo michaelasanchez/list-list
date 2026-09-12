@@ -514,39 +514,32 @@ export const App: React.FC = () => {
             );
             await loadHeaders();
           } else {
-            let order = getIndex(state.partitions, parentId, overId);
+            const overIndex = getIndex(state.partitions, parentId, overId);
             const adjust = activeId === overId ? 0 : delta.y > 0 ? 1 : 0;
+
+            let order =
+              overIndex +
+              (activeInfo.parentId === overInfo.parentId ? 0 : adjust);
 
             console.log('ORDER', order, 'ADJUST', adjust);
 
-            if (order < 0) {
-
-            }
-
-            const activePartition = findItemLocation(
-              activeInfo.partitionId!,
-              state.partitions,
-            );
-            const overPartition = findItemLocation(
-              overInfo.partitionId!,
-              state.partitions,
-            );
-
-            if (activeInfo.partitionId === overInfo.partitionId) {
-              // Handle node reorder within the same partition
-              console.log(
-                'NODE REORDER',
-                `${activeId}: ${activeInfo.label}`,
-                `\nwithin partition: ${activeInfo.partitionId} - ${activePartition.label}`,
+            if (overIndex < 0) {
+              const parentPartition = findItemLocation(
+                parentId,
+                state.partitions,
               );
-            } else {
-              // Handle node move between different partitions
-              console.log(
-                'NODE RELOCATE',
-                `${activeId}: ${activeInfo.label}`,
-                `\nfrom partition: ${activeInfo.partitionId} - ${activePartition.label}`,
-                `\nto partition: ${overInfo.partitionId} - ${overPartition.label}`,
-              );
+              const overPartition = findItemLocation(overId, state.partitions);
+
+              const parentPartitionOrder = parentPartition?.order ?? 0;
+              const overPartitionOrder = overPartition?.order ?? 0;
+
+              if (parentPartitionOrder < overPartitionOrder) {
+                order = getLastIndex(state.partitions, parentId) + 1;
+              } else if (overId === parentId) {
+                order = 0;
+              } else {
+                console.log('hmmm');
+              }
             }
 
             const relocation: TreeNodeRelocation = {
@@ -555,16 +548,16 @@ export const App: React.FC = () => {
                   ? parentInfo.partitionId!
                   : overInfo.partitionId!,
               parentId: parentInfo.type === 'partition' ? null : parentId,
-              order: order + adjust,
+              order,
             };
 
             console.log('POST BODY', relocation);
 
-            await apis.treeApi.RelocateNode(
-              activeInfo.partitionId!,
-              activeId,
-              relocation,
-            );
+            // await apis.treeApi.RelocateNode(
+            //   activeInfo.partitionId!,
+            //   activeId,
+            //   relocation,
+            // );
             await loadHeaders();
           }
         }
@@ -1030,7 +1023,13 @@ function getLastIndex(
 const findItemLocation = (
   itemId: string,
   partitions: Partition[],
-): { type: string; partitionId?: string; label?: string; order?: number } => {
+): {
+  type: string;
+  partitionId?: string;
+  parentId?: string;
+  label?: string;
+  order?: number;
+} => {
   // Check if it's a top-level partition
   const partition = partitions.find((p) => p.id === itemId);
   if (partition) {
@@ -1049,6 +1048,7 @@ const findItemLocation = (
       return {
         type: 'node',
         partitionId: p.id,
+        parentId: node.parentId ?? undefined,
         label: node.label,
         order: node.index,
       };
