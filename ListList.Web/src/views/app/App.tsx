@@ -368,26 +368,26 @@ export const App: React.FC = () => {
         const overInfo = findItemLocation(overId, state.partitions);
         const parentInfo = findItemLocation(parentId, state.partitions);
 
-        console.log('\n\n\n');
+        // console.log('\n\n\n');
 
-        console.log(
-          'ACTIVE',
-          ` - '${activeInfo?.label}', order: ${activeInfo?.order}, partition: ${activeInfo?.partitionId}`,
-          `\n\t[${activeInfo?.type}] ${activeId}`,
-        );
-        console.log(
-          'OVER',
-          ` - '${overInfo?.label}', order: ${overInfo?.order}, partition: ${overInfo?.partitionId}`,
-          `\n\t[${overInfo?.type}] ${overId}`,
-        );
-        console.log(
-          'PARENT',
-          ` - '${parentInfo?.label}', order: ${parentInfo?.order}, partition: ${parentInfo?.partitionId}`,
-          `\n\t'[${parentInfo?.type}] ${parentId}`,
-        );
-        console.log('DELTA', delta);
+        // console.log(
+        //   'ACTIVE',
+        //   ` - '${activeInfo?.label}', order: ${activeInfo?.order}, partition: ${activeInfo?.partitionId}`,
+        //   `\n\t[${activeInfo?.type}] ${activeId}`,
+        // );
+        // console.log(
+        //   'OVER',
+        //   ` - '${overInfo?.label}', order: ${overInfo?.order}, partition: ${overInfo?.partitionId}`,
+        //   `\n\t[${overInfo?.type}] ${overId}`,
+        // );
+        // console.log(
+        //   'PARENT',
+        //   ` - '${parentInfo?.label}', order: ${parentInfo?.order}, partition: ${parentInfo?.partitionId}`,
+        //   `\n\t'[${parentInfo?.type}] ${parentId}`,
+        // );
+        // console.log('DELTA', delta);
 
-        console.log('----------------------');
+        // console.log('----------------------');
 
         const isTopLevelResult = parentId === null;
         const isActivePartition =
@@ -457,13 +457,13 @@ export const App: React.FC = () => {
             //  we have to fix the "when child is not found" scenario first
             // const adjust = delta.y > 0 ? 1 : 0;
 
-            console.log(
-              'PARTITION DEMOTION',
-              `${activeId}: ${activeInfo.label}`,
-              `\nto parent: ${parentId}: ${parentInfo.label}`,
-              `, order: ${order}`,
-              // `, order: ${order + adjust} (${order} + ${adjust})`,
-            );
+            // console.log(
+            //   'PARTITION DEMOTION',
+            //   `${activeId}: ${activeInfo.label}`,
+            //   `\nto parent: ${parentId}: ${parentInfo.label}`,
+            //   `, order: ${order}`,
+            //   // `, order: ${order + adjust} (${order} + ${adjust})`,
+            // );
 
             const demotion: TreePartitionDemotion = {
               destinationPartitionId:
@@ -521,7 +521,7 @@ export const App: React.FC = () => {
               overIndex +
               (activeInfo.parentId === overInfo.parentId ? 0 : adjust);
 
-            console.log('ORDER', order, 'ADJUST', adjust);
+            // console.log('ORDER', order, 'ADJUST', adjust);
 
             if (overIndex < 0) {
               const parentPartition = findItemLocation(
@@ -538,7 +538,33 @@ export const App: React.FC = () => {
               } else if (overId === parentId) {
                 order = 0;
               } else {
-                console.log('hmmm');
+                const partition = state.partitions.find(
+                  (p) => p.id == activeInfo.partitionId,
+                );
+
+                let ancestorId: string | null | undefined = activeInfo.parentId;
+
+                do {
+                  const ancestor = partition?.nodes.find(
+                    (n) => n.id == ancestorId,
+                  );
+
+                  if (ancestor?.id === parentId) {
+                    order =
+                      ancestor.childrenIds.findIndex((i) => i === parentId) + 1;
+                  }
+
+                  if (ancestor?.parentId === null) {
+                    order =
+                      getIndex(
+                        state.partitions,
+                        ancestor?.partitionId,
+                        ancestor?.id,
+                      ) + 1;
+                  }
+
+                  ancestorId = ancestor?.parentId;
+                } while (order == -1);
               }
             }
 
@@ -551,96 +577,18 @@ export const App: React.FC = () => {
               order,
             };
 
-            console.log('POST BODY', relocation);
+            // console.log('POST BODY', relocation);
 
-            // await apis.treeApi.RelocateNode(
-            //   activeInfo.partitionId!,
-            //   activeId,
-            //   relocation,
-            // );
+            await apis.treeApi.RelocateNode(
+              activeInfo.partitionId!,
+              activeId,
+              relocation,
+            );
             await loadHeaders();
           }
         }
 
-        console.log('========================');
-
-        // if (activeInfo.type === 'partition' && overInfo.type === 'partition') {
-
-        //   const order = getReorderedIndex(
-        //     state.partitions ?? [],
-        //     activeId,
-        //     overId,
-        //   );
-
-        //   // await apis.treeApi.RelocatePartition(activeId, { order });
-
-        //   // await loadHeaders();
-        //   return true;
-
-        // } else if (
-        //   activeInfo.type === 'node' &&
-        //   overInfo.type === 'partition'
-        // ) {
-
-        //   await apis.treeApi.PromoteNode(activeInfo.partitionId!, activeId, {
-        //     order:
-        //       state.partitions?.findIndex(
-        //         (partition) => partition.id === overInfo.partitionId,
-        //       ) ?? 0,
-        //   });
-        //   await loadHeaders();
-        //   return true;
-
-        // } else if (
-        //   activeInfo.type === 'partition' &&
-        //   overInfo.type === 'node'
-        // ) {
-
-        //   await apis.treeApi.DemotePartition(activeId, {
-        //     destinationPartitionId: overInfo.partitionId!,
-        //     parentId: parentId ?? overId,
-        //     order:
-        //       parentId === overId
-        //         ? 0
-        //         : getNodeOrder(
-        //             overInfo.partitionId!,
-        //             overId,
-        //             activeId,
-        //             parentId,
-        //             state.partitions,
-        //           ),
-        //   });
-        //   await loadHeaders();
-        //   return true;
-
-        // } else if (activeInfo.type === 'node' && overInfo.type === 'node') {
-
-        //   const partition = findItemLocation(
-        //     overInfo.partitionId!,
-        //     state.partitions,
-        //   );
-
-        //   console.log(
-        //     'RELOCATE NODE\n',
-        //     `destinationPartitionId: ${overInfo.partitionId}\n`,
-        //     `dest partition label: ${partition?.label}\n`,
-        //     `parentId: ${parentId}\n`,
-        //     `order: ${getNodeOrder(overInfo.partitionId!, overId, activeId, parentId, state.partitions)}`,
-        //   );
-        //   await apis.treeApi.RelocateNode(activeInfo.partitionId!, activeId, {
-        //     destinationPartitionId: overInfo.partitionId!,
-        //     parentId,
-        //     order: getNodeOrder(
-        //       overInfo.partitionId!,
-        //       overId,
-        //       activeId,
-        //       parentId,
-        //       state.partitions,
-        //     ),
-        //   });
-        //   await loadHeaders();
-        //   return true;
-        // }
+        // console.log('========================');
 
         return true;
       },
